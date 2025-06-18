@@ -1,0 +1,311 @@
+/* --- Global Styles & Fonts --- */
+:root {
+    --primary-color: #18D2A3; /* Bright Teal */
+    --background-color: #121212; /* Dark Background */
+    --card-bg-color: #1E1E1E; /* Slightly Lighter Dark */
+    --text-color: #E0E0E0; /* Off-white text */
+    --light-gray: #333333;
+    --brand-font: 'Exo 2', sans-serif;
+    --body-font: 'Poppins', sans-serif;
+    
+    /* NAYE COLORS */
+    --color-red: #ff6b6b;
+    --color-pink: #f78fb3;
+    --color-sky-blue: #54a0ff;
+    --color-yellow: #ffd700;
+}
+
+body {
+    font-family: var(--body-font);
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* --- WELCOME SCREEN STYLES --- */
+#welcome-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.5s ease-out;
+}
+.welcome-content {
+    text-align: center;
+    padding: 20px;
+}
+.logo {
+    font-size: 80px;
+    line-height: 1;
+    margin-bottom: 20px;
+}
+.brand-title {
+    font-family: var(--brand-font);
+    font-size: 48px;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 2px;
+}
+.tagline {
+    font-size: 16px;
+    color: var(--text-color);
+    margin-top: 10px;
+    margin-bottom: 40px;
+}
+.progress-bar-container {
+    width: 200px;
+    height: 4px;
+    background-color: #333;
+    border-radius: 2px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+    animation: load 3.5s linear forwards;
+}
+@keyframes load {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+
+/* --- App Container --- */
+.app-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Screen Styles --- */
+.screen {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+.screen.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Header Styles --- */
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-family: var(--brand-font);
+    color: #ffffff;
+}
+.back-button {
+    background: none;
+    border: none;
+    font-size: 28px;
+    margin-right: 15px;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+/* --- Card Styles --- */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+.card {
+    background-color: var(--card-bg-color);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--light-gray);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px rgba(24, 210, 163, 0.3);
+}
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+.card h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* --- List & Form Styles --- */
+.input-box, .textarea-box {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
+}
+.submit-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-color);
+    color: #121212;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--brand-font);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.submit-button:hover { background-color: #15b88e; }
+.submit-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    color: #999;
+}
+.upload-btn { text-align: center; display: block; margin-bottom: 20px; }
+#file-name-display { display: block; text-align: center; margin-bottom: 20px; font-size: 14px; }
+
+
+/* --- MCQ QUIZ STYLES --- */
+#mcq-setup-view p {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+#quiz-topic-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+.mcq-question-block {
+    background-color: var(--card-bg-color);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--light-gray);
+}
+.question-text {
+    margin-top: 0;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+.mcq-option {
+    display: block;
+    background-color: #2a2a2a;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-left 0.2s;
+    border-left: 3px solid transparent;
+}
+.mcq-option:hover {
+    background-color: #333;
+    border-left: 3px solid var(--primary-color);
+}
+.mcq-option input[type="radio"] {
+    margin-right: 12px;
+    accent-color: var(--primary-color);
+}
+#quiz-result {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+
+/* --- FINAL STYLING: AI ke Jawab ko Colorful Banane ke liye --- */
+
+.ai-generated-content {
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+/* Headings ke liye - RED */
+.ai-generated-content h1,
+.ai-generated-content h2,
+.ai-generated-content h3 {
+    color: var(--color-red);
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 8px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-family: var(--brand-font);
+}
+
+/* Important (Bold) text ke liye - PINK */
+.ai-generated-content strong {
+    color: var(--color-pink);
+    font-weight: 600;
+}
+
+/* Inline Code/Formulas ke liye - SKY BLUE */
+.ai-generated-content code {
+    background-color: #2e2e2e;
+    color: var(--color-sky-blue);
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95em;
+}
+
+/* Bade Code Blocks (Chemical Reactions) ke liye - YELLOW */
+.ai-generated-content pre {
+    background-color: #0d1117;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--light-gray);
+    overflow-x: auto;
+}
+.ai-generated-content pre code {
+    background-color: transparent;
+    color: var(--color-yellow);
+    padding: 0;
+    border-radius: 0;
+}
+
+/* Lists (Bullet points) ke liye */
+.ai-generated-content ul,
+.ai-generated-content ol {
+    padding-left: 25px;
+}
+
+.ai-generated-content li {
+    margin-bottom: 10px;
+}
+
+
+/* NAYA CODE: Retake Quiz button ke liye alag style */
+.submit-button.secondary {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+.submit-button.secondary:hover {
+    background-color: var(--primary-color);
+    color: #121212;
+}
