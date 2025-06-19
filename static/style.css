@@ -8,11 +8,16 @@
     --brand-font: 'Exo 2', sans-serif;
     --body-font: 'Poppins', sans-serif;
     
+    /* PURANE COLORS */
     --color-red: #ff6b6b;
     --color-pink: #f78fb3;
     --color-sky-blue: #54a0ff;
-    --color-yellow: #ffd700;
     --color-green: #2ecc71;
+
+    /* --- NAYE COLORS YAHAN ADD KIYE GAYE HAIN --- */
+    --color-yellow: #f1c40f;   /* Yellow */
+    --color-orange: #e67e22;   /* Orange */
+    --color-purple: #9b59b6;   /* Purple */
 }
 
 body {
@@ -24,19 +29,7 @@ body {
 }
 
 /* --- WELCOME SCREEN STYLES --- */
-#welcome-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--background-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    transition: opacity 0.5s ease-out;
-}
+#welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--background-color); display: flex; justify-content: center; align-items: center; z-index: 100; transition: opacity 0.5s ease-out; }
 .welcome-content { text-align: center; padding: 20px; }
 .logo { font-size: 80px; line-height: 1; margin-bottom: 20px; }
 .brand-title { font-family: var(--brand-font); font-size: 48px; color: #ffffff; margin: 0; letter-spacing: 2px; }
@@ -59,48 +52,17 @@ body {
 .back-button { background: none; border: none; font-size: 28px; margin-right: 15px; cursor: pointer; color: var(--primary-color); }
 
 /* --- Card Styles --- */
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Mobile First */
-    gap: 15px;
-}
-@media (min-width: 768px) { /* Tablet and Desktop */
-    .feature-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-    }
-}
-@media (min-width: 1000px) { /* Larger Desktop */
-    .feature-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-.card {
-    background-color: var(--card-bg-color);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid var(--light-gray);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+@media (min-width: 768px) { .feature-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+@media (min-width: 1000px) { .feature-grid { grid-template-columns: repeat(4, 1fr); } }
+.card { background-color: var(--card-bg-color); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid var(--light-gray); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .card:hover { transform: translateY(-5px); box-shadow: 0 0 15px rgba(24, 210, 163, 0.3); }
 .card-icon { font-size: 36px; margin-bottom: 10px; line-height: 1; }
 .card h3 { margin: 0; font-size: 14px; font-weight: 500; }
 
 /* --- Form & Common Styles --- */
-.input-box, .textarea-box {
-    width: 100%; padding: 15px; border: 1px solid var(--light-gray); border-radius: 8px;
-    font-size: 16px; margin-bottom: 20px; box-sizing: border-box; background-color: var(--card-bg-color); color: var(--text-color);
-}
-.submit-button {
-    width: 100%; padding: 15px; border: none; border-radius: 8px; background-color: var(--primary-color);
-    color: #121212; font-size: 18px; font-weight: 700; font-family: var(--brand-font); cursor: pointer; transition: background-color 0.2s;
-}
+.input-box, .textarea-box { width: 100%; padding: 15px; border: 1px solid var(--light-gray); border-radius: 8px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; background-color: var(--card-bg-color); color: var(--text-color); }
+.submit-button { width: 100%; padding: 15px; border: none; border-radius: 8px; background-color: var(--primary-color); color: #121212; font-size: 18px; font-weight: 700; font-family: var(--brand-font); cursor: pointer; transition: background-color 0.2s; }
 .submit-button:hover { background-color: #15b88e; }
 .submit-button:disabled { background-color: #555; cursor: not-allowed; color: #999; }
 .submit-button.secondary { background-color: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); }
@@ -121,51 +83,14 @@ body {
 .mcq-option input[type="radio"] { margin-right: 12px; accent-color: var(--primary-color); }
 #quiz-result { text-align: center; font-size: 1.5em; font-weight: bold; margin-top: 20px; }
 
-/* --- NAYA: FLASHCARD STYLES --- */
-.flashcard-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    perspective: 1000px;
-}
-@media (min-width: 600px) {
-    .flashcard-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 900px) {
-    .flashcard-grid { grid-template-columns: repeat(3, 1fr); }
-}
-.flashcard {
-    background-color: transparent;
-    width: 100%;
-    height: 200px;
-    border-radius: 12px;
-    cursor: pointer;
-}
-.flashcard-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-.flashcard.flipped .flashcard-inner {
-    transform: rotateY(180deg);
-}
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-    border: 1px solid var(--light-gray);
-}
+/* --- FLASHCARD STYLES --- */
+.flashcard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; perspective: 1000px; }
+@media (min-width: 600px) { .flashcard-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .flashcard-grid { grid-template-columns: repeat(3, 1fr); } }
+.flashcard { background-color: transparent; width: 100%; height: 200px; border-radius: 12px; cursor: pointer; }
+.flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+.card-front, .card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 12px; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; border: 1px solid var(--light-gray); }
 .card-front { background-color: var(--card-bg-color); }
 .card-back { background-color: var(--primary-color); color: #121212; transform: rotateY(180deg); font-weight: 500; }
 
@@ -178,3 +103,25 @@ body {
 .ai-generated-content pre code { background-color: transparent; color: var(--color-yellow); padding: 0; border-radius: 0; }
 .ai-generated-content ul, .ai-generated-content ol { padding-left: 25px; }
 .ai-generated-content li { margin-bottom: 10px; }
+
+/* --- NAYE RANGON KE LIYE STYLES --- */
+.ai-generated-content h4 {
+    color: var(--color-yellow);
+    font-family: var(--brand-font);
+}
+.ai-generated-content blockquote {
+    color: var(--color-orange);
+    border-left: 3px solid var(--color-orange);
+    background-color: #2a2a2a;
+    padding: 10px 15px;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 5px;
+    font-style: italic;
+}
+.ai-generated-content hr {
+    border: 0;
+    height: 1px;
+    margin: 30px 0;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-purple), rgba(0, 0, 0, 0));
+}
