@@ -30,8 +30,13 @@ function navigateTo(screenId) {
 
 // Function to process AI content for display
 function renderAIContent(element, content) {
+    // === YAHAN BADLAV KIYA GAYA HAI ===
+    // Pehle extra text ko saaf karein
+    const cleanedContent = content.replace(/IGNORE_WHEN_COPYING_START[\s\S]*IGNORE_WHEN_COPYING_END/g, '').replace(/Generated code/g, '').trim();
+
     if (element) {
-        element.innerHTML = marked.parse(content);
+        // Ab saaf kiye hue content ko display karein
+        element.innerHTML = marked.parse(cleanedContent);
         element.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightElement(block);
         });
@@ -71,7 +76,8 @@ if (doubtForm) {
             const response = await fetch('/ask-ai-image', { method: 'POST', body: formData });
             if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
             const data = await response.json();
-            renderAIContent(responseDiv, data.answer.trim());
+            // Yahan hum naya function istemal kar rahe hain
+            renderAIContent(responseDiv, data.answer);
         } catch (error) {
             responseDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
         } finally {
@@ -111,7 +117,8 @@ if (notesForm) {
             });
             if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
             const data = await response.json();
-            renderAIContent(notesDiv, data.notes.trim());
+            // Yahan hum naya function istemal kar rahe hain
+            renderAIContent(notesDiv, data.notes);
         } catch (error) {
             notesDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
         } finally {
@@ -161,7 +168,15 @@ if (startQuizBtn) {
             });
             if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
             const questions = await response.json();
-            displayQuestions(questions);
+            // === YAHAN BADLAV KIYA GAYA HAI ===
+            // Yahan bhi hum AI se mile hue text ko saaf karenge
+            if (typeof questions === 'string') {
+                const cleanedQuestionsText = questions.replace(/IGNORE_WHEN_COPYING_START[\s\S]*IGNORE_WHEN_COPYING_END/g, '').replace(/Generated code/g, '').trim();
+                const parsedQuestions = JSON.parse(cleanedQuestionsText); // Assume it's a JSON string
+                displayQuestions(parsedQuestions);
+            } else {
+                 displayQuestions(questions);
+            }
         } catch (error) {
             quizContainer.innerHTML = `<p style="color: var(--color-red);">Quiz generate nahi ho saka: ${error.message}</p>`;
             // Allow user to go back
@@ -268,7 +283,8 @@ if (solvedNotesForm) {
             });
             if (!response.ok) throw new Error((await response.json()).error);
             const data = await response.json();
-            renderAIContent(responseDiv, data.solved_notes.trim());
+            // Yahan hum naya function istemal kar rahe hain
+            renderAIContent(responseDiv, data.solved_notes);
         } catch (error) {
             responseDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
         } finally {
@@ -276,4 +292,4 @@ if (solvedNotesForm) {
             getBtn.textContent = 'Get Solved Examples';
         }
     });
-}
+            }
