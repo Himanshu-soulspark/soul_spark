@@ -29,7 +29,6 @@ except (ValueError, KeyError) as e:
 # ==============================================================================
 # AI मॉडल को चुनना
 # ==============================================================================
-# सुरक्षा सेटिंग्स को थोड़ा कम सख्त किया गया है ताकि जवाब ब्लॉक न हों
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -43,13 +42,10 @@ model = genai.GenerativeModel('gemini-1.5-flash-latest', safety_settings=safety_
 # ==============================================================================
 def get_response_text(response):
     try:
-        # Check if response has parts and they are not empty
         if response.parts:
             return "".join(part.text for part in response.parts)
-        # Fallback for older response structures
         elif hasattr(response, 'text'):
             return response.text
-        # If response is blocked, the prompt_feedback will tell us why
         if response.prompt_feedback and response.prompt_feedback.block_reason:
             return f"AI ने सुरक्षा कारणों से जवाब रोक दिया है। कारण: {response.prompt_feedback.block_reason.name}"
         return "AI से कोई जवाब नहीं मिला।"
@@ -61,13 +57,11 @@ def get_response_text(response):
 # ऐप के रूट्स (Routes)
 # ==============================================================================
 
-# --- होम पेज का रूट ---
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
-# --- विभाग 8: कंटेंट समराइज़र (लंबे वीडियो के लिए लिमिट के साथ) ---
+# --- विभाग 8: कंटेंट समराइज़र (नए और मज़बूत Fallback System के साथ) ---
 @app.route('/summarize-content-ai', methods=['POST'])
 def summarize_content_route():
     try:
@@ -83,25 +77,40 @@ def summarize_content_route():
 
         if match:
             video_id = match.group(5)
+            transcript_text = None
+            
+            # --- YAHAN BADLAV KIYA GAYA HAI ---
+            # नया और स्मार्ट Fallback System
             try:
-                transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-                full_transcript = " ".join([item['text'] for item in transcript_list])
-                
-                # --- YAHAN BADLAV KIYA GAYA HAI ---
-                # लंबे ट्रांसक्रिप्ट को छोटा करने के लिए लिमिट लगाना
-                # हम सिर्फ पहले 15000 कैरेक्टर्स का उपयोग करेंगे
-                MAX_CHARS = 15000
-                if len(full_transcript) > MAX_CHARS:
-                    text_to_summarize = full_transcript[:MAX_CHARS]
-                    print(f"Transcript truncated for video_id: {video_id}")
-                else:
-                    text_to_summarize = full_transcript
-                    
+                # 1. पहली कोशिश: मैन्युअल इंग्लिश ट्रांसक्रिप्ट खोजना
+                transcript_list = YouTubeTranscriptApi.find_transcript(['en']).fetch()
+                transcript_text = " ".join([d['text'] for d in transcript_list])
             except (NoTranscriptFound, TranscriptsDisabled):
-                return jsonify({'error': 'इस वीडियो का ट्रांसक्रिप्ट नहीं मिल सका। हो सकता है इसपे कैप्शंस बंद हों।'}), 400
+                try:
+                    # 2. दूसरी कोशिश: ऑटो-जेनरेटेड इंग्लिश ट्रांसक्रिप्ट खोजना
+                    transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+                    transcript_text = " ".join([d['text'] for d in transcript_list])
+                except (NoTranscriptFound, TranscriptsDisabled):
+                    try:
+                        # 3. तीसरी कोशिश: कोई भी उपलब्ध ट्रांसक्रिप्ट खोजना
+                        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                        transcript_text = " ".join([d['text'] for d in transcript_list])
+                    except (NoTranscriptFound, TranscriptsDisabled):
+                        return jsonify({'error': 'इस वीडियो के लिए कोई भी ट्रांसक्रिप्ट उपलब्ध नहीं है।'}), 400
+            
             except Exception as e:
-                print(f"YouTube Transcript Error for video_id {video_id}: {e}")
-                return jsonify({'error': 'ट्रांसक्रिप्ट निकालते समय कोई अज्ञात समस्या हुई।'}), 500
+                print(f"YouTube Transcript Main Error for video_id {video_id}: {e}")
+                return jsonify({'error': 'ट्रांसक्रिप्ट निकालते समय कोई अज्ञात सर्वर समस्या हुई।'}), 500
+
+            if transcript_text:
+                MAX_CHARS = 15000
+                if len(transcript_text) > MAX_CHARS:
+                    text_to_summarize = transcript_text[:MAX_CHARS]
+                else:
+                    text_to_summarize = transcript_text
+            else:
+                 return jsonify({'error': 'इस वीडियो का ट्रांसक्रिप्ट नहीं मिल सका।'}), 400
+
         else:
             text_to_summarize = content
 
@@ -110,11 +119,11 @@ def summarize_content_route():
 
         prompt = f"""
         Provide a concise summary for the following text.
-        **CONTENT:** "{text_to_summarize}"
-        **OUTPUT FORMAT:**
-        1.  **## Main Idea:** A one-sentence summary.
-        2.  **## Key Points:** A bulleted list of 5-7 important points.
-        3.  **## Keywords:** A list of important keywords.
+        CONTENT: "{text_to_summarize}"
+        OUTPUT FORMAT:
+        1.  ## Main Idea
+        2.  ## Key Points (5-7 bullets)
+        3.  ## Keywords
         """
         response = model.generate_content(prompt)
         summary_text = get_response_text(response)
@@ -129,49 +138,7 @@ def summarize_content_route():
         return jsonify({'error': 'Error summarizing content.'}), 500
 
 
-# --- विभाग 9: फ्लैशकार्ड जेनरेटर (और सख्त प्रॉम्प्ट के साथ) ---
-@app.route('/generate-flashcards-ai', methods=['POST'])
-def generate_flashcards_route():
-    try:
-        data = request.get_json()
-        topic = data.get('topic')
-        if not topic:
-            return jsonify({'error': 'Please provide a topic.'}), 400
-
-        # --- YAHAN PROMPT BADLA GAYA HAI ---
-        # प्रॉम्प्ट को और भी ज्यादा सख्त और सीधा बनाया गया है
-        prompt = f"""
-        Generate 8 flashcards for the topic: "{topic}".
-        Your entire response must be a single, valid JSON array of objects.
-        Each object must have two keys: "front" and "back".
-        Do not add any text, explanation, or markdown like ```json before or after the array.
-        """
-        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        response = model.generate_content(prompt, generation_config=generation_config)
-        
-        response_text = get_response_text(response)
-        
-        if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in response_text:
-            return jsonify({'error': response_text}), 500
-            
-        try:
-            cards_data = json.loads(response_text)
-            if isinstance(cards_data, list):
-                return jsonify(cards_data)
-            else:
-                raise json.JSONDecodeError("Response is not a list.", response_text, 0)
-
-        except json.JSONDecodeError as json_err:
-            print(f"JSON DECODE ERROR in flashcards. AI Response: {response_text}. Error: {json_err}")
-            return jsonify({'error': 'AI से मिला जवाब सही फॉर्मेट में नहीं था। कृपया दोबारा प्रयास करें।'}), 500
-            
-    except Exception as e:
-        print(f"--- UNKNOWN ERROR in generate_flashcards_route: {e} ---")
-        return jsonify({'error': 'फ्लैशकार्ड बनाते समय एक अज्ञात सर्वर समस्या हुई।'}), 500
-
 # (बाकी सभी रूट्स बिना किसी बदलाव के वैसे ही रहेंगे)
-# ... (नीचे के सभी रूट्स को पिछले जवाब से कॉपी-पेस्ट कर लें) ...
-# ... (ask_ai_image_route, generate_notes_route, etc.) ...
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     try:
@@ -375,6 +342,37 @@ def get_presentation_feedback_route():
     except Exception as e:
         print(f"--- ERROR in get_presentation_feedback_route: {e} ---")
         return jsonify({'error': 'Error generating presentation feedback.'}), 500
+        
+@app.route('/generate-flashcards-ai', methods=['POST'])
+def generate_flashcards_route():
+    try:
+        data = request.get_json()
+        topic = data.get('topic')
+        if not topic:
+            return jsonify({'error': 'Please provide a topic.'}), 400
+        prompt = f"""
+        Generate 8 flashcards for the topic: "{topic}".
+        Your entire response must be a single, valid JSON array of objects.
+        Each object must have two keys: "front" and "back".
+        Do not add any text, explanation, or markdown like ```json before or after the array.
+        """
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        response = model.generate_content(prompt, generation_config=generation_config)
+        response_text = get_response_text(response)
+        if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in response_text:
+            return jsonify({'error': response_text}), 500
+        try:
+            cards_data = json.loads(response_text)
+            if isinstance(cards_data, list):
+                return jsonify(cards_data)
+            else:
+                raise json.JSONDecodeError("Response is not a list.", response_text, 0)
+        except json.JSONDecodeError as json_err:
+            print(f"JSON DECODE ERROR in flashcards. AI Response: {response_text}. Error: {json_err}")
+            return jsonify({'error': 'AI से मिला जवाब सही फॉर्मेट में नहीं था। कृपया दोबारा प्रयास करें।'}), 500
+    except Exception as e:
+        print(f"--- UNKNOWN ERROR in generate_flashcards_route: {e} ---")
+        return jsonify({'error': 'फ्लैशकार्ड बनाते समय एक अज्ञात सर्वर समस्या हुई।'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
