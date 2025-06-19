@@ -2,57 +2,82 @@
 window.addEventListener('load', () => {
     const welcomeScreen = document.getElementById('welcome-screen');
     const appContainer = document.querySelector('.app-container');
-
     setTimeout(() => {
-        if (welcomeScreen) {
-            welcomeScreen.style.opacity = '0';
-        }
-        
+        if (welcomeScreen) welcomeScreen.style.opacity = '0';
         setTimeout(() => {
-            if (welcomeScreen) {
-                welcomeScreen.style.display = 'none';
-            }
-            if (appContainer) {
-                appContainer.style.display = 'block';
-            }
+            if (welcomeScreen) welcomeScreen.style.display = 'none';
+            if (appContainer) appContainer.style.display = 'block';
         }, 500);
-
     }, 4000);
 });
-
 
 // --- NAVIGATION LOGIC ---
 function navigateTo(screenId) {
     document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) targetScreen.classList.add('active');
+    window.scrollTo(0, 0); // Har screen change par upar scroll karein
 }
 
 // Function to process AI content for display
 function renderAIContent(element, content) {
-    // === YAHAN BADLAV KIYA GAYA HAI ===
-    // Pehle extra text ko saaf karein
-    const cleanedContent = content.replace(/IGNORE_WHEN_COPYING_START[\s\S]*IGNORE_WHEN_COPYING_END/g, '').replace(/Generated code/g, '').trim();
+    if (!element) return;
+    const cleanedContent = content.replace(/```json\n?([\s\S]*?)```/g, '$1').trim();
+    element.innerHTML = marked.parse(cleanedContent);
+    element.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+    });
+}
 
-    if (element) {
-        // Ab saaf kiye hue content ko display karein
-        element.innerHTML = marked.parse(cleanedContent);
-        element.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
+// --- HELPER FUNCTION FOR API REQUESTS ---
+async function handleApiRequest(formId, buttonId, containerId, responseId, url, body) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    const submitButton = document.getElementById(buttonId);
+    const responseContainer = document.getElementById(containerId);
+    const responseDiv = document.getElementById(responseId);
+
+    submitButton.disabled = true;
+    submitButton.dataset.originalText = submitButton.textContent;
+    submitButton.textContent = 'Generating...';
+    responseContainer.style.display = 'block';
+    responseDiv.innerHTML = '<p>AI se jawab milne ka intezar hai...</p>';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Server se response nahi mila.');
+        }
+        const data = await response.json();
+        // data object se key nikalna
+        const key = Object.keys(data)[0];
+        renderAIContent(responseDiv, data[key]);
+        
+    } catch (error) {
+        responseDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = submitButton.dataset.originalText;
     }
 }
 
-// --- FEATURE 1: ASK DOUBT ---
+
+// --- EXISTING FEATURES LOGIC (No Major Changes) ---
+
+// FEATURE 1: ASK DOUBT
 const doubtForm = document.getElementById('doubt-form');
 if (doubtForm) {
     const imageInput = document.getElementById('doubt-image-input');
     const fileNameDisplay = document.getElementById('file-name-display');
-    
     imageInput.addEventListener('change', () => {
         fileNameDisplay.textContent = imageInput.files.length > 0 ? `Selected: ${imageInput.files[0].name}` : '';
     });
-
     doubtForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const doubtInput = document.getElementById('doubt-input');
@@ -76,7 +101,6 @@ if (doubtForm) {
             const response = await fetch('/ask-ai-image', { method: 'POST', body: formData });
             if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
             const data = await response.json();
-            // Yahan hum naya function istemal kar rahe hain
             renderAIContent(responseDiv, data.answer);
         } catch (error) {
             responseDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
@@ -89,207 +113,191 @@ if (doubtForm) {
     });
 }
 
+// FEATURE 2: GENERATE NOTES
+document.getElementById('notes-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const topic = document.getElementById('notes-topic-input').value.trim();
+    if (topic) handleApiRequest('notes-form', 'generate-notes-submit', 'notes-response-container', 'notes-response', '/generate-notes-ai', { topic });
+});
 
-// --- FEATURE 2: GENERATE NOTES ---
-const notesForm = document.getElementById('notes-form');
-if (notesForm) {
-    notesForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const topicInput = document.getElementById('notes-topic-input');
-        const topic = topicInput.value.trim();
-        
-        const notesContainer = document.getElementById('notes-response-container');
-        const notesDiv = document.getElementById('notes-response');
-        const generateButton = document.getElementById('generate-notes-submit');
-
-        if (topic === '') return alert('Please ek topic likhein.');
-
-        generateButton.disabled = true;
-        generateButton.textContent = 'Generating...';
-        notesContainer.style.display = 'block';
-        notesDiv.innerHTML = '<p>AI notes taiyaar kar raha hai...</p>';
-
-        try {
-            const response = await fetch('/generate-notes-ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: topic })
-            });
-            if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
-            const data = await response.json();
-            // Yahan hum naya function istemal kar rahe hain
-            renderAIContent(notesDiv, data.notes);
-        } catch (error) {
-            notesDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
-        } finally {
-            generateButton.disabled = false;
-            generateButton.textContent = 'Generate';
-        }
-    });
-}
-
-
-// --- FEATURE 3: PRACTICE MCQs ---
+// FEATURE 3: PRACTICE MCQs
 let correctAnswers = [];
-const startQuizBtn = document.getElementById('start-quiz-btn');
-const mcqSetupView = document.getElementById('mcq-setup-view');
-const mcqQuizView = document.getElementById('mcq-quiz-view');
-const submitQuizBtn = document.getElementById('submit-quiz-btn');
-const postQuizOptions = document.getElementById('post-quiz-options');
-const retakeQuizBtn = document.getElementById('retake-quiz-btn');
+document.getElementById('start-quiz-btn')?.addEventListener('click', async () => {
+    const topicInput = document.getElementById('mcq-topic-input');
+    const topic = topicInput.value.trim();
+    if (topic === '') return alert('Please ek topic likhein.');
+    
+    const setupView = document.getElementById('mcq-setup-view');
+    const quizView = document.getElementById('mcq-quiz-view');
+    const quizContainer = document.getElementById('quiz-container');
+    const submitQuizBtn = document.getElementById('submit-quiz-btn');
+    const postQuizOptions = document.getElementById('post-quiz-options');
+    const startBtn = document.getElementById('start-quiz-btn');
 
-if (startQuizBtn) {
-    startQuizBtn.addEventListener('click', async () => {
-        const mcqTopicInput = document.getElementById('mcq-topic-input');
-        const topic = mcqTopicInput.value.trim();
-        if (topic === '') return alert('Please ek topic likhein.');
-        
-        // Reset state for a new quiz
-        submitQuizBtn.style.display = 'block';
-        submitQuizBtn.disabled = false;
-        postQuizOptions.style.display = 'none';
-        
-        const quizContainer = document.getElementById('quiz-container');
-        const quizTopicTitle = document.getElementById('quiz-topic-title');
-        
-        startQuizBtn.disabled = true;
-        startQuizBtn.textContent = 'Generating Quiz...';
-        mcqSetupView.style.display = 'none';
-        mcqQuizView.style.display = 'block';
-        quizTopicTitle.textContent = `Quiz on: ${topic}`;
-        quizContainer.innerHTML = '<p>AI aapke liye sawaal taiyaar kar raha hai...</p>';
-        document.getElementById('quiz-result').innerHTML = '';
+    startBtn.disabled = true; startBtn.textContent = 'Generating...';
+    setupView.style.display = 'none'; quizView.style.display = 'block';
+    document.getElementById('quiz-topic-title').textContent = `Quiz on: ${topic}`;
+    quizContainer.innerHTML = '<p>AI aapke liye sawaal taiyaar kar raha hai...</p>';
+    document.getElementById('quiz-result').innerHTML = '';
+    submitQuizBtn.style.display = 'block'; submitQuizBtn.disabled = false;
+    postQuizOptions.style.display = 'none';
 
-        try {
-            const response = await fetch('/generate-mcq-ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: topic })
-            });
-            if (!response.ok) throw new Error((await response.json()).error || 'Server se response nahi mila.');
-            const questions = await response.json();
-            // === YAHAN BADLAV KIYA GAYA HAI ===
-            // Yahan bhi hum AI se mile hue text ko saaf karenge
-            if (typeof questions === 'string') {
-                const cleanedQuestionsText = questions.replace(/IGNORE_WHEN_COPYING_START[\s\S]*IGNORE_WHEN_COPYING_END/g, '').replace(/Generated code/g, '').trim();
-                const parsedQuestions = JSON.parse(cleanedQuestionsText); // Assume it's a JSON string
-                displayQuestions(parsedQuestions);
-            } else {
-                 displayQuestions(questions);
-            }
-        } catch (error) {
-            quizContainer.innerHTML = `<p style="color: var(--color-red);">Quiz generate nahi ho saka: ${error.message}</p>`;
-            // Allow user to go back
-            mcqSetupView.style.display = 'block';
-            mcqQuizView.style.display = 'none';
-        } finally {
-            startQuizBtn.disabled = false;
-            startQuizBtn.textContent = 'Start Quiz';
-        }
-    });
-}
+    try {
+        const response = await fetch('/generate-mcq-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic })
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Server error');
+        const questions = await response.json();
+        displayQuestions(questions);
+    } catch (error) {
+        quizContainer.innerHTML = `<p style="color: var(--color-red);">Quiz generate nahi ho saka: ${error.message}</p>`;
+        setupView.style.display = 'block'; quizView.style.display = 'none';
+    } finally {
+        startBtn.disabled = false; startBtn.textContent = 'Start Quiz';
+    }
+});
 
 function displayQuestions(questions) {
     const quizContainer = document.getElementById('quiz-container');
     quizContainer.innerHTML = '';
     correctAnswers = questions.map(q => q.correct_answer);
-
     questions.forEach((q, index) => {
         const questionElement = document.createElement('div');
-        questionElement.classList.add('mcq-question-block');
+        questionElement.className = 'mcq-question-block';
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-        let optionsHTML = '';
-        shuffledOptions.forEach(option => {
-            optionsHTML += `
-                <label class="mcq-option">
-                    <input type="radio" name="question-${index}" value="${option}">
-                    <span>${option}</span>
-                </label>
-            `;
-        });
-        questionElement.innerHTML = `
-            <p class="question-text"><strong>Q${index + 1}:</strong> ${q.question}</p>
-            <div class="options-container" id="options-${index}">${optionsHTML}</div>
-        `;
+        let optionsHTML = shuffledOptions.map(option => `
+            <label class="mcq-option">
+                <input type="radio" name="question-${index}" value="${option}"> <span>${option}</span>
+            </label>
+        `).join('');
+        questionElement.innerHTML = `<p class="question-text"><strong>Q${index + 1}:</strong> ${q.question}</p><div class="options-container" id="options-${index}">${optionsHTML}</div>`;
         quizContainer.appendChild(questionElement);
     });
 }
 
-if (submitQuizBtn) {
-    submitQuizBtn.addEventListener('click', () => {
-        if (correctAnswers.length === 0) return;
-
-        let score = 0;
-        for (let i = 0; i < correctAnswers.length; i++) {
-            const selectedOption = document.querySelector(`input[name="question-${i}"]:checked`);
-            const optionsContainer = document.getElementById(`options-${i}`);
-            const allLabels = optionsContainer.querySelectorAll('label');
-
-            allLabels.forEach(label => {
-                label.style.pointerEvents = 'none'; // Disable clicking after submit
-                const radio = label.querySelector('input');
-                if (radio.value === correctAnswers[i]) {
-                    label.style.borderLeft = '5px solid #2ecc71'; // Green for correct
-                }
-            });
-
-            if (selectedOption) {
-                if (selectedOption.value === correctAnswers[i]) {
-                    score++;
-                } else {
-                    selectedOption.parentElement.style.borderLeft = '5px solid var(--color-red)'; // Red for incorrect
-                }
-            }
-        }
-        const resultDiv = document.getElementById('quiz-result');
-        resultDiv.innerHTML = `Your Score: ${score} out of ${correctAnswers.length}`;
-        submitQuizBtn.style.display = 'none';
-        postQuizOptions.style.display = 'block';
-    });
-}
-
-if(retakeQuizBtn) {
-    retakeQuizBtn.addEventListener('click', () => {
-        mcqQuizView.style.display = 'none';
-        mcqSetupView.style.display = 'block';
-        document.getElementById('mcq-topic-input').value = ''; // Clear previous topic
-    });
-}
-
-// --- FEATURE 4: SOLVED NOTES ---
-const solvedNotesForm = document.getElementById('solved-notes-form');
-if (solvedNotesForm) {
-    solvedNotesForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const topicInput = document.getElementById('solved-notes-topic-input');
-        const topic = topicInput.value.trim();
-        
-        const responseContainer = document.getElementById('solved-notes-response-container');
-        const responseDiv = document.getElementById('solved-notes-response');
-        const getBtn = document.getElementById('get-solved-notes-btn');
-
-        if (topic === '') return alert('Please ek topic likhein.');
-
-        getBtn.disabled = true;
-        getBtn.textContent = 'Fetching...';
-        responseContainer.style.display = 'block';
-        responseDiv.innerHTML = '<p>AI aapke liye solved examples dhoondh raha hai...</p>';
-
-        try {
-            const response = await fetch('/get-solved-notes-ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: topic })
-            });
-            if (!response.ok) throw new Error((await response.json()).error);
-            const data = await response.json();
-            // Yahan hum naya function istemal kar rahe hain
-            renderAIContent(responseDiv, data.solved_notes);
-        } catch (error) {
-            responseDiv.innerHTML = `<p style="color: var(--color-red);">Maaf kijiye, kuch gadbad ho gayi: ${error.message}</p>`;
-        } finally {
-            getBtn.disabled = false;
-            getBtn.textContent = 'Get Solved Examples';
+document.getElementById('submit-quiz-btn')?.addEventListener('click', () => {
+    if (correctAnswers.length === 0) return;
+    let score = 0;
+    correctAnswers.forEach((answer, i) => {
+        const selected = document.querySelector(`input[name="question-${i}"]:checked`);
+        const optionsContainer = document.getElementById(`options-${i}`);
+        optionsContainer.querySelectorAll('label').forEach(label => {
+            label.style.pointerEvents = 'none';
+            if (label.querySelector('input').value === answer) label.style.borderLeft = '5px solid var(--color-green)';
+        });
+        if (selected) {
+            if (selected.value === answer) score++;
+            else selected.parentElement.style.borderLeft = '5px solid var(--color-red)';
         }
     });
-            }
+    document.getElementById('quiz-result').innerHTML = `Your Score: ${score} out of ${correctAnswers.length}`;
+    document.getElementById('submit-quiz-btn').style.display = 'none';
+    document.getElementById('post-quiz-options').style.display = 'block';
+});
+
+document.getElementById('retake-quiz-btn')?.addEventListener('click', () => {
+    document.getElementById('mcq-quiz-view').style.display = 'none';
+    document.getElementById('mcq-setup-view').style.display = 'block';
+    document.getElementById('mcq-topic-input').value = '';
+});
+
+// FEATURE 4: SOLVED NOTES
+document.getElementById('solved-notes-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const topic = document.getElementById('solved-notes-topic-input').value.trim();
+    if (topic) handleApiRequest('solved-notes-form', 'get-solved-notes-btn', 'solved-notes-response-container', 'solved-notes-response', '/get-solved-notes-ai', { topic });
+});
+
+// --- NEW FEATURES ---
+
+// FEATURE 5: CAREER COUNSELOR
+document.getElementById('career-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const interests = document.getElementById('career-interests-input').value.trim();
+    if (interests) handleApiRequest('career-form', 'get-career-advice-btn', 'career-response-container', 'career-response', '/get-career-advice-ai', { interests });
+});
+
+// FEATURE 6: STUDY PLANNER
+document.getElementById('study-plan-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const details = document.getElementById('study-plan-details-input').value.trim();
+    if (details) handleApiRequest('study-plan-form', 'generate-study-plan-btn', 'study-plan-response-container', 'study-plan-response', '/generate-study-plan-ai', { details });
+});
+
+// FEATURE 7: ESSAY ASSISTANT
+document.getElementById('essay-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const essay = document.getElementById('essay-input').value.trim();
+    if (essay) handleApiRequest('essay-form', 'get-essay-feedback-btn', 'essay-response-container', 'essay-response', '/get-essay-feedback-ai', { essay });
+});
+
+// FEATURE 8: SUMMARIZER
+document.getElementById('summarizer-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const content = document.getElementById('summarizer-content-input').value.trim();
+    if (content) handleApiRequest('summarizer-form', 'summarize-content-btn', 'summarizer-response-container', 'summarizer-response', '/summarize-content-ai', { content });
+});
+
+// FEATURE 9: FLASHCARDS
+document.getElementById('flashcard-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const topic = document.getElementById('flashcard-topic-input').value.trim();
+    if (!topic) return alert('Please enter a topic.');
+
+    const button = document.getElementById('generate-flashcards-btn');
+    const container = document.getElementById('flashcard-response-container');
+    
+    button.disabled = true; button.textContent = 'Creating...';
+    container.style.display = 'block';
+    container.innerHTML = '<p>AI flashcards bana raha hai...</p>';
+
+    try {
+        const response = await fetch('/generate-flashcards-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic })
+        });
+        if (!response.ok) throw new Error((await response.json()).error);
+        const cards = await response.json();
+        displayFlashcards(cards);
+    } catch (error) {
+        container.innerHTML = `<p style="color: var(--color-red);">Flashcards nahi ban sake: ${error.message}</p>`;
+    } finally {
+        button.disabled = false; button.textContent = 'Create Flashcards';
+    }
+});
+
+function displayFlashcards(cards) {
+    const container = document.getElementById('flashcard-response-container');
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'flashcard-grid';
+    
+    cards.forEach(cardData => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'flashcard';
+        cardEl.innerHTML = `
+            <div class="flashcard-inner">
+                <div class="card-front">${cardData.front}</div>
+                <div class="card-back">${cardData.back}</div>
+            </div>
+        `;
+        cardEl.addEventListener('click', () => {
+            cardEl.classList.toggle('flipped');
+        });
+        grid.appendChild(cardEl);
+    });
+    container.appendChild(grid);
+}
+
+// FEATURE 10: PRESENTATION COACH
+document.getElementById('presentation-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const topic = document.getElementById('presentation-topic-input').value.trim();
+    const speech = document.getElementById('presentation-speech-input').value.trim();
+    if (topic && speech) {
+        handleApiRequest('presentation-form', 'get-presentation-feedback-btn', 'presentation-response-container', 'presentation-response', '/get-presentation-feedback-ai', { topic, speech });
+    }
+});
