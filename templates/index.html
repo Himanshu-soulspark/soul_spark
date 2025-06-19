@@ -7,10 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
-
-    <!-- Notes aur Code ko sundar banane ke liye CSS library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -31,27 +28,33 @@
         <div id="home-screen" class="screen active">
             <div class="header"><h1>Conceptra AI Dashboard</h1></div>
             <div class="feature-grid">
-                <div class="card" onclick="navigateTo('solved-notes-screen')"><div class="card-icon">📝</div><h3>Solved Notes</h3></div>
-                <div class="card" onclick="navigateTo('practice-mcq-screen')"><div class="card-icon">🎯</div><h3>Practice MCQs</h3></div>
+                <!-- PURANE FEATURES -->
                 <div class="card" onclick="navigateTo('ask-doubt-screen')"><div class="card-icon">❓</div><h3>Ask Doubt</h3></div>
                 <div class="card" onclick="navigateTo('generate-notes-screen')"><div class="card-icon">✨</div><h3>Generate Notes</h3></div>
+                <div class="card" onclick="navigateTo('practice-mcq-screen')"><div class="card-icon">🎯</div><h3>Practice MCQs</h3></div>
+                <div class="card" onclick="navigateTo('solved-notes-screen')"><div class="card-icon">📝</div><h3>Solved Examples</h3></div>
+                <!-- NAYE FEATURES -->
+                <div class="card" onclick="navigateTo('career-counselor-screen')"><div class="card-icon">🎓</div><h3>Career Counselor</h3></div>
+                <div class="card" onclick="navigateTo('study-planner-screen')"><div class="card-icon">🗓️</div><h3>Study Planner</h3></div>
+                <div class="card" onclick="navigateTo('essay-assistant-screen')"><div class="card-icon">✍️</div><h3>Essay Assistant</h3></div>
+                <div class="card" onclick="navigateTo('summarizer-screen')"><div class="card-icon">✂️</div><h3>Summarizer</h3></div>
+                <div class="card" onclick="navigateTo('flashcard-screen')"><div class="card-icon">🧠</div><h3>Flashcards</h3></div>
+                <div class="card" onclick="navigateTo('presentation-coach-screen')"><div class="card-icon">🎤</div><h3>Presentation Coach</h3></div>
             </div>
         </div>
 
-        <!-- 2. Solved Notes Screen -->
+        <!-- PURANE SCREENS (No Change) -->
         <div id="solved-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Solved Notes & Examples</h1></div>
              <form id="solved-notes-form">
                 <input id="solved-notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Projectile Motion Problems'">
                 <button id="get-solved-notes-btn" type="submit" class="submit-button">Get Solved Examples</button>
             </form>
-            <div id="solved-notes-response-container" style="display: none;">
+            <div id="solved-notes-response-container" class="response-container">
                 <h3>Solved Examples:</h3>
                 <div id="solved-notes-response" class="ai-generated-content"></div>
             </div>
         </div>
-
-        <!-- 3. Practice MCQs Screen -->
         <div id="practice-mcq-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Practice MCQs</h1></div>
             <div id="mcq-setup-view">
@@ -70,8 +73,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 4. Ask Doubt Screen -->
         <div id="ask-doubt-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Ask a Doubt</h1></div>
             <form id="doubt-form">
@@ -81,25 +82,102 @@
                 <span id="file-name-display"></span>
                 <button id="ask-doubt-submit" type="submit" class="submit-button">Get Answer</button>
             </form>
-            <div id="ai-response-container" style="display: none;"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
+            <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
-
-        <!-- 5. Generate Notes Screen -->
         <div id="generate-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Generate Notes</h1></div>
             <form id="notes-form">
                 <input id="notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Photosynthesis'">
                 <button id="generate-notes-submit" type="submit" class="submit-button">Generate</button>
             </form>
-            <div id="notes-response-container" style="display: none;"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
+            <div id="notes-response-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
+
+        <!-- NAYE SCREENS -->
+
+        <!-- 5. Career Counselor Screen -->
+        <div id="career-counselor-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Career Counselor</h1></div>
+            <form id="career-form">
+                <textarea id="career-interests-input" class="textarea-box" rows="4" placeholder="Apni ruchi (interests) aur pasandida subjects likhein. Jaise: 'Mujhe Science aur Computers mein interest hai. Math achha lagta hai.'"></textarea>
+                <button id="get-career-advice-btn" type="submit" class="submit-button">Get Career Advice</button>
+            </form>
+            <div id="career-response-container" class="response-container">
+                <h3>Career Roadmap:</h3>
+                <div id="career-response" class="ai-generated-content"></div>
+            </div>
+        </div>
+
+        <!-- 6. Study Planner Screen -->
+        <div id="study-planner-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Personalized Study Planner</h1></div>
+            <form id="study-plan-form">
+                <textarea id="study-plan-details-input" class="textarea-box" rows="4" placeholder="Apne subjects aur goal likhein. Jaise: 'Subjects: Physics, Chemistry, Math. Agle mahine final exams hain. Mujhe ek hafte ka plan chahiye.'"></textarea>
+                <button id="generate-study-plan-btn" type="submit" class="submit-button">Create My Plan</button>
+            </form>
+            <div id="study-plan-response-container" class="response-container">
+                <h3>Your 7-Day Study Plan:</h3>
+                <div id="study-plan-response" class="ai-generated-content"></div>
+            </div>
+        </div>
+
+        <!-- 7. Essay Assistant Screen -->
+        <div id="essay-assistant-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Essay Writing Assistant</h1></div>
+            <form id="essay-form">
+                <textarea id="essay-input" class="textarea-box" rows="10" placeholder="Apna likha hua essay ya answer yahan paste karein..."></textarea>
+                <button id="get-essay-feedback-btn" type="submit" class="submit-button">Get Feedback</button>
+            </form>
+            <div id="essay-response-container" class="response-container">
+                <h3>Feedback from AI Tutor:</h3>
+                <div id="essay-response" class="ai-generated-content"></div>
+            </div>
+        </div>
+
+        <!-- 8. Summarizer Screen -->
+        <div id="summarizer-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Text & Video Summarizer</h1></div>
+            <form id="summarizer-form">
+                <textarea id="summarizer-content-input" class="textarea-box" rows="8" placeholder="Yahan koi lamba text paste karein ya YouTube video ka link dalein..."></textarea>
+                <button id="summarize-content-btn" type="submit" class="submit-button">Summarize</button>
+            </form>
+            <div id="summarizer-response-container" class="response-container">
+                <h3>Summary:</h3>
+                <div id="summarizer-response" class="ai-generated-content"></div>
+            </div>
+        </div>
+
+        <!-- 9. Flashcards Screen -->
+        <div id="flashcard-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Flashcards</h1></div>
+            <form id="flashcard-form">
+                <input id="flashcard-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Human Heart'">
+                <button id="generate-flashcards-btn" type="submit" class="submit-button">Create Flashcards</button>
+            </form>
+            <div id="flashcard-response-container" class="response-container">
+                <!-- Flashcards yahan display honge -->
+            </div>
+        </div>
+
+        <!-- 10. Presentation Coach Screen -->
+        <div id="presentation-coach-screen" class="screen">
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Presentation Coach</h1></div>
+            <form id="presentation-form">
+                <input id="presentation-topic-input" type="text" class="input-box" placeholder="Aapki presentation ka topic kya hai?">
+                <textarea id="presentation-speech-input" class="textarea-box" rows="8" placeholder="Apni speech yahan likhein ya paste karein..."></textarea>
+                <button id="get-presentation-feedback-btn" type="submit" class="submit-button">Get Feedback</button>
+            </form>
+            <div id="presentation-response-container" class="response-container">
+                <h3>Coach's Feedback:</h3>
+                <div id="presentation-response" class="ai-generated-content"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Markdown ke liye -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script> <!-- Code ko sundar banane ke liye -->
-    
-    <!-- YAHAN BADLAV KIYA GAYA HAI -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="{{ url_for('static', filename='script_v2.js') }}"></script>
 </body>
 </html>
