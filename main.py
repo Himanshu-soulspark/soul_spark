@@ -22,8 +22,16 @@ model = genai.GenerativeModel('gemini-1.5-flash-latest')
 # --- Helper function to safely get text from AI response ---
 def get_response_text(response):
     try:
-        return response.text
-    except Exception:
+        # Gemini API response ko handle karne ka sahi tarika
+        if hasattr(response, 'text'):
+            return response.text
+        elif hasattr(response, 'parts'):
+            return "".join(part.text for part in response.parts)
+        else:
+            # Agar response format unexpected hai
+            return str(response)
+    except Exception as e:
+        print(f"Error extracting text from response: {e}")
         return "Maaf kijiye, AI se jawab nahi mil saka. Shayad aapka sawaal suraksha neetiyon ke khilaaf ho."
 
 # --- Routes ---
@@ -32,7 +40,9 @@ def get_response_text(response):
 def home():
     return render_template('index.html')
 
-# Department 1: Ask a Doubt (Handles image and text questions)
+# --- PURANE FEATURES (KOI BADLAV NAHI) ---
+
+# Department 1: Ask a Doubt
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     try:
@@ -45,32 +55,23 @@ def ask_ai_image_route():
         instruction_prompt = """
         **ROLE:** You are an expert Physics and Math tutor.
         **TASK:** Analyze the user's image and text. Solve the question step-by-step.
-        **VERY IMPORTANT RULES:**
+        **RULES:**
         1.  **LANGUAGE:** Respond in the SAME language as the user's query.
-        2.  **NO HTML TAGS:** Do not use any HTML tags.
-        3.  **SYMBOLS:** Use '_' for subscripts (v_f) and '×' for multiplication.
-        4.  **MCQ BEHAVIOR:** If options are provided, choose the closest answer.
+        2.  **FORMATTING:** Use `##` for headings, `* ` for bullet points, and **bold** keywords. Use '×' for multiplication and '_' for subscripts.
+        3.  **MCQ BEHAVIOR:** If options are provided, choose the closest answer and explain why.
         """
         
         prompt_parts = [instruction_prompt]
         
         if image_file:
-            # === YAHAN BADLAV KIYA GAYA HAI ===
-            # Open the image first
             img = Image.open(image_file)
-            
-            # Create a thumbnail to reduce size and save memory
-            # This makes the app much more stable on free servers
-            img.thumbnail((512, 512)) # Resizes the image to a max of 512x512 pixels
-            
-            # Append the resized image to the prompt
+            img.thumbnail((512, 512))
             prompt_parts.append(img)
         
         if question_text:
             prompt_parts.append(f"User's Text: {question_text}")
         
         response = model.generate_content(prompt_parts)
-        
         answer_text = get_response_text(response)
         return jsonify({'answer': answer_text})
         
@@ -117,16 +118,11 @@ def generate_mcq_route():
         Provide the output in a valid JSON format only. No text before or after the JSON.
         The JSON structure must be an array of objects, each with "question", "options" (array of 4 strings), and "correct_answer".
         """
-        
-        generation_config = genai.types.GenerationConfig(
-            response_mime_type="application/json"
-        )
-        
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(mcq_prompt, generation_config=generation_config)
         response_text = get_response_text(response)
         mcq_data = json.loads(response_text)
         return jsonify(mcq_data)
-        
     except Exception as e:
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI se MCQ generate karte waqt gadbad ho gayi.'}), 500
@@ -145,7 +141,7 @@ def get_solved_notes_route():
         **TASK:** Provide 2-3 detailed, step-by-step solved problems for the topic: "{topic}".
         **RULES:**
         1.  **LANGUAGE:** Respond in the SAME language as the topic.
-        2.  **FORMATTING:** State the problem, list 'Given' data, and a 'Solution' section.
+        2.  **FORMATTING:** State the problem, list 'Given' data, and a 'Solution' section with clear steps.
         3.  **SYMBOLS:** Use '×' for multiplication and '_' for subscripts.
         """
         response = model.generate_content(solved_notes_prompt)
@@ -155,6 +151,175 @@ def get_solved_notes_route():
         print(f"--- ERROR in get_solved_notes_route: {e} ---")
         return jsonify({'error': 'Error generating solved notes.'}), 500
 
-# This is for local testing. Render uses its own command.
+# --- NAYE FEATURES ---
+
+# Department 5: Career Counselor
+@app.route('/get-career-advice-ai', methods=['POST'])
+def get_career_advice_route():
+    try:
+        data = request.get_json()
+        interests = data.get('interests')
+        if not interests:
+            return jsonify({'error': 'Please provide your interests.'}), 400
+
+        prompt = f"""
+        **ROLE:** You are an expert AI Career Counselor for Indian students.
+        **TASK:** Based on the user's interests: "{interests}", provide a detailed career roadmap.
+        **OUTPUT STRUCTURE:**
+        1.  **## Top 3 Career Paths:** List 3 suitable career options.
+        2.  **For each career path, provide:**
+            *   **### [Career Name]:**
+            *   **Required Stream in 12th:** (e.g., PCM, PCB, Commerce)
+            *   **Top Bachelor's Degrees:** (e.g., B.Tech in CSE, MBBS)
+            *   **Key Entrance Exams:** (e.g., JEE Mains/Advanced, NEET, CUET)
+            *   **Essential Skills:** (e.g., Python, Communication, Problem-Solving)
+            *   **Future Scope & Salary (Approx):**
+        **LANGUAGE:** Respond in Hinglish (mix of Hindi and English) unless the user's query is in pure English.
+        """
+        response = model.generate_content(prompt)
+        advice_text = get_response_text(response)
+        return jsonify({'advice': advice_text})
+    except Exception as e:
+        print(f"--- ERROR in get_career_advice_route: {e} ---")
+        return jsonify({'error': 'Error generating career advice.'}), 500
+
+# Department 6: Study Planner
+@app.route('/generate-study-plan-ai', methods=['POST'])
+def generate_study_plan_route():
+    try:
+        data = request.get_json()
+        plan_details = data.get('details')
+        if not plan_details:
+            return jsonify({'error': 'Please provide details for the plan.'}), 400
+
+        prompt = f"""
+        **ROLE:** You are an expert study planner.
+        **TASK:** Create a personalized 7-day study plan based on these details: "{plan_details}".
+        **OUTPUT FORMAT:**
+        *   Create a day-by-day schedule.
+        *   Use headings like `## Day 1: Monday`.
+        *   For each day, create time slots (e.g., `* **9 AM - 11 AM:**`).
+        *   Assign subjects/topics and include short breaks.
+        *   Include a revision session at the end of each day.
+        *   Add a general tip section at the end.
+        **LANGUAGE:** Respond in Hinglish or the language of the user's request.
+        """
+        response = model.generate_content(prompt)
+        plan_text = get_response_text(response)
+        return jsonify({'plan': plan_text})
+    except Exception as e:
+        print(f"--- ERROR in generate_study_plan_route: {e} ---")
+        return jsonify({'error': 'Error generating study plan.'}), 500
+
+# Department 7: Essay Assistant
+@app.route('/get-essay-feedback-ai', methods=['POST'])
+def get_essay_feedback_route():
+    try:
+        data = request.get_json()
+        essay_text = data.get('essay')
+        if not essay_text:
+            return jsonify({'error': 'Please provide your essay text.'}), 400
+
+        prompt = f"""
+        **ROLE:** You are a helpful English/Hindi writing tutor.
+        **TASK:** Analyze the following text and provide constructive feedback. DO NOT rewrite the essay for the user.
+        **USER'S ESSAY:**
+        ---
+        {essay_text}
+        ---
+        **FEEDBACK STRUCTURE:**
+        *   **## Overall Feedback:** A summary of the essay.
+        *   **## Strengths:** What the user did well.
+        *   **## Areas for Improvement:**
+        *   **Grammar & Spelling:** Point out specific errors.
+        *   **Structure & Flow:** Suggest improvements for better organization.
+        *   **Clarity & Word Choice:** Suggest better words or phrasing.
+        **IMPORTANT:** Be encouraging and helpful.
+        """
+        response = model.generate_content(prompt)
+        feedback_text = get_response_text(response)
+        return jsonify({'feedback': feedback_text})
+    except Exception as e:
+        print(f"--- ERROR in get_essay_feedback_route: {e} ---")
+        return jsonify({'error': 'Error generating feedback.'}), 500
+
+# Department 8: Content Summarizer
+@app.route('/summarize-content-ai', methods=['POST'])
+def summarize_content_route():
+    try:
+        data = request.get_json()
+        content = data.get('content')
+        if not content:
+            return jsonify({'error': 'Please provide text or a link to summarize.'}), 400
+
+        prompt = f"""
+        **ROLE:** You are an intelligent text and video summarizer.
+        **TASK:** Analyze the following content and provide a concise summary.
+        **CONTENT:** "{content}"
+        **OUTPUT FORMAT:**
+        1.  **## Main Idea:** A one-sentence summary.
+        2.  **## Key Points:** A bulleted list of the most important points (5-7 points).
+        3.  **## Keywords:** A list of important keywords.
+        **LANGUAGE:** Respond in the same language as the content if possible.
+        """
+        response = model.generate_content(prompt)
+        summary_text = get_response_text(response)
+        return jsonify({'summary': summary_text})
+    except Exception as e:
+        print(f"--- ERROR in summarize_content_route: {e} ---")
+        return jsonify({'error': 'Error summarizing content.'}), 500
+
+# Department 9: Flashcard Generator
+@app.route('/generate-flashcards-ai', methods=['POST'])
+def generate_flashcards_route():
+    try:
+        data = request.get_json()
+        topic = data.get('topic')
+        if not topic:
+            return jsonify({'error': 'Please provide a topic.'}), 400
+
+        prompt = f"""
+        Generate 8 flashcards for the topic: "{topic}".
+        Language should be the same as the topic.
+        Provide the output in a valid JSON format only. No extra text.
+        The JSON must be an array of objects, where each object has a "front" key (for the term/question) and a "back" key (for the definition/answer).
+        Example: [{"front": "Mitochondria", "back": "Powerhouse of the cell"}]
+        """
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        response = model.generate_content(prompt, generation_config=generation_config)
+        response_text = get_response_text(response)
+        cards_data = json.loads(response_text)
+        return jsonify(cards_data)
+    except Exception as e:
+        print(f"--- ERROR in generate_flashcards_route: {e} ---")
+        return jsonify({'error': 'Error generating flashcards.'}), 500
+
+# Department 10: Presentation Coach
+@app.route('/get-presentation-feedback-ai', methods=['POST'])
+def get_presentation_feedback_route():
+    try:
+        data = request.get_json()
+        topic = data.get('topic')
+        speech = data.get('speech')
+        if not topic or not speech:
+            return jsonify({'error': 'Please provide topic and your speech text.'}), 400
+
+        prompt = f"""
+        **ROLE:** You are a supportive Public Speaking Coach.
+        **TASK:** The user is practicing for a presentation on the topic "{topic}". Analyze their speech below and give feedback.
+        **USER'S SPEECH:** "{speech}"
+        **FEEDBACK STRUCTURE:**
+        *   **## Content Analysis:** Is the content relevant, accurate, and well-structured?
+        *   **## Language & Clarity:** How is the word choice? Is it easy to understand?
+        *   **## Suggestions for Improvement:** Provide actionable tips to make the speech more impactful and confident.
+        **IMPORTANT:** Be encouraging. Start with positive points.
+        """
+        response = model.generate_content(prompt)
+        feedback_text = get_response_text(response)
+        return jsonify({'feedback': feedback_text})
+    except Exception as e:
+        print(f"--- ERROR in get_presentation_feedback_route: {e} ---")
+        return jsonify({'error': 'Error generating presentation feedback.'}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
