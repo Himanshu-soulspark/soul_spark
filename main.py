@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from pathlib import Path # <<< 1. यह नई लाइन जोड़ी गई है
 import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
 from PIL import Image
@@ -11,13 +12,15 @@ from firebase_admin import credentials, firestore
 # यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
 # आपको अपनी Firebase सर्विस अकाउंट की key.json फाइल Render पर अपलोड करनी होगी
 try:
-    # Render पर, key.json को अपने प्रोजेक्ट के रूट में रखें
-    cred = credentials.Certificate('key.json') 
+    # <<< 2. यह लाइन बदली गई है
+    key_path = Path(__file__).resolve().parent.parent / 'key.json' 
+    # <<< 3. यह लाइन भी बदली गई है
+    cred = credentials.Certificate(key_path) 
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     print("SUCCESS: Firebase Admin SDK initialized.")
 except Exception as e:
-    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is in the root directory. Error: {e}")
+    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is added as a Secret File in Render and path is correct. Error: {e}")
     db = None
 
 # Flask App को शुरू करना
@@ -114,7 +117,7 @@ def generate_notes_route():
         print(f"--- ERROR in generate_notes_route: {e} ---")
         return jsonify({'error': 'नोट्स जेनरेट करते वक़्त सर्वर में समस्या आ गयी।'}), 500
 
-# Department 3: Generate MCQs (UPDATED with difficulty mix)
+# Department 3: Generate MCQs
 @app.route('/generate-mcq-ai', methods=['POST'])
 def generate_mcq_route():
     try:
@@ -122,7 +125,7 @@ def generate_mcq_route():
         topic = data.get('topic')
         count = min(int(data.get('count', 5)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        mcq_prompt = f'Generate {count} MCQs on "{topic}". The difficulty mix must be 40% easy, 40% medium, and 20% hard. Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), "correct_answer", and a "conceptTag" (string). No extra text or markdown formatting.'
+        mcq_prompt = f'Generate {count} MCQs on "{topic}". Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), and "correct_answer". No extra text or markdown formatting.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(mcq_prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -178,7 +181,7 @@ def generate_study_plan_route():
         print(f"--- ERROR in generate_study_plan_route: {e} ---")
         return jsonify({'error': 'Error generating study plan.'}), 500
 
-# Department 7: Flashcard Generator (UPDATED with difficulty mix)
+# Department 7: Flashcard Generator
 @app.route('/generate-flashcards-ai', methods=['POST'])
 def generate_flashcards_route():
     try:
@@ -186,7 +189,7 @@ def generate_flashcards_route():
         topic = data.get('topic')
         count = min(int(data.get('count', 8)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'Generate {count} flashcards for "{topic}". The difficulty mix must be 40% easy/foundational, 40% medium/applied, and 20% hard/advanced. Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
+        prompt = f'Generate {count} flashcards for "{topic}". Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -201,48 +204,6 @@ def generate_flashcards_route():
     except Exception as e:
         print(f"--- UNKNOWN ERROR in generate_flashcards_route: {e} ---")
         return jsonify({'error': 'फ्लैशकार्ड बनाते समय एक अज्ञात सर्वर समस्या हुई।'}), 500
-        
-# --- NEW ENDPOINT: Quiz Result Analysis ---
-@app.route('/analyze-quiz-results', methods=['POST'])
-def analyze_quiz_results():
-    # Firebase is not used in this version as per the discussion, analysis is done on the fly.
-    try:
-        data = request.get_json()
-        user_answers = data.get('answers') # Expects format: [{"question": "...", "userAnswer": "...", "isCorrect": false, "conceptTag": "..."}]
-        
-        if not user_answers:
-            return jsonify({'error': 'No answers provided for analysis.'}), 400
-            
-        incorrect_answers = [ans for ans in user_answers if not ans['isCorrect']]
-        
-        if not incorrect_answers:
-            return jsonify({'analysis': "**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।"})
-
-        # Prepare data for AI
-        incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
-
-        analysis_prompt = f"""
-        **ROLE:** Expert AI performance analyst for a student.
-        **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
-        **DATA:** The student made mistakes in these concepts: {incorrect_concepts_str}.
-        
-        **INSTRUCTIONS:**
-        1.  **Identify Weak Topics:** Identify the top 2-3 concepts where the student made the most mistakes.
-        2.  **Suggest Improvement:** For each weak topic, provide a clear, actionable suggestion. This could be revising a specific part of the chapter, watching a video, or practicing more problems of a certain type.
-        3.  **Provide Encouragement:** End with a positive and motivating message.
-        4.  **Language:** Use simple Hinglish.
-        
-        {FORMATTING_INSTRUCTIONS}
-        """
-
-        response = model.generate_content(analysis_prompt)
-        analysis_text = get_response_text(response)
-        
-        return jsonify({'analysis': analysis_text})
-
-    except Exception as e:
-        print(f"--- ERROR in analyze_quiz_results: {e} ---")
-        return jsonify({'error': 'Analysis karte samay server mein samasya aa gayi.'}), 500
 
 # Department 8: Essay Writer
 @app.route('/write-essay-ai', methods=['POST'])
@@ -291,6 +252,4 @@ def explain_concept_route():
         return jsonify({'error': 'कॉन्सेप्ट समझाते समय सर्वर में कोई समस्या आ गयी।'}), 500
 
 if __name__ == '__main__':
-    # Use Gunicorn recommended way for production, but Flask's for local debug
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
