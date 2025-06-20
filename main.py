@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from pathlib import Path # <<< 1. यह नई लाइन जोड़ी गई है
+from pathlib import Path # यह लाइन ज़रूरी है
 import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
 from PIL import Image
@@ -9,18 +9,17 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # --- Firebase Admin SDK को शुरू करना ---
-# यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
-# आपको अपनी Firebase सर्विस अकाउंट की key.json फाइल Render पर अपलोड करनी होगी
 try:
-    # <<< 2. यह लाइन बदली गई है
-    key_path = Path(__file__).resolve().parent.parent / 'key.json' 
-    # <<< 3. यह लाइन भी बदली गई है
-    cred = credentials.Certificate(key_path) 
+    # --- यह लाइन ठीक की गई है ---
+    # यह कोड अब key.json फाइल को उसी फोल्डर में ढूंढेगा जहाँ main.py है
+    key_path = Path(__file__).resolve().parent / 'key.json'
+    cred = credentials.Certificate(key_path)
+    
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     print("SUCCESS: Firebase Admin SDK initialized.")
 except Exception as e:
-    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is added as a Secret File in Render and path is correct. Error: {e}")
+    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is added as a Secret File in Render. Error: {e}")
     db = None
 
 # Flask App को शुरू करना
