@@ -18,15 +18,33 @@ function navigateTo(screenId) {
     window.scrollTo(0, 0);
 }
 
-// Function to process AI content for display
-function renderAIContent(element, content) {
+// --- NEW: ENHANCED AI CONTENT RENDERER ---
+function renderEnhancedAIContent(element, content) {
     if (!element) return;
-    const cleanedContent = content.replace(/```json\n?([\s\S]*?)```/g, '$1').trim();
-    element.innerHTML = marked.parse(cleanedContent);
+
+    // 1. Pre-process custom tags before sending to Marked.js
+    let processedContent = content
+        .replace(/\[chem\]([\s\S]*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>')
+        .replace(/\[math\]([\s\S]*?)\[\/math\]/g, '<span class="math-formula">$1</span>');
+
+    // 2. Convert markdown to HTML
+    const htmlContent = marked.parse(processedContent);
+    element.innerHTML = htmlContent;
+
+    // 3. Post-process for dynamic styling
+    // Randomly color important words (<strong> tags)
+    const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
+    element.querySelectorAll('strong').forEach((strongEl, index) => {
+        const colorClass = highlightColors[index % highlightColors.length]; // Cycle through colors
+        strongEl.classList.add(colorClass);
+    });
+
+    // Apply syntax highlighting to code blocks
     element.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
     });
 }
+
 
 // --- HELPER FUNCTION FOR API REQUESTS ---
 async function handleApiRequest(formId, buttonId, containerId, responseId, url, body) {
@@ -53,7 +71,8 @@ async function handleApiRequest(formId, buttonId, containerId, responseId, url, 
         if (!response.ok) throw new Error(data.error || 'Server से response नहीं मिला।');
         
         const key = Object.keys(data)[0];
-        renderAIContent(responseDiv, data[key]);
+        // Use the new enhanced renderer
+        renderEnhancedAIContent(responseDiv, data[key]);
         
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
@@ -63,7 +82,7 @@ async function handleApiRequest(formId, buttonId, containerId, responseId, url, 
     }
 }
 
-// --- NEW: PAGINATION LOGIC ---
+// --- PAGINATION LOGIC ---
 let paginationData = {};
 
 function renderPaginatedContent(contentAreaId, controlsId, content) {
@@ -72,20 +91,17 @@ function renderPaginatedContent(contentAreaId, controlsId, content) {
     
     if (!contentArea || !controlsArea) return;
 
-    // Split content by '---' surrounded by newlines
     const pages = content.split(/\n---\n/).map(p => p.trim()).filter(p => p.length > 0);
     
-    paginationData[contentAreaId] = {
-        pages: pages,
-        currentPage: 0
-    };
+    paginationData[contentAreaId] = { pages: pages, currentPage: 0 };
 
     contentArea.innerHTML = '';
     pages.forEach((pageContent, index) => {
         const pageDiv = document.createElement('div');
         pageDiv.className = 'content-page';
         if (index === 0) pageDiv.classList.add('active');
-        pageDiv.innerHTML = marked.parse(pageContent);
+        // Use the new enhanced renderer for each page
+        renderEnhancedAIContent(pageDiv, pageContent);
         contentArea.appendChild(pageDiv);
     });
 
@@ -142,7 +158,7 @@ setupCustomInput('solved-notes-count', 'solved-notes-custom-count');
 
 // --- EXISTING AND MODIFIED FEATURES LOGIC ---
 
-// ASK DOUBT (No Change)
+// ASK DOUBT
 document.getElementById('doubt-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const doubtInput = document.getElementById('doubt-input');
@@ -164,7 +180,8 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
         const response = await fetch('/ask-ai-image', { method: 'POST', body: formData });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
-        renderAIContent(responseDiv, data.answer);
+        // Use the new enhanced renderer
+        renderEnhancedAIContent(responseDiv, data.answer);
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
     } finally {
@@ -174,7 +191,7 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
     }
 });
 
-// GENERATE NOTES (MODIFIED)
+// GENERATE NOTES
 document.getElementById('notes-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('notes-topic-input').value.trim();
@@ -182,7 +199,7 @@ document.getElementById('notes-form')?.addEventListener('submit', (e) => {
     if(topic) handleApiRequest('notes-form', 'generate-notes-submit', 'notes-response-container', 'notes-response', '/generate-notes-ai', { topic, noteType });
 });
 
-// PRACTICE MCQs (MODIFIED)
+// PRACTICE MCQs
 document.getElementById('start-quiz-btn')?.addEventListener('click', async () => {
     const topic = document.getElementById('mcq-topic-input').value.trim();
     if (topic === '') return alert('Please ek topic likhein.');
@@ -228,7 +245,10 @@ function displayQuestions(questions) {
         questionElement.className = 'mcq-question-block';
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
         let optionsHTML = shuffledOptions.map(option => `<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span>${option}</span></label>`).join('');
-        questionElement.innerHTML = `<p class="question-text"><strong>Q${index + 1}:</strong> ${q.question}</p><div class="options-container" id="options-${index}">${optionsHTML}</div>`;
+        // Here we can use enhanced renderer for the question part
+        const questionTextDiv = document.createElement('div');
+        renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
+        questionElement.innerHTML = `${questionTextDiv.innerHTML}<div class="options-container" id="options-${index}">${optionsHTML}</div>`;
         quizContainer.appendChild(questionElement);
     });
 }
@@ -257,7 +277,7 @@ document.getElementById('retake-quiz-btn')?.addEventListener('click', () => {
     document.getElementById('mcq-topic-input').value = '';
 });
 
-// SOLVED NOTES (MODIFIED)
+// SOLVED NOTES
 document.getElementById('solved-notes-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('solved-notes-topic-input').value.trim();
@@ -269,7 +289,7 @@ document.getElementById('solved-notes-form')?.addEventListener('submit', (e) => 
     if(topic) handleApiRequest('solved-notes-form', 'get-solved-notes-btn', 'solved-notes-response-container', 'solved-notes-response', '/get-solved-notes-ai', { topic, count });
 });
 
-// CAREER COUNSELOR (MODIFIED for Pagination)
+// CAREER COUNSELOR
 document.getElementById('career-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const interests = document.getElementById('career-interests-input').value.trim();
@@ -297,7 +317,7 @@ document.getElementById('career-form')?.addEventListener('submit', async (e) => 
     }
 });
 
-// STUDY PLANNER (MODIFIED for Pagination)
+// STUDY PLANNER
 document.getElementById('study-plan-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const details = document.getElementById('study-plan-details-input').value.trim();
@@ -325,7 +345,7 @@ document.getElementById('study-plan-form')?.addEventListener('submit', async (e)
     }
 });
 
-// FLASHCARDS (MODIFIED)
+// FLASHCARDS
 document.getElementById('flashcard-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const topic = document.getElementById('flashcard-topic-input').value.trim();
@@ -364,28 +384,35 @@ function displayFlashcards(cards) {
     cards.forEach(cardData => {
         const cardEl = document.createElement('div');
         cardEl.className = 'flashcard';
-        cardEl.innerHTML = `<div class="flashcard-inner"><div class="card-front">${cardData.front}</div><div class="card-back">${cardData.back}</div></div>`;
+        const frontDiv = document.createElement('div');
+        const backDiv = document.createElement('div');
+        frontDiv.className = 'card-front';
+        backDiv.className = 'card-back';
+        // Use enhanced renderer for flashcard content too
+        renderEnhancedAIContent(frontDiv, cardData.front);
+        renderEnhancedAIContent(backDiv, cardData.back);
+        cardEl.innerHTML = `<div class="flashcard-inner">${frontDiv.outerHTML}${backDiv.outerHTML}</div>`;
         cardEl.addEventListener('click', () => cardEl.classList.toggle('flipped'));
         grid.appendChild(cardEl);
     });
     container.appendChild(grid);
 }
 
-// ESSAY WRITER (No Change)
+// ESSAY WRITER
 document.getElementById('essay-writer-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('essay-topic-input').value.trim();
     if(topic) handleApiRequest('essay-writer-form', 'write-essay-btn', 'essay-writer-response-container', 'essay-writer-response', '/write-essay-ai', { topic });
 });
 
-// PRESENTATION MAKER (No Change)
+// PRESENTATION MAKER
 document.getElementById('presentation-maker-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('presentation-topic-input').value.trim();
     if(topic) handleApiRequest('presentation-maker-form', 'create-presentation-btn', 'presentation-maker-response-container', 'presentation-maker-response', '/create-presentation-ai', { topic });
 });
 
-// CONCEPT EXPLAINER (No Change)
+// CONCEPT EXPLAINER
 document.getElementById('explainer-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('explainer-topic-input').value.trim();
