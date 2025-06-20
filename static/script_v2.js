@@ -199,7 +199,7 @@ document.getElementById('notes-form')?.addEventListener('submit', (e) => {
     if(topic) handleApiRequest('notes-form', 'generate-notes-submit', 'notes-response-container', 'notes-response', '/generate-notes-ai', { topic, noteType });
 });
 
-// PRACTICE MCQs
+// PRACTICE MCQs (UPDATED)
 document.getElementById('start-quiz-btn')?.addEventListener('click', async () => {
     const topic = document.getElementById('mcq-topic-input').value.trim();
     if (topic === '') return alert('Please ek topic likhein.');
@@ -222,11 +222,13 @@ document.getElementById('start-quiz-btn')?.addEventListener('click', async () =>
     document.getElementById('quiz-result').innerHTML = '';
     document.getElementById('submit-quiz-btn').style.display = 'block';
     document.getElementById('post-quiz-options').style.display = 'none';
+    document.getElementById('quiz-analysis-report').innerHTML = ''; // Clear previous analysis
 
     try {
         const response = await fetch('/generate-mcq-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, count }) });
         const questions = await response.json();
         if (!response.ok) throw new Error(questions.error);
+        window.currentQuizQuestions = questions; // Save questions for analysis
         displayQuestions(questions);
     } catch (error) {
         quizContainer.innerHTML = `<p style="color: var(--color-red);">Quiz generate nahi ho saka: ${error.message}</p>`;
@@ -245,7 +247,6 @@ function displayQuestions(questions) {
         questionElement.className = 'mcq-question-block';
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
         let optionsHTML = shuffledOptions.map(option => `<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span>${option}</span></label>`).join('');
-        // Here we can use enhanced renderer for the question part
         const questionTextDiv = document.createElement('div');
         renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
         questionElement.innerHTML = `${questionTextDiv.innerHTML}<div class="options-container" id="options-${index}">${optionsHTML}</div>`;
@@ -253,23 +254,74 @@ function displayQuestions(questions) {
     });
 }
 
+// UPDATED Submit Quiz Logic
 document.getElementById('submit-quiz-btn')?.addEventListener('click', () => {
     let score = 0;
-    window.correctAnswers.forEach((answer, i) => {
-        const selected = document.querySelector(`input[name="question-${i}"]:checked`);
+    const userAnswersForAnalysis = []; // Array to hold data for AI
+
+    window.correctAnswers.forEach((correctAnswer, i) => {
+        const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
+        const questionData = window.currentQuizQuestions[i];
+        
+        let userAnswer = selectedRadio ? selectedRadio.value : "Not Answered";
+        let isCorrect = (userAnswer === correctAnswer);
+
+        // Collect data for analysis
+        userAnswersForAnalysis.push({
+            question: questionData.question,
+            userAnswer: userAnswer,
+            isCorrect: isCorrect,
+            conceptTag: questionData.conceptTag || "General" // Use conceptTag from AI response
+        });
+
+        // Visually mark answers
         document.getElementById(`options-${i}`).querySelectorAll('label').forEach(label => {
             label.style.pointerEvents = 'none';
-            if (label.querySelector('input').value === answer) label.style.borderLeft = '5px solid var(--color-green)';
+            if (label.querySelector('input').value === correctAnswer) {
+                label.style.borderLeft = '5px solid var(--color-green)';
+            }
         });
-        if (selected) {
-            if (selected.value === answer) score++;
-            else selected.parentElement.style.borderLeft = '5px solid var(--color-red)';
+        if (selectedRadio && !isCorrect) {
+            selectedRadio.parentElement.style.borderLeft = '5px solid var(--color-red)';
+        }
+
+        if (isCorrect) {
+            score++;
         }
     });
-    document.getElementById('quiz-result').innerHTML = `Your Score: ${score} out of ${window.correctAnswers.length}`;
+
+    document.getElementById('quiz-result').innerHTML = `<h3>Your Score: ${score} / ${window.correctAnswers.length}</h3>`;
     document.getElementById('submit-quiz-btn').style.display = 'none';
     document.getElementById('post-quiz-options').style.display = 'block';
+    
+    // NEW: Call the analysis function
+    getQuizAnalysis(userAnswersForAnalysis);
 });
+
+// NEW: Function to get AI analysis of quiz results
+async function getQuizAnalysis(answers) {
+    const analysisDiv = document.getElementById('quiz-analysis-report');
+    if (!analysisDiv) return;
+    analysisDiv.innerHTML = '<p>Aapke performance ka analysis kiya ja raha hai...</p>';
+    analysisDiv.style.display = 'block';
+
+    try {
+        const response = await fetch('/analyze-quiz-results', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: answers })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        
+        // Use the enhanced renderer for the analysis report
+        renderEnhancedAIContent(analysisDiv, data.analysis);
+
+    } catch (error) {
+        analysisDiv.innerHTML = `<p style="color: var(--color-red);">Analysis nahi ho saka: ${error.message}</p>`;
+    }
+}
+
 
 document.getElementById('retake-quiz-btn')?.addEventListener('click', () => {
     document.getElementById('mcq-quiz-view').style.display = 'none';
