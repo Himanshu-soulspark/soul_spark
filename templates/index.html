@@ -28,7 +28,6 @@
         <div id="home-screen" class="screen active">
             <div class="header"><h1>Conceptra AI Dashboard</h1></div>
             <div class="feature-grid">
-                <!-- PURANE FEATURES -->
                 <div class="card" onclick="navigateTo('ask-doubt-screen')"><div class="card-icon">❓</div><h3>Ask Doubt</h3></div>
                 <div class="card" onclick="navigateTo('generate-notes-screen')"><div class="card-icon">✨</div><h3>Generate Notes</h3></div>
                 <div class="card" onclick="navigateTo('practice-mcq-screen')"><div class="card-icon">🎯</div><h3>Practice MCQs</h3></div>
@@ -36,14 +35,13 @@
                 <div class="card" onclick="navigateTo('career-counselor-screen')"><div class="card-icon">🎓</div><h3>Career Counselor</h3></div>
                 <div class="card" onclick="navigateTo('study-planner-screen')"><div class="card-icon">🗓️</div><h3>Study Planner</h3></div>
                 <div class="card" onclick="navigateTo('flashcard-screen')"><div class="card-icon">🧠</div><h3>Flashcards</h3></div>
-                <!-- BADLE GAYE AUR NAYE FEATURES -->
                 <div class="card" onclick="navigateTo('essay-writer-screen')"><div class="card-icon">✍️</div><h3>Essay Writer</h3></div>
                 <div class="card" onclick="navigateTo('presentation-maker-screen')"><div class="card-icon">🎤</div><h3>Presentation Maker</h3></div>
                 <div class="card" onclick="navigateTo('concept-explainer-screen')"><div class="card-icon">💡</div><h3>Concept Explainer</h3></div>
             </div>
         </div>
 
-        <!-- PURANE SCREENS (No Change) -->
+        <!-- Ask Doubt Screen -->
         <div id="ask-doubt-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Ask a Doubt</h1></div>
             <form id="doubt-form">
@@ -55,19 +53,35 @@
             </form>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
+        
+        <!-- Generate Notes Screen (UPDATED) -->
         <div id="generate-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Generate Notes</h1></div>
             <form id="notes-form">
                 <input id="notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Photosynthesis'">
+                <div class="option-selector-group">
+                    <label><input type="radio" name="note-type" value="short"> Short</label>
+                    <label><input type="radio" name="note-type" value="long" checked> Long</label>
+                </div>
                 <button id="generate-notes-submit" type="submit" class="submit-button">Generate</button>
             </form>
             <div id="notes-response-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
+
+        <!-- Practice MCQ Screen (UPDATED) -->
         <div id="practice-mcq-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Practice MCQs</h1></div>
             <div id="mcq-setup-view">
                 <p>Kis topic par quiz chahiye?</p>
                 <input id="mcq-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Solar System'">
+                <p>Kitne sawaal chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="mcq-count" value="10" checked> 10</label>
+                    <label><input type="radio" name="mcq-count" value="20"> 20</label>
+                    <label><input type="radio" name="mcq-count" value="30"> 30</label>
+                    <label><input type="radio" name="mcq-count" value="custom"> Custom:</label>
+                    <input type="number" id="mcq-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
+                </div>
                 <button id="start-quiz-btn" class="submit-button">Start Quiz</button>
             </div>
             <div id="mcq-quiz-view" style="display: none;">
@@ -78,40 +92,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- Solved Notes Screen (UPDATED) -->
         <div id="solved-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Solved Notes & Examples</h1></div>
              <form id="solved-notes-form">
                 <input id="solved-notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Projectile Motion Problems'">
+                <p>Kitne examples chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="solved-notes-count" value="3" checked> 3</label>
+                    <label><input type="radio" name="solved-notes-count" value="5"> 5</label>
+                    <label><input type="radio" name="solved-notes-count" value="10"> 10</label>
+                    <label><input type="radio" name="solved-notes-count" value="custom"> Custom:</label>
+                    <input type="number" id="solved-notes-custom-count" class="custom-count-input" min="1" max="50" value="3" disabled>
+                </div>
                 <button id="get-solved-notes-btn" type="submit" class="submit-button">Get Solved Examples</button>
             </form>
             <div id="solved-notes-response-container" class="response-container"><h3>Solved Examples:</h3><div id="solved-notes-response" class="ai-generated-content"></div></div>
         </div>
+
+        <!-- Career Counselor Screen (UPDATED for Pagination) -->
         <div id="career-counselor-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Career Counselor</h1></div>
             <form id="career-form">
                 <textarea id="career-interests-input" class="textarea-box" rows="4" placeholder="Apni ruchi (interests) aur pasandida subjects likhein. Jaise: 'Mujhe Science aur Computers mein interest hai. Math achha lagta hai.'"></textarea>
                 <button id="get-career-advice-btn" type="submit" class="submit-button">Get Career Advice</button>
             </form>
-            <div id="career-response-container" class="response-container"><h3>Career Roadmap:</h3><div id="career-response" class="ai-generated-content"></div></div>
+            <div id="career-response-container" class="response-container">
+                <h3>Career Roadmap:</h3>
+                <div id="career-paginated-content" class="paginated-content-area"></div>
+                <div id="career-pagination-controls" class="pagination-controls"></div>
+            </div>
         </div>
+
+        <!-- Study Planner Screen (UPDATED for Pagination) -->
         <div id="study-planner-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Personalized Study Planner</h1></div>
             <form id="study-plan-form">
                 <textarea id="study-plan-details-input" class="textarea-box" rows="4" placeholder="Apne subjects aur goal likhein. Jaise: 'Subjects: Physics, Chemistry, Math. Agle mahine final exams hain. Mujhe ek hafte ka plan chahiye.'"></textarea>
                 <button id="generate-study-plan-btn" type="submit" class="submit-button">Create My Plan</button>
             </form>
-            <div id="study-plan-response-container" class="response-container"><h3>Your 7-Day Study Plan:</h3><div id="study-plan-response" class="ai-generated-content"></div></div>
+            <div id="study-plan-response-container" class="response-container">
+                <h3>Your Study Plan:</h3>
+                <div id="study-plan-paginated-content" class="paginated-content-area"></div>
+                <div id="study-plan-pagination-controls" class="pagination-controls"></div>
+            </div>
         </div>
+
+        <!-- Flashcard Screen (UPDATED) -->
         <div id="flashcard-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Flashcards</h1></div>
             <form id="flashcard-form">
                 <input id="flashcard-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Human Heart'">
+                 <p>Kitne flashcards chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="flashcard-count" value="10" checked> 10</label>
+                    <label><input type="radio" name="flashcard-count" value="20"> 20</label>
+                    <label><input type="radio" name="flashcard-count" value="30"> 30</label>
+                    <label><input type="radio" name="flashcard-count" value="40"> 40</label>
+                    <label><input type="radio" name="flashcard-count" value="50"> 50</label>
+                    <label><input type="radio" name="flashcard-count" value="custom"> Custom:</label>
+                    <input type="number" id="flashcard-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
+                </div>
                 <button id="generate-flashcards-btn" type="submit" class="submit-button">Create Flashcards</button>
             </form>
             <div id="flashcard-response-container" class="response-container"></div>
         </div>
-
-        <!-- BADLE GAYE AUR NAYE SCREENS -->
 
         <!-- Essay Writer Screen -->
         <div id="essay-writer-screen" class="screen">
