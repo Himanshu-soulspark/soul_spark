@@ -68,7 +68,7 @@
             <div id="notes-response-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
 
-        <!-- Practice MCQ Screen (UPDATED) -->
+        <!-- Practice MCQ Screen (UPDATED with Analysis Div) -->
         <div id="practice-mcq-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Practice MCQs</h1></div>
             <div id="mcq-setup-view">
@@ -85,7 +85,14 @@
                 <button id="start-quiz-btn" class="submit-button">Start Quiz</button>
             </div>
             <div id="mcq-quiz-view" style="display: none;">
-                <h2 id="quiz-topic-title"></h2><div id="quiz-container"></div><button id="submit-quiz-btn" class="submit-button" style="margin-top: 20px;">Submit Quiz</button><div id="quiz-result"></div>
+                <h2 id="quiz-topic-title"></h2>
+                <div id="quiz-container"></div>
+                <button id="submit-quiz-btn" class="submit-button" style="margin-top: 20px;">Submit Quiz</button>
+                <div id="quiz-result"></div>
+                
+                <!-- NEW: Div for AI Analysis Report -->
+                <div id="quiz-analysis-report" class="ai-generated-content" style="margin-top: 20px; text-align: left;"></div>
+
                 <div id="post-quiz-options" style="display: none; margin-top: 20px;">
                     <button id="retake-quiz-btn" class="submit-button secondary">Take Another Quiz</button>
                     <button onclick="navigateTo('home-screen')" class="submit-button" style="margin-top: 10px;">Go to Dashboard</button>
@@ -203,6 +210,12 @@
     <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- NEW: Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
     <script src="{{ url_for('static', filename='script_v2.js') }}"></script>
 </body>
 </html>
