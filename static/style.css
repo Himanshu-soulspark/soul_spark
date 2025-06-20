@@ -10,14 +10,16 @@
     
     /* PURANE COLORS */
     --color-red: #ff6b6b;
-    --color-pink: #f78fb3;
-    --color-sky-blue: #54a0ff;
     --color-green: #2ecc71;
+    --color-sky-blue: #54a0ff;
+    --color-pink: #f78fb3;
+    --color-yellow: #f1c40f;
+    --color-orange: #e67e22;
+    --color-purple: #9b59b6;
 
-    /* --- NAYE COLORS YAHAN ADD KIYE GAYE HAIN --- */
-    --color-yellow: #f1c40f;   /* Yellow */
-    --color-orange: #e67e22;   /* Orange */
-    --color-purple: #9b59b6;   /* Purple */
+    /* --- NAYE COLORS FOR HIGHLIGHTING --- */
+    --color-saffron: #F49A26; /* Saffron for Chem */
+    --color-light-yellow: #fdeea7; /* Light yellow for Math */
 }
 
 body {
@@ -72,7 +74,7 @@ body {
 .response-container { display: none; margin-top: 20px; }
 .response-container h3 { margin-bottom: 15px; color: var(--primary-color); }
 
-/* --- NEW: Option Selector Styles --- */
+/* --- Option Selector Styles --- */
 .option-selector-group { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; background-color: var(--card-bg-color); padding: 10px; border-radius: 8px; margin-bottom: 20px; }
 .option-selector-group label { display: flex; align-items: center; cursor: pointer; gap: 5px; }
 .option-selector-group input[type="radio"] { accent-color: var(--primary-color); }
@@ -101,7 +103,7 @@ body {
 .card-front { background-color: var(--card-bg-color); }
 .card-back { background-color: var(--primary-color); color: #121212; transform: rotateY(180deg); font-weight: 500; }
 
-/* --- NEW: Pagination Styles --- */
+/* --- Pagination Styles --- */
 .paginated-content-area .content-page { display: none; animation: fadeIn 0.3s; }
 .paginated-content-area .content-page.active { display: block; }
 .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
@@ -111,32 +113,35 @@ body {
 
 /* --- AI Generated Content Styling --- */
 .ai-generated-content { line-height: 1.7; font-size: 16px; }
-.ai-generated-content h1, .ai-generated-content h2, .ai-generated-content h3 { color: var(--color-red); border-bottom: 1px solid var(--light-gray); padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; font-family: var(--brand-font); }
-.ai-generated-content strong { color: var(--color-pink); font-weight: 600; }
+.ai-generated-content h1, 
+.ai-generated-content h2 { color: var(--color-red); border-bottom: 1px solid var(--light-gray); padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; font-family: var(--brand-font); }
+.ai-generated-content h3 { color: var(--color-green); margin-top: 20px; }
+.ai-generated-content h4 { color: var(--color-yellow); font-family: var(--brand-font); }
+.ai-generated-content strong { font-weight: 600; } /* Remove color from here, JS will handle it */
 .ai-generated-content code { background-color: #2e2e2e; color: var(--color-sky-blue); padding: 3px 6px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }
 .ai-generated-content pre { background-color: #0d1117; border-radius: 8px; padding: 15px; border: 1px solid var(--light-gray); overflow-x: auto; }
-.ai-generated-content pre code { background-color: transparent; color: var(--color-yellow); padding: 0; border-radius: 0; }
+.ai-generated-content pre code { background-color: transparent; color: var(--text-color); padding: 0; border-radius: 0; }
 .ai-generated-content ul, .ai-generated-content ol { padding-left: 25px; }
 .ai-generated-content li { margin-bottom: 10px; }
+.ai-generated-content blockquote { color: var(--color-orange); border-left: 3px solid var(--color-orange); background-color: #2a2a2a; padding: 10px 15px; margin: 15px 0; border-radius: 5px; font-style: italic; }
+.ai-generated-content hr { border: 0; height: 1px; margin: 30px 0; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-purple), rgba(0, 0, 0, 0)); }
 
-/* --- NAYE RANGON KE LIYE STYLES --- */
-.ai-generated-content h4 {
-    color: var(--color-yellow);
-    font-family: var(--brand-font);
-}
-.ai-generated-content blockquote {
-    color: var(--color-orange);
-    border-left: 3px solid var(--color-orange);
-    background-color: #2a2a2a;
-    padding: 10px 15px;
-    margin-left: 0;
-    margin-right: 0;
+/* --- NEW: Highlighting Classes --- */
+.ai-generated-content .highlight-yellow { color: var(--color-yellow); }
+.ai-generated-content .highlight-skyblue { color: var(--color-sky-blue); }
+.ai-generated-content .highlight-pink { color: var(--color-pink); }
+
+.ai-generated-content .chem-reaction {
+    color: var(--color-saffron);
+    background-color: rgba(244, 154, 38, 0.1);
+    padding: 3px 8px;
     border-radius: 5px;
-    font-style: italic;
+    font-family: 'Courier New', Courier, monospace;
+    text-shadow: 0 0 5px rgba(244, 154, 38, 0.4);
 }
-.ai-generated-content hr {
-    border: 0;
-    height: 1px;
-    margin: 30px 0;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-purple), rgba(0, 0, 0, 0));
+
+.ai-generated-content .math-formula {
+    color: var(--color-light-yellow);
+    font-size: 1.1em;
+    font-family: 'Georgia', serif;
 }
