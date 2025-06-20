@@ -41,20 +41,30 @@ def get_response_text(response):
         print(f"Error extracting text from response: {e}")
         return "माफ कीजिये, AI से जवाब नहीं मिल सका।"
 
+# --- NEW: Shared prompt instructions for formatting ---
+FORMATTING_INSTRUCTIONS = """
+**VERY IMPORTANT FORMATTING RULES:**
+1.  Use standard Markdown (`##` for main headings, `###` for subheadings, `*` for lists).
+2.  For **important keywords** that need emphasis, wrap them in double asterisks like `**this**`.
+3.  For **chemical reactions**, wrap them ONLY in `[chem]...[/chem]` tags. Example: `[chem]2H₂ + O₂ → 2H₂O[/chem]`.
+4.  For **mathematical formulas or equations**, wrap them ONLY in `[math]...[/math]` tags. Example: `[math]E = mc²[/math]`.
+Do NOT use any other formatting for reactions or formulas.
+"""
+
 # --- ऐप के रूट्स ---
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Department 1: Ask a Doubt (No Change)
+# Department 1: Ask a Doubt
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     try:
         question_text = request.form.get('question', '')
         image_file = request.files.get('image')
         if not question_text and not image_file: return jsonify({'error': 'Please provide a question or an image.'}), 400
-        instruction_prompt = "**ROLE:** Expert tutor. **TASK:** Solve the user's question step-by-step. **LANGUAGE:** Same as user's query."
+        instruction_prompt = f"**ROLE:** Expert tutor. **TASK:** Solve the user's question step-by-step. **LANGUAGE:** Same as user's query.\n{FORMATTING_INSTRUCTIONS}"
         prompt_parts = [instruction_prompt]
         if image_file:
             img = Image.open(image_file)
@@ -68,19 +78,19 @@ def ask_ai_image_route():
         print(f"--- ERROR in ask_ai_image_route: {e} ---")
         return jsonify({'error': 'सर्वर में एक समस्या आ गयी है।'}), 500
 
-# Department 2: Generate Notes (MODIFIED)
+# Department 2: Generate Notes
 @app.route('/generate-notes-ai', methods=['POST'])
 def generate_notes_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
-        note_type = data.get('noteType', 'long') # Default to long if not provided
+        note_type = data.get('noteType', 'long')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
         
         if note_type == 'short':
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary and key bullet points for the topic "{topic}". **RULES:** Keep it concise and use markdown formatting.'
-        else: # 'long' or default
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive, well-structured notes on "{topic}". **RULES:** Use headings, subheadings, bullet points, and bold text for important terms. Use markdown formatting throughout.'
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary and key bullet points for "{topic}".\n{FORMATTING_INSTRUCTIONS}'
+        else:
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive, well-structured notes on "{topic}".\n{FORMATTING_INSTRUCTIONS}'
 
         response = model.generate_content(notes_prompt)
         notes_text = get_response_text(response)
@@ -89,13 +99,13 @@ def generate_notes_route():
         print(f"--- ERROR in generate_notes_route: {e} ---")
         return jsonify({'error': 'नोट्स जेनरेट करते वक़्त सर्वर में समस्या आ गयी।'}), 500
 
-# Department 3: Generate MCQs (MODIFIED)
+# Department 3: Generate MCQs
 @app.route('/generate-mcq-ai', methods=['POST'])
 def generate_mcq_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
-        count = min(int(data.get('count', 5)), 50) # Default to 5, max 50
+        count = min(int(data.get('count', 5)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
         mcq_prompt = f'Generate {count} MCQs on "{topic}". Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), and "correct_answer". No extra text or markdown formatting.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
@@ -107,15 +117,15 @@ def generate_mcq_route():
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
-# Department 4: Solved Notes & Examples (MODIFIED)
+# Department 4: Solved Notes & Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
-        count = min(int(data.get('count', 3)), 50) # Default to 3, max 50
+        count = min(int(data.get('count', 3)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for the topic: \"{topic}\". Use markdown for formatting."
+        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for: \"{topic}\".\n{FORMATTING_INSTRUCTIONS}"
         response = model.generate_content(solved_notes_prompt)
         solved_notes_text = get_response_text(response)
         return jsonify({'solved_notes': solved_notes_text})
@@ -123,14 +133,14 @@ def get_solved_notes_route():
         print(f"--- ERROR in get_solved_notes_route: {e} ---")
         return jsonify({'error': 'Error generating solved notes.'}), 500
 
-# Department 5: Career Counselor (MODIFIED for Pagination)
+# Department 5: Career Counselor
 @app.route('/get-career-advice-ai', methods=['POST'])
 def get_career_advice_route():
     try:
         data = request.get_json()
         interests = data.get('interests')
         if not interests: return jsonify({'error': 'Please provide your interests.'}), 400
-        prompt = f'**ROLE:** Expert AI Career Counselor for Indian students. **TASK:** Based on user interests "{interests}", provide a detailed career roadmap in Hinglish. **RULES:** Create sections for Career Paths, Required Stream, Degrees, Entrance Exams, and Top Skills. **Use `---` on a new line to separate each major section.**'
+        prompt = f'**ROLE:** Expert AI Career Counselor. **TASK:** Based on user interests "{interests}", provide a detailed career roadmap in Hinglish. Create sections for Career Paths, Required Stream, Degrees, etc. **Use `---` on a new line to separate each major section.**\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         advice_text = get_response_text(response)
         return jsonify({'advice': advice_text})
@@ -138,14 +148,14 @@ def get_career_advice_route():
         print(f"--- ERROR in get_career_advice_route: {e} ---")
         return jsonify({'error': 'Error generating career advice.'}), 500
 
-# Department 6: Study Planner (MODIFIED for Pagination)
+# Department 6: Study Planner
 @app.route('/generate-study-plan-ai', methods=['POST'])
 def generate_study_plan_route():
     try:
         data = request.get_json()
         plan_details = data.get('details')
         if not plan_details: return jsonify({'error': 'Please provide details for the plan.'}), 400
-        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day study plan based on these details: "{plan_details}". Format it day-by-day with time slots and subjects. **RULES: Use `---` on a new line to separate each day.**'
+        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day study plan based on: "{plan_details}". **RULES: Use `---` on a new line to separate each day.**\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         plan_text = get_response_text(response)
         return jsonify({'plan': plan_text})
@@ -153,13 +163,13 @@ def generate_study_plan_route():
         print(f"--- ERROR in generate_study_plan_route: {e} ---")
         return jsonify({'error': 'Error generating study plan.'}), 500
 
-# Department 7: Flashcard Generator (MODIFIED)
+# Department 7: Flashcard Generator
 @app.route('/generate-flashcards-ai', methods=['POST'])
 def generate_flashcards_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
-        count = min(int(data.get('count', 8)), 50) # Default to 8, max 50
+        count = min(int(data.get('count', 8)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
         prompt = f'Generate {count} flashcards for "{topic}". Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
@@ -177,22 +187,14 @@ def generate_flashcards_route():
         print(f"--- UNKNOWN ERROR in generate_flashcards_route: {e} ---")
         return jsonify({'error': 'फ्लैशकार्ड बनाते समय एक अज्ञात सर्वर समस्या हुई।'}), 500
 
-# Department 8: Essay Writer (No Change)
+# Department 8: Essay Writer
 @app.route('/write-essay-ai', methods=['POST'])
 def write_essay_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide an essay topic.'}), 400
-        prompt = f"""
-        **ROLE:** You are an expert Essay Writer for students.
-        **TASK:** Write a well-structured, informative, and easy-to-understand essay on the given topic.
-        **TOPIC:** "{topic}"
-        **RULES:**
-        1.  **STRUCTURE:** Start with an introduction, have 3-4 body paragraphs, and end with a conclusion.
-        2.  **LANGUAGE:** Write in the same language as the topic.
-        3.  **FORMATTING:** Use markdown like `##` for headings and `*` for lists.
-        """
+        prompt = f'**ROLE:** Expert Essay Writer. **TASK:** Write a well-structured essay on "{topic}".\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         essay_text = get_response_text(response)
         return jsonify({'essay': essay_text})
@@ -200,39 +202,14 @@ def write_essay_route():
         print(f"--- ERROR in write_essay_route: {e} ---")
         return jsonify({'error': 'Error generating essay.'}), 500
         
-# Department 9: Presentation Maker (No Change)
+# Department 9: Presentation Maker
 @app.route('/create-presentation-ai', methods=['POST'])
 def create_presentation_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a presentation topic.'}), 400
-        prompt = f"""
-        **ROLE:** You are an AI Presentation Maker.
-        **TASK:** Create a short presentation outline on the topic: "{topic}".
-        **OUTPUT STRUCTURE (Use this exact markdown format):**
-        
-        ## Presentation Title: [A catchy title for the presentation]
-        ---
-        ### **Slide 1: Introduction**
-        *   [Point 1: Hook to grab attention]
-        *   [Point 2: Brief overview of the topic]
-        ---
-        ### **Slide 2: Main Point A**
-        *   [Detailed point 1]
-        *   [Detailed point 2]
-        *   [Supporting fact or example]
-        ---
-        ### **Slide 3: Main Point B**
-        *   [Detailed point 1]
-        *   [Detailed point 2]
-        *   [Supporting fact or example]
-        ---
-        ### **Slide 4: Conclusion**
-        *   [Summary of key points]
-        *   [Final concluding thought]
-        *   **Thank You!**
-        """
+        prompt = f'**ROLE:** AI Presentation Maker. **TASK:** Create a presentation outline on "{topic}". Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         presentation_text = get_response_text(response)
         return jsonify({'presentation': presentation_text})
@@ -240,27 +217,14 @@ def create_presentation_route():
         print(f"--- ERROR in create_presentation_route: {e} ---")
         return jsonify({'error': 'Error generating presentation.'}), 500
 
-# Department 10: Concept Explainer (No Change)
+# Department 10: Concept Explainer
 @app.route('/explain-concept-ai', methods=['POST'])
 def explain_concept_route():
     try:
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f"""
-        **ROLE:** You are a friendly teacher who simplifies complex topics.
-        **TASK:** Explain the topic "{topic}" in three distinct ways.
-        **OUTPUT STRUCTURE (Use this exact format and markdown):**
-
-        ### 1. Simple Definition
-        [Provide a clear, simple definition.]
-
-        ### 2. Real-world Analogy (Asaan Misaal)
-        [Explain using a creative, daily-life analogy.]
-
-        ### 3. Explain Like I'm 5 (5 Saal Ke Bachhe Ko Kaise Samjhayein)
-        [Break down the concept into its simplest possible form.]
-        """
+        prompt = f'**ROLE:** Friendly teacher. **TASK:** Explain "{topic}" simply.\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         explanation_text = get_response_text(response)
         if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in explanation_text: return jsonify({'error': explanation_text}), 500
