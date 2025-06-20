@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from pathlib import Path # यह लाइन ज़रूरी है
+from pathlib import Path
 import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
 from PIL import Image
@@ -9,9 +9,12 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # --- Firebase Admin SDK को शुरू करना ---
+# यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
+# आपको अपनी Firebase सर्विस अकाउंट की key.json फाइल Render पर अपलोड करनी होगी
 try:
-    # --- यह लाइन ठीक की गई है ---
-    # यह कोड अब key.json फाइल को उसी फोल्डर में ढूंढेगा जहाँ main.py है
+    # यह कोड key.json फाइल को प्रोजेक्ट के रूट डायरेक्टरी में ढूंढेगा
+    # Render Secret Files को रूट डायरेक्टरी में ही रखता है
+    # यह सुनिश्चित करेगा कि कोड हमेशा सही जगह से फाइल उठाए
     key_path = Path(__file__).resolve().parent / 'key.json'
     cred = credentials.Certificate(key_path)
     
@@ -19,7 +22,7 @@ try:
     db = firestore.client()
     print("SUCCESS: Firebase Admin SDK initialized.")
 except Exception as e:
-    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is added as a Secret File in Render. Error: {e}")
+    print(f"FATAL ERROR: Could not initialize Firebase Admin SDK. Make sure 'key.json' is added as a Secret File in Render and path is correct. Error: {e}")
     db = None
 
 # Flask App को शुरू करना
@@ -34,15 +37,16 @@ try:
     print("SUCCESS: Google API Key loaded and configured.")
 except (ValueError, KeyError) as e:
     print(f"FATAL ERROR: {e}. Please check your Environment Variables on Render.")
-
-# AI मॉडल चुनना और सुरक्षा सेटिंग्स को एडजस्ट करना
-safety_settings = [
-    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-]
-model = genai.GenerativeModel('gemini-1.5-flash-latest', safety_settings=safety_settings)
+    model = None
+else:
+    # AI मॉडल चुनना और सुरक्षा सेटिंग्स को एडजस्ट करना
+    safety_settings = [
+        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+    ]
+    model = genai.GenerativeModel('gemini-1.5-flash-latest', safety_settings=safety_settings)
 
 # हेल्पर फंक्शन: AI के जवाब से टेक्स्ट निकालना
 def get_response_text(response):
@@ -78,6 +82,7 @@ def home():
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         question_text = request.form.get('question', '')
         image_file = request.files.get('image')
         if not question_text and not image_file: return jsonify({'error': 'Please provide a question or an image.'}), 400
@@ -99,6 +104,7 @@ def ask_ai_image_route():
 @app.route('/generate-notes-ai', methods=['POST'])
 def generate_notes_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         note_type = data.get('noteType', 'long')
@@ -116,15 +122,16 @@ def generate_notes_route():
         print(f"--- ERROR in generate_notes_route: {e} ---")
         return jsonify({'error': 'नोट्स जेनरेट करते वक़्त सर्वर में समस्या आ गयी।'}), 500
 
-# Department 3: Generate MCQs
+# Department 3: Generate MCQs (UPDATED with difficulty mix)
 @app.route('/generate-mcq-ai', methods=['POST'])
 def generate_mcq_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 5)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        mcq_prompt = f'Generate {count} MCQs on "{topic}". Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), and "correct_answer". No extra text or markdown formatting.'
+        mcq_prompt = f'Generate {count} MCQs on "{topic}". The difficulty mix must be 40% easy, 40% medium, and 20% hard. Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), "correct_answer", and a "conceptTag" (string). No extra text or markdown formatting.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(mcq_prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -134,10 +141,56 @@ def generate_mcq_route():
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
+# --- NEW ENDPOINT: Quiz Result Analysis ---
+@app.route('/analyze-quiz-results', methods=['POST'])
+def analyze_quiz_results():
+    try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request mein koi data nahi mila.'}), 400
+            
+        user_answers = data.get('answers')
+        if not user_answers:
+            return jsonify({'error': 'Analysis ke liye koi jawab nahi diye gaye.'}), 400
+            
+        incorrect_answers = [ans for ans in user_answers if not ans.get('isCorrect')]
+        
+        if not incorrect_answers:
+            return jsonify({'analysis': "**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।"})
+
+        incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
+
+        analysis_prompt = f"""
+        **ROLE:** Expert AI performance analyst for a student.
+        **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
+        **DATA:** The student made mistakes in these concepts: {incorrect_concepts_str}.
+        
+        **INSTRUCTIONS:**
+        1.  **Identify Weak Topics:** Identify the top 2-3 concepts where the student made the most mistakes.
+        2.  **Suggest Improvement:** For each weak topic, provide a clear, actionable suggestion. This could be revising a specific part of the chapter, watching a video, or practicing more problems of a certain type.
+        3.  **Provide Encouragement:** End with a positive and motivating message.
+        4.  **Language:** Use simple Hinglish.
+        
+        {FORMATTING_INSTRUCTIONS}
+        """
+
+        response = model.generate_content(analysis_prompt)
+        analysis_text = get_response_text(response)
+        
+        return jsonify({'analysis': analysis_text})
+
+    except Exception as e:
+        print(f"--- ERROR in analyze_quiz_results: {e} ---")
+        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai. Kripya baad mein koshish karein.'}), 500
+
+# --- बाकी के सभी फंक्शन्स वैसे ही रहेंगे ---
+
 # Department 4: Solved Notes & Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 3)), 50)
@@ -154,6 +207,7 @@ def get_solved_notes_route():
 @app.route('/get-career-advice-ai', methods=['POST'])
 def get_career_advice_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         interests = data.get('interests')
         if not interests: return jsonify({'error': 'Please provide your interests.'}), 400
@@ -169,6 +223,7 @@ def get_career_advice_route():
 @app.route('/generate-study-plan-ai', methods=['POST'])
 def generate_study_plan_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         plan_details = data.get('details')
         if not plan_details: return jsonify({'error': 'Please provide details for the plan.'}), 400
@@ -180,15 +235,16 @@ def generate_study_plan_route():
         print(f"--- ERROR in generate_study_plan_route: {e} ---")
         return jsonify({'error': 'Error generating study plan.'}), 500
 
-# Department 7: Flashcard Generator
+# Department 7: Flashcard Generator (UPDATED with difficulty mix)
 @app.route('/generate-flashcards-ai', methods=['POST'])
 def generate_flashcards_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 8)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'Generate {count} flashcards for "{topic}". Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
+        prompt = f'Generate {count} flashcards for "{topic}". The difficulty mix must be 40% easy/foundational, 40% medium/applied, and 20% hard/advanced. Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -208,6 +264,7 @@ def generate_flashcards_route():
 @app.route('/write-essay-ai', methods=['POST'])
 def write_essay_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide an essay topic.'}), 400
@@ -223,6 +280,7 @@ def write_essay_route():
 @app.route('/create-presentation-ai', methods=['POST'])
 def create_presentation_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a presentation topic.'}), 400
@@ -238,6 +296,7 @@ def create_presentation_route():
 @app.route('/explain-concept-ai', methods=['POST'])
 def explain_concept_route():
     try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
