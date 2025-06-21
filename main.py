@@ -279,6 +279,72 @@ def analyze_teacher_dashboard():
         print(f"--- ERROR in analyze_teacher_dashboard: {e} ---")
         return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai.'}), 500
 
+# ✅✅✅ --- START OF UPDATED FEATURE --- ✅✅✅
+# यह एंडपॉइंट अब MCQ और Q&A दोनों तरह के टेस्ट जेनरेट करेगा
+@app.route('/generate-test-with-ai', methods=['POST'])
+def generate_test_with_ai_route():
+    if not model:
+        return jsonify({'error': 'AI model is not available.'}), 503
+
+    try:
+        data = request.get_json()
+        topic = data.get('topic')
+        count = data.get('count', 10)
+        difficulty = data.get('difficulty', 'Medium')
+        test_type = data.get('testType', 'mcq') # नया: टेस्ट का प्रकार फ्रंटएंड से लेना
+
+        if not topic:
+            return jsonify({'error': 'Topic is required to generate a test.'}), 400
+
+        prompt = ""
+        # AI के लिए प्रॉम्प्ट को टेस्ट के प्रकार के आधार पर बदलना
+        if test_type == 'mcq':
+            prompt = f"""
+            Generate a test with exactly {count} multiple-choice questions on the topic "{topic}".
+            The difficulty level for all questions should be {difficulty}.
+            Your output MUST be a valid JSON array of objects.
+            Each object in the array represents a single question and MUST have the following keys:
+            - "text": The question text (string).
+            - "options": An array of exactly 4 string options.
+            - "correctAnswer": The string of the correct answer, which must be one of the provided options.
+            - "conceptTag": A short, specific concept tag related to the question (e.g., "Ohm's Law", "Mitochondria").
+            Do not include any text outside of the JSON array.
+            """
+        else:  # Q&A format
+            prompt = f"""
+            Generate a test with exactly {count} questions and their answers on the topic "{topic}".
+            The difficulty level for all questions should be {difficulty}.
+            Your output MUST be a valid JSON array of objects.
+            Each object MUST have exactly two keys: "text" (for the question text) and "answer" (for the correct answer text).
+            Do not include any text outside of the JSON array.
+            """
+
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        response = model.generate_content(prompt, generation_config=generation_config)
+        response_text = get_response_text(response)
+        
+        generated_questions = json.loads(response_text)
+        
+        # अगर MCQ है, तो फ्रंटएंड के लिए correctAnswerIndex जोड़ना
+        if test_type == 'mcq':
+            for q in generated_questions:
+                try:
+                    q['correctAnswerIndex'] = q['options'].index(q['correctAnswer'])
+                except (ValueError, KeyError):
+                    # अगर कोई समस्या है, तो डिफ़ॉल्ट रूप से पहले ऑप्शन को सही मानें
+                    q['correctAnswerIndex'] = 0
+
+        return jsonify(generated_questions)
+
+    except json.JSONDecodeError:
+        print(f"--- JSON DECODE ERROR in generate_test_with_ai. AI Response: {response_text} ---")
+        return jsonify({'error': 'AI did not return valid JSON. Please try again.'}), 500
+    except Exception as e:
+        print(f"--- ERROR in generate_test_with_ai_route: {e} ---")
+        return jsonify({'error': 'An unknown server error occurred while generating the test.'}), 500
+# ✅✅✅ --- END OF UPDATED FEATURE --- ✅✅✅
+
+
 # Department 4: Solved Notes & Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
@@ -401,65 +467,6 @@ def explain_concept_route():
     except Exception as e:
         print(f"--- ERROR in explain_concept_route: {e} ---")
         return jsonify({'error': 'कॉन्सेप्ट समझाते समय सर्वर में कोई समस्या आ गयी।'}), 500
-
-# ✅✅✅ --- START OF NEW FEATURE --- ✅✅✅
-# यह एंडपॉइंट AI का उपयोग करके पूरा टेस्ट जेनरेट करेगा
-@app.route('/generate-test-with-ai', methods=['POST'])
-def generate_test_with_ai_route():
-    if not model:
-        return jsonify({'error': 'AI model is not available.'}), 503
-
-    try:
-        data = request.get_json()
-        topic = data.get('topic')
-        count = data.get('count', 10)
-        difficulty = data.get('difficulty', 'Medium')
-
-        if not topic:
-            return jsonify({'error': 'Topic is required to generate a test.'}), 400
-
-        # AI के लिए प्रॉम्प्ट बनाना
-        prompt = f"""
-        Generate a test with exactly {count} multiple-choice questions on the topic "{topic}".
-        The difficulty level for all questions should be {difficulty}.
-        
-        Your output MUST be a valid JSON array of objects.
-        Each object in the array represents a single question and MUST have the following keys:
-        - "text": The question text (string).
-        - "options": An array of exactly 4 string options.
-        - "correctAnswer": The string of the correct answer, which must be one of the provided options.
-        - "conceptTag": A short, specific concept tag related to the question (e.g., "Ohm's Law", "Mitochondria").
-        
-        Do not include any introductory text, markdown formatting, or anything outside of the JSON array.
-        The entire response should be parsable as a single JSON array.
-        """
-
-        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        response = model.generate_content(prompt, generation_config=generation_config)
-        response_text = get_response_text(response)
-        
-        # AI से मिले JSON को पार्स करना
-        generated_questions = json.loads(response_text)
-        
-        # AI से मिले डेटा को अपने फ्रंटएंड के फॉर्मेट में बदलना (सिर्फ correctAnswerIndex जोड़ना)
-        for q in generated_questions:
-            try:
-                # correctAnswerIndex को ढूँढकर जोड़ना
-                q['correctAnswerIndex'] = q['options'].index(q['correctAnswer'])
-            except ValueError:
-                # अगर सही जवाब विकल्पों में नहीं मिलता है, तो 0 मान लें
-                q['correctAnswerIndex'] = 0
-
-        return jsonify(generated_questions)
-
-    except json.JSONDecodeError:
-        print(f"--- JSON DECODE ERROR in generate_test_with_ai. AI Response: {response_text} ---")
-        return jsonify({'error': 'AI did not return valid JSON. Please try again.'}), 500
-    except Exception as e:
-        print(f"--- ERROR in generate_test_with_ai_route: {e} ---")
-        return jsonify({'error': 'An unknown server error occurred while generating the test.'}), 500
-# ✅✅✅ --- END OF NEW FEATURE --- ✅✅✅
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
