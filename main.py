@@ -143,7 +143,50 @@ def generate_mcq_route():
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
-# ✅✅✅ --- START OF IMPORTANT CHANGE: NEW AI ANALYSIS ENDPOINT --- ✅✅✅
+# --- NEW ENDPOINT: Quiz Result Analysis ---
+@app.route('/analyze-quiz-results', methods=['POST'])
+def analyze_quiz_results():
+    try:
+        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request mein koi data nahi mila.'}), 400
+            
+        user_answers = data.get('answers')
+        if not user_answers:
+            return jsonify({'error': 'Analysis ke liye koi jawab nahi diye gaye.'}), 400
+            
+        incorrect_answers = [ans for ans in user_answers if not ans.get('isCorrect')]
+        
+        if not incorrect_answers:
+            return jsonify({'analysis': "**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।"})
+
+        incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
+
+        analysis_prompt = f"""
+        **ROLE:** Expert AI performance analyst for a student.
+        **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
+        **DATA:** The student made mistakes in these concepts: {incorrect_concepts_str}.
+        
+        **INSTRUCTIONS:**
+        1.  **Identify Weak Topics:** Identify the top 2-3 concepts where the student made the most mistakes.
+        2.  **Suggest Improvement:** For each weak topic, provide a clear, actionable suggestion. This could be revising a specific part of the chapter, watching a video, or practicing more problems of a certain type.
+        3.  **Provide Encouragement:** End with a positive and motivating message.
+        4.  **Language:** Use simple Hinglish.
+        
+        {FORMATTING_INSTRUCTIONS}
+        """
+
+        response = model.generate_content(analysis_prompt)
+        analysis_text = get_response_text(response)
+        
+        return jsonify({'analysis': analysis_text})
+
+    except Exception as e:
+        print(f"--- ERROR in analyze_quiz_results: {e} ---")
+        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai. Kripya baad mein koshish karein.'}), 500
+
+# --- NEW ENDPOINT FOR TEACHER DASHBOARD ---
 @app.route('/analyze-teacher-dashboard', methods=['POST'])
 def analyze_teacher_dashboard():
     if not db:
@@ -235,52 +278,6 @@ def analyze_teacher_dashboard():
     except Exception as e:
         print(f"--- ERROR in analyze_teacher_dashboard: {e} ---")
         return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai.'}), 500
-
-# ✅✅✅ --- END OF IMPORTANT CHANGE --- ✅✅✅
-
-
-# --- NEW ENDPOINT: Quiz Result Analysis --- (यह आपके कोड में पहले से मौजूद है, इसे दोबारा न जोड़ें)
-@app.route('/analyze-quiz-results', methods=['POST'])
-def analyze_quiz_results():
-    try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request mein koi data nahi mila.'}), 400
-            
-        user_answers = data.get('answers')
-        if not user_answers:
-            return jsonify({'error': 'Analysis ke liye koi jawab nahi diye gaye.'}), 400
-            
-        incorrect_answers = [ans for ans in user_answers if not ans.get('isCorrect')]
-        
-        if not incorrect_answers:
-            return jsonify({'analysis': "**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।"})
-
-        incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
-
-        analysis_prompt = f"""
-        **ROLE:** Expert AI performance analyst for a student.
-        **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
-        **DATA:** The student made mistakes in these concepts: {incorrect_concepts_str}.
-        
-        **INSTRUCTIONS:**
-        1.  **Identify Weak Topics:** Identify the top 2-3 concepts where the student made the most mistakes.
-        2.  **Suggest Improvement:** For each weak topic, provide a clear, actionable suggestion. This could be revising a specific part of the chapter, watching a video, or practicing more problems of a certain type.
-        3.  **Provide Encouragement:** End with a positive and motivating message.
-        4.  **Language:** Use simple Hinglish.
-        
-        {FORMATTING_INSTRUCTIONS}
-        """
-
-        response = model.generate_content(analysis_prompt)
-        analysis_text = get_response_text(response)
-        
-        return jsonify({'analysis': analysis_text})
-
-    except Exception as e:
-        print(f"--- ERROR in analyze_quiz_results: {e} ---")
-        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai. Kripya baad mein koshish karein.'}), 500
 
 # Department 4: Solved Notes & Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
