@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, jsonify
 from PIL import Image
 import firebase_admin
 from firebase_admin import credentials, firestore
-from flask_cors import CORS  # ✅ 1. यह नई लाइन है
+from flask_cors import CORS
 
 # --- Firebase Admin SDK को शुरू करना ---
 # यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
@@ -28,7 +28,7 @@ except Exception as e:
 
 # Flask App को शुरू करना
 app = Flask(__name__)
-CORS(app)  # ✅ 2. यह दूसरी नई लाइन है
+CORS(app)
 
 # Google API Key को कॉन्फ़िगर करना
 try:
@@ -143,7 +143,103 @@ def generate_mcq_route():
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
-# --- NEW ENDPOINT: Quiz Result Analysis ---
+# ✅✅✅ --- START OF IMPORTANT CHANGE: NEW AI ANALYSIS ENDPOINT --- ✅✅✅
+@app.route('/analyze-teacher-dashboard', methods=['POST'])
+def analyze_teacher_dashboard():
+    if not db:
+        return jsonify({'error': 'Firebase connection not available.'}), 503
+    if not model:
+        return jsonify({'error': 'AI model not available.'}), 503
+
+    try:
+        data = request.get_json()
+        test_id = data.get('testId')
+        if not test_id:
+            return jsonify({'error': 'Test ID is missing from the request.'}), 400
+
+        results_ref = db.collection('TestResults').where('testId', '==', test_id).stream()
+        
+        all_student_answers = []
+        for result_doc in results_ref:
+            all_student_answers.append(result_doc.to_dict())
+
+        if not all_student_answers:
+            return jsonify({
+                "weakest_concepts": [],
+                "action_plan": "Abhi tak kisi student ne yeh test nahi diya hai. Jab students test de denge, to analysis yahan dikhega."
+            })
+            
+        incorrect_concepts = []
+        student_names_by_concept = {}
+
+        for result in all_student_answers:
+            student_name = result.get('studentId', 'Unknown Student') 
+            for answer in result.get('answers', []):
+                if not answer.get('isCorrect'):
+                    concept = answer.get('conceptTag', 'Unknown Concept')
+                    incorrect_concepts.append(concept)
+                    if concept not in student_names_by_concept:
+                        student_names_by_concept[concept] = set()
+                    student_names_by_concept[concept].add(student_name)
+        
+        if not incorrect_concepts:
+            return jsonify({
+                "weakest_concepts": [],
+                "action_plan": "Sabhi students ne saare jawab sahi diye! Shandaar pradarshan!"
+            })
+
+        analysis_prompt = f"""
+        **ROLE:** Expert AI performance analyst for a teacher.
+        **TASK:** Analyze the combined test results for a whole class and generate a detailed report for the teacher.
+        **DATA:** The list of all incorrect concepts from all students is: {str(incorrect_concepts)}.
+        
+        **INSTRUCTIONS (Output in a valid JSON format only):**
+        1.  Identify the top 3 concepts with the most mistakes.
+        2.  For each of these 3 weak concepts, calculate the percentage of students who made a mistake in it.
+        3.  Create a JSON object with two keys: "weakest_concepts" and "action_plan".
+        4.  The "weakest_concepts" key should hold an array of objects. Each object must have three keys: "concept" (string), "error_percentage" (integer), and "students" (an array of student names who were weak in this concept).
+        5.  The "action_plan" key should hold a string suggesting a clear, step-by-step plan for the teacher to address these weaknesses.
+        6.  The language for the action plan must be simple Hinglish.
+
+        **Example JSON Output:**
+        {{
+          "weakest_concepts": [
+            {{
+              "concept": "Newton's Laws",
+              "error_percentage": 67,
+              "students": ["student123", "student456"]
+            }},
+            {{
+              "concept": "Friction",
+              "error_percentage": 33,
+              "students": ["student789"]
+            }}
+          ],
+          "action_plan": "Newton's Laws me kaafi students ko problem hai. Is concept ko practical examples ke saath dubara samjhaein.\\nFriction ke liye extra practice problems assign karein."
+        }}
+        """
+        
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        response = model.generate_content(analysis_prompt, generation_config=generation_config)
+        response_text = get_response_text(response)
+        
+        report_data = json.loads(response_text)
+        
+        for concept_data in report_data.get("weakest_concepts", []):
+            concept_name = concept_data.get("concept")
+            if concept_name in student_names_by_concept:
+                concept_data["students"] = list(student_names_by_concept[concept_name])
+                
+        return jsonify(report_data)
+
+    except Exception as e:
+        print(f"--- ERROR in analyze_teacher_dashboard: {e} ---")
+        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai.'}), 500
+
+# ✅✅✅ --- END OF IMPORTANT CHANGE --- ✅✅✅
+
+
+# --- NEW ENDPOINT: Quiz Result Analysis --- (यह आपके कोड में पहले से मौजूद है, इसे दोबारा न जोड़ें)
 @app.route('/analyze-quiz-results', methods=['POST'])
 def analyze_quiz_results():
     try:
@@ -185,8 +281,6 @@ def analyze_quiz_results():
     except Exception as e:
         print(f"--- ERROR in analyze_quiz_results: {e} ---")
         return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai. Kripya baad mein koshish karein.'}), 500
-
-# --- बाकी के सभी फंक्शन्स वैसे ही रहेंगे ---
 
 # Department 4: Solved Notes & Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
