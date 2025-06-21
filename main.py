@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, jsonify
 from PIL import Image
 import firebase_admin
 from firebase_admin import credentials, firestore
+from flask_cors import CORS  # ✅ 1. यह नई लाइन है
 
 # --- Firebase Admin SDK को शुरू करना ---
 # यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
@@ -27,6 +28,7 @@ except Exception as e:
 
 # Flask App को शुरू करना
 app = Flask(__name__)
+CORS(app)  # ✅ 2. यह दूसरी नई लाइन है
 
 # Google API Key को कॉन्फ़िगर करना
 try:
