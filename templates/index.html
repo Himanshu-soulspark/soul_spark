@@ -9,6 +9,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- ✅✅✅ --- START OF UPDATE (Sirf yeh hissa joda gaya hai) --- ✅✅✅ -->
+    <!-- MathJax Library ko configure aur load karne ke liye scripts -->
+    <!-- Yeh [math]...[/math] tags ko sundar formulas mein badal dega -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['[math]', '[/math]']],
+          displayMath: [['[dmath]', '[/dmath]']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- ✅✅✅ --- END OF UPDATE --- ✅✅✅ -->
+
 </head>
 <body>
 
