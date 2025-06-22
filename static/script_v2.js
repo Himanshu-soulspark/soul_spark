@@ -1,4 +1,6 @@
-// --- WELCOME SCREEN LOGIC ---
+/yeh Mera static/script_v2.js h
+
+/ --- WELCOME SCREEN LOGIC ---
 window.addEventListener('load', () => {
     const welcomeScreen = document.getElementById('welcome-screen');
     const appContainer = document.querySelector('.app-container');
@@ -18,31 +20,41 @@ function navigateTo(screenId) {
     window.scrollTo(0, 0);
 }
 
-// --- NEW: ENHANCED AI CONTENT RENDERER ---
+// --- ✅ UPDATED: ENHANCED AI CONTENT RENDERER (MathJax के लिए ठीक किया गया) ---
 function renderEnhancedAIContent(element, content) {
     if (!element) return;
 
-    // 1. Pre-process custom tags before sending to Marked.js
+    // 1. सिर्फ [chem] जैसे custom tags को pre-process करें।
+    // [math] टैग को हम वैसे का वैसा ही छोड़ देंगे ताकि MathJax उसे पहचान सके।
     let processedContent = content
-        .replace(/\[chem\]([\s\S]*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>')
-        .replace(/\[math\]([\s\S]*?)\[\/math\]/g, '<span class="math-formula">$1</span>');
+        .replace(/\[chem\]([\s\S]*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
+    
+    // ❌ पुरानी गलत लाइन हटा दी गई है:
+    // .replace(/\[math\]([\s\S]*?)\[\/math\]/g, '<span class="math-formula">$1</span>');
 
-    // 2. Convert markdown to HTML
+    // 2. Markdown को HTML में बदलें। marked.js [math] टैग्स को अनदेखा कर देगा, जो हमें चाहिए।
     const htmlContent = marked.parse(processedContent);
     element.innerHTML = htmlContent;
 
-    // 3. Post-process for dynamic styling
-    // Randomly color important words (<strong> tags)
+    // 3. Dynamic styling लागू करें।
+    // जरूरी शब्दों (<strong> tags) को रंग दें।
     const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
     element.querySelectorAll('strong').forEach((strongEl, index) => {
-        const colorClass = highlightColors[index % highlightColors.length]; // Cycle through colors
+        const colorClass = highlightColors[index % highlightColors.length]; // रंगों को दोहराएं
         strongEl.classList.add(colorClass);
     });
 
-    // Apply syntax highlighting to code blocks
+    // Code blocks पर syntax highlighting लागू करें।
     element.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
     });
+
+    // 4. ⭐ सबसे ज़रूरी बदलाव: MathJax को बताएं कि नए कंटेंट को प्रोसेस करे। ⭐
+    // यह सुनिश्चित करता है कि dynamically लोड हुए कंटेंट में भी फ़ॉर्मूले सही दिखें।
+    if (window.MathJax) {
+        // MathJax को केवल इस नए element के अंदर रेंडर करने के लिए कहते हैं।
+        MathJax.typesetPromise([element]).catch((err) => console.error('MathJax typesetting failed:', err));
+    }
 }
 
 
@@ -71,7 +83,7 @@ async function handleApiRequest(formId, buttonId, containerId, responseId, url, 
         if (!response.ok) throw new Error(data.error || 'Server से response नहीं मिला।');
         
         const key = Object.keys(data)[0];
-        // Use the new enhanced renderer
+        // नए अपडेटेड रेंडरर का उपयोग करें
         renderEnhancedAIContent(responseDiv, data[key]);
         
     } catch (error) {
@@ -100,7 +112,7 @@ function renderPaginatedContent(contentAreaId, controlsId, content) {
         const pageDiv = document.createElement('div');
         pageDiv.className = 'content-page';
         if (index === 0) pageDiv.classList.add('active');
-        // Use the new enhanced renderer for each page
+        // हर पेज के लिए नए अपडेटेड रेंडरर का उपयोग करें
         renderEnhancedAIContent(pageDiv, pageContent);
         contentArea.appendChild(pageDiv);
     });
@@ -180,7 +192,7 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
         const response = await fetch('/ask-ai-image', { method: 'POST', body: formData });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
-        // Use the new enhanced renderer
+        // नए अपडेटेड रेंडरर का उपयोग करें
         renderEnhancedAIContent(responseDiv, data.answer);
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
@@ -248,6 +260,7 @@ function displayQuestions(questions) {
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
         let optionsHTML = shuffledOptions.map(option => `<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span>${option}</span></label>`).join('');
         const questionTextDiv = document.createElement('div');
+        // यहां भी अपडेटेड रेंडरर का उपयोग करें ताकि प्रश्न में भी फ़ॉर्मूले दिखें
         renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
         questionElement.innerHTML = `${questionTextDiv.innerHTML}<div class="options-container" id="options-${index}">${optionsHTML}</div>`;
         quizContainer.appendChild(questionElement);
@@ -314,7 +327,7 @@ async function getQuizAnalysis(answers) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         
-        // Use the enhanced renderer for the analysis report
+        // विश्लेषण रिपोर्ट के लिए अपडेटेड रेंडरर का उपयोग करें
         renderEnhancedAIContent(analysisDiv, data.analysis);
 
     } catch (error) {
@@ -440,7 +453,7 @@ function displayFlashcards(cards) {
         const backDiv = document.createElement('div');
         frontDiv.className = 'card-front';
         backDiv.className = 'card-back';
-        // Use enhanced renderer for flashcard content too
+        // Flashcard कंटेंट के लिए भी अपडेटेड रेंडरर का उपयोग करें
         renderEnhancedAIContent(frontDiv, cardData.front);
         renderEnhancedAIContent(backDiv, cardData.back);
         cardEl.innerHTML = `<div class="flashcard-inner">${frontDiv.outerHTML}${backDiv.outerHTML}</div>`;
