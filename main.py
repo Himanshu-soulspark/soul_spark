@@ -88,6 +88,7 @@ def ask_ai_image_route():
         question_text = request.form.get('question', '')
         image_file = request.files.get('image')
         if not question_text and not image_file: return jsonify({'error': 'Please provide a question or an image.'}), 400
+        # Yeh function pehle se hi sahi tha, ismein koi badlav nahi kiya gaya hai.
         instruction_prompt = f"**ROLE:** Expert tutor. **TASK:** Solve the user's question step-by-step. **LANGUAGE:** Same as user's query.\n{FORMATTING_INSTRUCTIONS}"
         prompt_parts = [instruction_prompt]
         if image_file:
@@ -112,10 +113,11 @@ def generate_notes_route():
         note_type = data.get('noteType', 'long')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
         
+        # UPDATE: AI ko user ke topic ki bhasha mein jawab dene ke liye nirdesh diya gaya.
         if note_type == 'short':
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary and key bullet points for "{topic}".\n{FORMATTING_INSTRUCTIONS}'
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary and key bullet points for "{topic}". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
         else:
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive, well-structured notes on "{topic}".\n{FORMATTING_INSTRUCTIONS}'
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive, well-structured notes on "{topic}". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
 
         response = model.generate_content(notes_prompt)
         notes_text = get_response_text(response)
@@ -133,7 +135,8 @@ def generate_mcq_route():
         topic = data.get('topic')
         count = min(int(data.get('count', 5)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        mcq_prompt = f'Generate {count} MCQs on "{topic}". The difficulty mix must be 40% easy, 40% medium, and 20% hard. Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), "correct_answer", and a "conceptTag" (string). No extra text or markdown formatting.'
+        # UPDATE: AI ko topic ki bhasha mein hi sawal banane ke liye nirdesh diya gaya.
+        mcq_prompt = f'Generate {count} MCQs on "{topic}". The language of the questions and options must match the language of the topic itself. The difficulty mix must be 40% easy, 40% medium, and 20% hard. Output must be a valid JSON array of objects with "question", "options" (array of 4 strings), "correct_answer", and a "conceptTag" (string). No extra text or markdown formatting.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(mcq_prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -163,6 +166,7 @@ def analyze_quiz_results():
 
         incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
 
+        # NO CHANGE: Yeh function ek fixed Hinglish report deta hai, isliye ismein badlav nahi kiya gaya.
         analysis_prompt = f"""
         **ROLE:** Expert AI performance analyst for a student.
         **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
@@ -231,6 +235,7 @@ def analyze_teacher_dashboard():
                 "action_plan": "Sabhi students ne saare jawab sahi diye! Shandaar pradarshan!"
             })
 
+        # NO CHANGE: Yeh function teacher ke liye ek fixed Hinglish report deta hai, isliye ismein badlav nahi kiya gaya.
         analysis_prompt = f"""
         **ROLE:** Expert AI performance analyst for a teacher.
         **TASK:** Analyze the combined test results for a whole class and generate a detailed report for the teacher.
@@ -297,11 +302,13 @@ def generate_test_with_ai_route():
             return jsonify({'error': 'Topic is required to generate a test.'}), 400
 
         prompt = ""
+        # UPDATE: AI ko topic ki bhasha mein hi test banane ke liye nirdesh diya gaya.
         # AI के लिए प्रॉम्प्ट को टेस्ट के प्रकार के आधार पर बदलना
         if test_type == 'mcq':
             prompt = f"""
             Generate a test with exactly {count} multiple-choice questions on the topic "{topic}".
             The difficulty level for all questions should be {difficulty}.
+            The language of the generated questions, options, and answers must match the language of the topic "{topic}".
             Your output MUST be a valid JSON array of objects.
             Each object in the array represents a single question and MUST have the following keys:
             - "text": The question text (string).
@@ -314,6 +321,7 @@ def generate_test_with_ai_route():
             prompt = f"""
             Generate a test with exactly {count} questions and their answers on the topic "{topic}".
             The difficulty level for all questions should be {difficulty}.
+            The language of the generated questions and answers must match the language of the topic "{topic}".
             Your output MUST be a valid JSON array of objects.
             Each object MUST have exactly two keys: "text" (for the question text) and "answer" (for the correct answer text).
             Do not include any text outside of the JSON array.
@@ -354,7 +362,8 @@ def get_solved_notes_route():
         topic = data.get('topic')
         count = min(int(data.get('count', 3)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for: \"{topic}\".\n{FORMATTING_INSTRUCTIONS}"
+        # UPDATE: AI ko topic ki bhasha mein jawab dene ke liye nirdesh diya gaya.
+        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for: \"{topic}\". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}"
         response = model.generate_content(solved_notes_prompt)
         solved_notes_text = get_response_text(response)
         return jsonify({'solved_notes': solved_notes_text})
@@ -370,7 +379,8 @@ def get_career_advice_route():
         data = request.get_json()
         interests = data.get('interests')
         if not interests: return jsonify({'error': 'Please provide your interests.'}), 400
-        prompt = f'**ROLE:** Expert AI Career Counselor. **TASK:** Based on user interests "{interests}", provide a detailed career roadmap in Hinglish. Create sections for Career Paths, Required Stream, Degrees, etc. **Use `---` on a new line to separate each major section.**\n{FORMATTING_INSTRUCTIONS}'
+        # UPDATE: "Hinglish" ko hata kar dynamic language ka nirdesh diya gaya.
+        prompt = f'**ROLE:** Expert AI Career Counselor. **TASK:** Based on user interests "{interests}", provide a detailed career roadmap. **LANGUAGE:** Respond in the same language as the user\'s provided interests. Create sections for Career Paths, Required Stream, Degrees, etc. **Use `---` on a new line to separate each major section.**\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         advice_text = get_response_text(response)
         return jsonify({'advice': advice_text})
@@ -386,7 +396,8 @@ def generate_study_plan_route():
         data = request.get_json()
         plan_details = data.get('details')
         if not plan_details: return jsonify({'error': 'Please provide details for the plan.'}), 400
-        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day study plan based on: "{plan_details}". **RULES: Use `---` on a new line to separate each day.**\n{FORMATTING_INSTRUCTIONS}'
+        # UPDATE: AI ko user ke details ki bhasha mein jawab dene ke liye nirdesh diya gaya.
+        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day study plan based on: "{plan_details}". **LANGUAGE:** Respond in the same language as the provided details. **RULES: Use `---` on a new line to separate each day.**\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         plan_text = get_response_text(response)
         return jsonify({'plan': plan_text})
@@ -403,7 +414,8 @@ def generate_flashcards_route():
         topic = data.get('topic')
         count = min(int(data.get('count', 8)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'Generate {count} flashcards for "{topic}". The difficulty mix must be 40% easy/foundational, 40% medium/applied, and 20% hard/advanced. Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
+        # UPDATE: AI ko topic ki bhasha mein flashcard banane ke liye nirdesh diya gaya.
+        prompt = f'Generate {count} flashcards for "{topic}". The language of the flashcard content (front and back) must match the language of the topic. The difficulty mix must be 40% easy/foundational, 40% medium/applied, and 20% hard/advanced. Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         response_text = get_response_text(response)
@@ -427,7 +439,8 @@ def write_essay_route():
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide an essay topic.'}), 400
-        prompt = f'**ROLE:** Expert Essay Writer. **TASK:** Write a well-structured essay on "{topic}".\n{FORMATTING_INSTRUCTIONS}'
+        # UPDATE: AI ko topic ki bhasha mein essay likhne ke liye nirdesh diya gaya.
+        prompt = f'**ROLE:** Expert Essay Writer. **TASK:** Write a well-structured essay on "{topic}". **LANGUAGE:** Write the essay in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         essay_text = get_response_text(response)
         return jsonify({'essay': essay_text})
@@ -443,7 +456,8 @@ def create_presentation_route():
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a presentation topic.'}), 400
-        prompt = f'**ROLE:** AI Presentation Maker. **TASK:** Create a presentation outline on "{topic}". Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
+        # UPDATE: AI ko topic ki bhasha mein presentation banane ke liye nirdesh diya gaya.
+        prompt = f'**ROLE:** AI Presentation Maker. **TASK:** Create a presentation outline on "{topic}". **LANGUAGE:** Create the presentation in the same language as the provided topic. Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         presentation_text = get_response_text(response)
         return jsonify({'presentation': presentation_text})
@@ -459,7 +473,8 @@ def explain_concept_route():
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'**ROLE:** Friendly teacher. **TASK:** Explain "{topic}" simply.\n{FORMATTING_INSTRUCTIONS}'
+        # UPDATE: AI ko topic ki bhasha mein concept samjhane ke liye nirdesh diya gaya.
+        prompt = f'**ROLE:** Friendly teacher. **TASK:** Explain "{topic}" simply. **LANGUAGE:** Explain in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
         response = model.generate_content(prompt)
         explanation_text = get_response_text(response)
         if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in explanation_text: return jsonify({'error': explanation_text}), 500
