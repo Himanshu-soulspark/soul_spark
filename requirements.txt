@@ -4,6 +4,4 @@ Pillow
 firebase-admin
 Flask-CORS
 razorpay
-setuptools  # <-- यह लाइन जोड़ें
-# ... आपकी अन्य निर्भरताएँ
-razorpay
+setuptools
