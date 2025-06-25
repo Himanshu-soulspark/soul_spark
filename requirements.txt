@@ -1,7 +1,9 @@
-razorpay
 Flask
 google-generativeai
 Pillow
-gunicorn
 firebase-admin
-Flask-Cors
+Flask-CORS
+razorpay
+setuptools  # <-- यह लाइन जोड़ें
+# ... आपकी अन्य निर्भरताएँ
+razorpay
