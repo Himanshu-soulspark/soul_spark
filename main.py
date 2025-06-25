@@ -33,14 +33,44 @@ CORS(app)
 
 # --- नया: Razorpay Client को शुरू करना ---
 try:
-    razorpay_key_id = os.environ.get('RAZORPAY_KEY_ID')
-    razorpay_key_secret = os.environ.get('RAZORPAY_KEY_SECRET')
-    if not razorpay_key_id or not razorpay_key_secret:
-        raise ValueError("Razorpay keys not found in Environment Variables.")
+    # --- यहाँ बदलाव किया गया है ---
+    # RAZORPAY_KEY_ID और RAZORPAY_KEY_SECRET को Secret Files से पढ़ना
+    # (यह मानते हुए कि Render Secret Files को प्रोजेक्ट के रूट में रखता है)
+    base_path_for_secrets = Path(__file__).resolve().parent
+
+    # आपके द्वारा बताए गए फाइलनाम (Render Secret Files के नाम)
+    key_id_filename_on_render = 'RAZORPAY_KEY_ID'
+    key_secret_filename_on_render = 'RAZORPAY_KEY_SECRET'
+
+    key_id_file_path = base_path_for_secrets / key_id_filename_on_render
+    key_secret_file_path = base_path_for_secrets / key_secret_filename_on_render
+
+    if not key_id_file_path.is_file():
+        raise ValueError(f"Razorpay Key ID file ('{key_id_filename_on_render}') not found at {key_id_file_path}. Ensure it's set as a Secret File on Render and correctly named.")
+    if not key_secret_file_path.is_file():
+        raise ValueError(f"Razorpay Key Secret file ('{key_secret_filename_on_render}') not found at {key_secret_file_path}. Ensure it's set as a Secret File on Render and correctly named.")
+
+    with open(key_id_file_path, 'r') as f_id:
+        razorpay_key_id_from_file = f_id.read().strip() # फाइल के कंटेंट को पढ़ना
+    with open(key_secret_file_path, 'r') as f_secret:
+        razorpay_key_secret_from_file = f_secret.read().strip() # फाइल के कंटेंट को पढ़ना
+
+    if not razorpay_key_id_from_file or not razorpay_key_secret_from_file:
+        raise ValueError("Content of Razorpay Key ID or Key Secret file is empty. Check the Secret Files ('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') on Render.")
+    
+    # पढ़ी हुई कीज़ का इस्तेमाल करना
+    razorpay_key_id = razorpay_key_id_from_file
+    razorpay_key_secret = razorpay_key_secret_from_file
+    # --- बदलाव समाप्त ---
+
     razorpay_client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
-    print("SUCCESS: Razorpay client initialized.")
-except (ValueError, KeyError) as e:
-    print(f"FATAL ERROR: {e}. Please check your Razorpay Environment Variables on Render.")
+    print("SUCCESS: Razorpay client initialized using keys from Secret Files.") # प्रिंट मैसेज बदला गया
+
+except ValueError as e: # सिर्फ ValueError को पकड़ा गया, जैसा कि फाइल पढ़ने के लॉजिक में raise किया गया है
+    print(f"FATAL ERROR initializing Razorpay client: {e}. Please check your Razorpay Secret Files ('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') on Render for existence, naming, and content.")
+    razorpay_client = None
+except Exception as e: # किसी अन्य अप्रत्याशित एरर के लिए, जैसे फाइल पढ़ने में कोई और समस्या
+    print(f"UNEXPECTED FATAL ERROR during Razorpay client initialization: {e}")
     razorpay_client = None
 
 
