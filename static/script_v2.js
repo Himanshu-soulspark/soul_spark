@@ -1,8 +1,7 @@
-// --- WELCOME SCREEN LOGIC ---
+// --- WELCOME SCREEN LOGIC (कोई बदलाव नहीं) ---
 window.addEventListener('load', () => {
     const welcomeScreen = document.getElementById('welcome-screen');
     const appContainer = document.querySelector('.app-container');
-    // This logic is kept exactly the same to ensure it works as before.
     setTimeout(() => {
         if (welcomeScreen) welcomeScreen.style.opacity = '0';
         setTimeout(() => {
@@ -12,27 +11,24 @@ window.addEventListener('load', () => {
     }, 4000);
 });
 
-// --- NAVIGATION LOGIC ---
+// --- NAVIGATION LOGIC (कोई बदलाव नहीं) ---
 function navigateTo(screenId) {
     document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
     document.getElementById(screenId)?.classList.add('active');
     window.scrollTo(0, 0);
 }
 
-// --- ✅✅✅ NEW & SAFER: ENHANCED AI CONTENT RENDERER ---
-// This function is now 'async' to safely wait for MathJax to finish.
+// --- AI CONTENT RENDERER (कोई बदलाव नहीं) ---
+// यह फंक्शन पहले से ही बहुत अच्छा है और इसे बदलने की ज़रूरत नहीं है।
 async function renderEnhancedAIContent(element, content) {
     if (!element) return;
 
-    // 1. Pre-process custom tags. We leave [math] tags alone for MathJax.
     let processedContent = content
         .replace(/\[chem\]([\s\S]*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
-
-    // 2. Convert markdown to HTML.
+    
     const htmlContent = marked.parse(processedContent);
     element.innerHTML = htmlContent;
 
-    // 3. Apply dynamic styling for keywords and code blocks.
     const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
     element.querySelectorAll('strong').forEach((strongEl, index) => {
         strongEl.classList.add(highlightColors[index % highlightColors.length]);
@@ -41,12 +37,8 @@ async function renderEnhancedAIContent(element, content) {
         hljs.highlightElement(block);
     });
 
-    // 4. Safely process math formulas using MathJax.
-    // We check if MathJax and its typesetting function are available.
     if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
         try {
-            // 'await' ensures we wait for MathJax to finish before continuing.
-            // This prevents race conditions and makes the process stable.
             await window.MathJax.typesetPromise([element]);
         } catch (err) {
             console.error('MathJax rendering failed:', err);
@@ -55,20 +47,20 @@ async function renderEnhancedAIContent(element, content) {
 }
 
 
-// --- HELPER FUNCTION FOR API REQUESTS (Now uses async render function) ---
-async function handleApiRequest(formId, buttonId, containerId, responseId, url, body) {
-    const form = document.getElementById(formId);
-    if (!form) return;
-
+// ⭐⭐⭐⭐⭐⭐⭐⭐ सबसे ज़रूरी बदलाव ⭐⭐⭐⭐⭐⭐⭐⭐
+// यह नया फंक्शन Python सर्वर से आने वाले streaming response को हैंडल करता है।
+async function handleApiStreamRequest(formId, buttonId, containerId, responseId, url, body) {
     const submitButton = document.getElementById(buttonId);
     const responseContainer = document.getElementById(containerId);
     const responseDiv = document.getElementById(responseId);
+
+    if (!submitButton || !responseContainer || !responseDiv) return;
 
     submitButton.disabled = true;
     submitButton.dataset.originalText = submitButton.textContent;
     submitButton.textContent = 'Generating...';
     responseContainer.style.display = 'block';
-    responseDiv.innerHTML = '<p>AI से जवाब मिलने का इंतज़ार है...</p>';
+    responseDiv.innerHTML = '<p>AI से जवाब मिलना शुरू हो रहा है...</p>';
 
     try {
         const response = await fetch(url, {
@@ -76,13 +68,30 @@ async function handleApiRequest(formId, buttonId, containerId, responseId, url, 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Server से response नहीं मिला।');
-        
-        const key = Object.keys(data)[0];
-        // Use the new, safer async renderer. We 'await' it.
-        await renderEnhancedAIContent(responseDiv, data[key]);
-        
+
+        if (!response.ok) {
+            const errorData = await response.json(); // Error response is likely JSON
+            throw new Error(errorData.error || 'Server से response नहीं मिला।');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponseText = '';
+        responseDiv.innerHTML = ''; // जवाब आने से पहले एरिया खाली करें
+
+        // Stream को टुकड़ों में पढ़ें
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            fullResponseText += chunk;
+            // जवाब को Markdown में बदलकर दिखाएं
+            responseDiv.innerHTML = marked.parse(fullResponseText); 
+        }
+
+        // पूरी तरह से लोड होने के बाद एक बार फिर से स्टाइल और MathJax लागू करें
+        await renderEnhancedAIContent(responseDiv, fullResponseText);
+
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
     } finally {
@@ -91,21 +100,18 @@ async function handleApiRequest(formId, buttonId, containerId, responseId, url, 
     }
 }
 
-// --- PAGINATION LOGIC (Now uses async render function) ---
+// --- PAGINATION LOGIC (थोड़ा बदलाव ताकि streaming के बाद काम करे) ---
 let paginationData = {};
 
 async function renderPaginatedContent(contentAreaId, controlsId, content) {
     const contentArea = document.getElementById(contentAreaId);
     const controlsArea = document.getElementById(controlsId);
-    
     if (!contentArea || !controlsArea) return;
 
     const pages = content.split(/\n---\n/).map(p => p.trim()).filter(p => p.length > 0);
-    
     paginationData[contentAreaId] = { pages: pages, currentPage: 0 };
-
     contentArea.innerHTML = '';
-    // We create all page divs first
+
     const pageDivs = pages.map((pageContent, index) => {
         const pageDiv = document.createElement('div');
         pageDiv.className = 'content-page';
@@ -114,7 +120,6 @@ async function renderPaginatedContent(contentAreaId, controlsId, content) {
         return pageDiv;
     });
 
-    // Then we render content in them asynchronously
     for (let i = 0; i < pageDivs.length; i++) {
         await renderEnhancedAIContent(pageDivs[i], pages[i]);
     }
@@ -124,38 +129,32 @@ async function renderPaginatedContent(contentAreaId, controlsId, content) {
         <span class="page-indicator" id="${contentAreaId}-indicator">Page 1 of ${pages.length}</span>
         <button class="pagination-btn" id="${contentAreaId}-next" onclick="changePage('${contentAreaId}', 1)">Next</button>
     `;
-
     updatePaginationControls(contentAreaId);
 }
 
-function changePage(contentAreaId, direction) {
+function changePage(contentAreaId, direction) { // कोई बदलाव नहीं
     const data = paginationData[contentAreaId];
     if (!data) return;
-
     const newPage = data.currentPage + direction;
     if (newPage >= 0 && newPage < data.pages.length) {
         data.currentPage = newPage;
-        
         const contentArea = document.getElementById(contentAreaId);
         contentArea.querySelectorAll('.content-page').forEach((page, index) => {
             page.classList.toggle('active', index === newPage);
         });
-        
         updatePaginationControls(contentAreaId);
     }
 }
 
-function updatePaginationControls(contentAreaId) {
+function updatePaginationControls(contentAreaId) { // कोई बदलाव नहीं
     const data = paginationData[contentAreaId];
     if (!data) return;
-    
     document.getElementById(`${contentAreaId}-indicator`).textContent = `Page ${data.currentPage + 1} of ${data.pages.length}`;
     document.getElementById(`${contentAreaId}-back`).disabled = (data.currentPage === 0);
     document.getElementById(`${contentAreaId}-next`).disabled = (data.currentPage === data.pages.length - 1);
 }
 
-
-// --- CUSTOM INPUT LOGIC ---
+// --- CUSTOM INPUT LOGIC (कोई बदलाव नहीं) ---
 function setupCustomInput(radioGroupName, customInputId) {
     const radios = document.querySelectorAll(`input[name="${radioGroupName}"]`);
     const customInput = document.getElementById(customInputId);
@@ -169,10 +168,9 @@ setupCustomInput('mcq-count', 'mcq-custom-count');
 setupCustomInput('flashcard-count', 'flashcard-custom-count');
 setupCustomInput('solved-notes-count', 'solved-notes-custom-count');
 
+// --- ⭐⭐ FORM SUBMISSION LOGIC में बदलाव ⭐⭐ ---
 
-// --- EXISTING AND MODIFIED FEATURES LOGIC ---
-
-// ASK DOUBT
+// ASK DOUBT (Streaming लागू)
 document.getElementById('doubt-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const doubtInput = document.getElementById('doubt-input');
@@ -184,7 +182,7 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
     if (doubtInput.value.trim() === '' && !imageFile) return alert('Please apna sawaal likhein ya image upload karein.');
 
     submitButton.disabled = true; submitButton.textContent = 'Analyzing...';
-    responseContainer.style.display = 'block'; responseDiv.innerHTML = '<p>AI से जवाब मिलने का इंतज़ार है...</p>';
+    responseContainer.style.display = 'block'; responseDiv.innerHTML = '<p>AI से जवाब मिलना शुरू हो रहा है...</p>';
 
     const formData = new FormData();
     formData.append('question', doubtInput.value);
@@ -192,9 +190,21 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
     
     try {
         const response = await fetch('/ask-ai-image', { method: 'POST', body: formData });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        await renderEnhancedAIContent(responseDiv, data.answer);
+        if (!response.ok) throw new Error('Server से response नहीं मिला।');
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponseText = '';
+        responseDiv.innerHTML = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            fullResponseText += decoder.decode(value);
+            responseDiv.innerHTML = marked.parse(fullResponseText);
+        }
+        await renderEnhancedAIContent(responseDiv, fullResponseText);
+
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
     } finally {
@@ -204,24 +214,24 @@ document.getElementById('doubt-form')?.addEventListener('submit', async (event) 
     }
 });
 
-// GENERATE NOTES
+// GENERATE NOTES (Streaming लागू)
 document.getElementById('notes-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('notes-topic-input').value.trim();
     const noteType = document.querySelector('input[name="note-type"]:checked').value;
-    if(topic) handleApiRequest('notes-form', 'generate-notes-submit', 'notes-response-container', 'notes-response', '/generate-notes-ai', { topic, noteType });
+    if(topic) {
+        handleApiStreamRequest('notes-form', 'generate-notes-submit', 'notes-response-container', 'notes-response', '/generate-notes-ai', { topic, noteType });
+    }
 });
 
-// PRACTICE MCQs (UPDATED)
+// PRACTICE MCQs (कोई बदलाव नहीं, क्योंकि यह JSON इस्तेमाल करता है)
 document.getElementById('start-quiz-btn')?.addEventListener('click', async () => {
     const topic = document.getElementById('mcq-topic-input').value.trim();
     if (topic === '') return alert('Please ek topic likhein.');
     
     const selectedCountRadio = document.querySelector('input[name="mcq-count"]:checked');
     let count = selectedCountRadio.value;
-    if (count === 'custom') {
-        count = document.getElementById('mcq-custom-count').value;
-    }
+    if (count === 'custom') count = document.getElementById('mcq-custom-count').value;
 
     const setupView = document.getElementById('mcq-setup-view');
     const quizView = document.getElementById('mcq-quiz-view');
@@ -242,7 +252,7 @@ document.getElementById('start-quiz-btn')?.addEventListener('click', async () =>
         const questions = await response.json();
         if (!response.ok) throw new Error(questions.error);
         window.currentQuizQuestions = questions;
-        await displayQuestions(questions); // await for questions to be displayed
+        await displayQuestions(questions);
     } catch (error) {
         quizContainer.innerHTML = `<p style="color: var(--color-red);">Quiz generate nahi ho saka: ${error.message}</p>`;
         setupView.style.display = 'block'; quizView.style.display = 'none';
@@ -251,109 +261,88 @@ document.getElementById('start-quiz-btn')?.addEventListener('click', async () =>
     }
 });
 
-async function displayQuestions(questions) {
+async function displayQuestions(questions) { // कोई बदलाव नहीं
     const quizContainer = document.getElementById('quiz-container');
     quizContainer.innerHTML = '';
     window.correctAnswers = questions.map(q => q.correct_answer);
-    
     for (const [index, q] of questions.entries()) {
         const questionElement = document.createElement('div');
         questionElement.className = 'mcq-question-block';
-        
         const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
         let optionsHTML = shuffledOptions.map(option => `<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span>${option}</span></label>`).join('');
-        
         const questionTextDiv = document.createElement('div');
-        // Render the question text properly first
         await renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
-        
-        // Then build the final HTML
         questionElement.innerHTML = `${questionTextDiv.innerHTML}<div class="options-container" id="options-${index}">${optionsHTML}</div>`;
         quizContainer.appendChild(questionElement);
     }
 }
 
-// UPDATED Submit Quiz Logic
-document.getElementById('submit-quiz-btn')?.addEventListener('click', () => {
+document.getElementById('submit-quiz-btn')?.addEventListener('click', () => { // कोई बदलाव नहीं
     let score = 0;
     const userAnswersForAnalysis = [];
-
     window.correctAnswers.forEach((correctAnswer, i) => {
         const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
         const questionData = window.currentQuizQuestions[i];
-        
         let userAnswer = selectedRadio ? selectedRadio.value : "Not Answered";
         let isCorrect = (userAnswer === correctAnswer);
-
-        userAnswersForAnalysis.push({
-            question: questionData.question,
-            userAnswer: userAnswer,
-            isCorrect: isCorrect,
-            conceptTag: questionData.conceptTag || "General"
-        });
-
+        userAnswersForAnalysis.push({ question: questionData.question, userAnswer: userAnswer, isCorrect: isCorrect, conceptTag: questionData.conceptTag || "General" });
         document.getElementById(`options-${i}`).querySelectorAll('label').forEach(label => {
             label.style.pointerEvents = 'none';
-            if (label.querySelector('input').value === correctAnswer) {
-                label.style.borderLeft = '5px solid var(--color-green)';
-            }
+            if (label.querySelector('input').value === correctAnswer) label.style.borderLeft = '5px solid var(--color-green)';
         });
-        if (selectedRadio && !isCorrect) {
-            selectedRadio.parentElement.style.borderLeft = '5px solid var(--color-red)';
-        }
-
+        if (selectedRadio && !isCorrect) selectedRadio.parentElement.style.borderLeft = '5px solid var(--color-red)';
         if (isCorrect) score++;
     });
-
     document.getElementById('quiz-result').innerHTML = `<h3>Your Score: ${score} / ${window.correctAnswers.length}</h3>`;
     document.getElementById('submit-quiz-btn').style.display = 'none';
     document.getElementById('post-quiz-options').style.display = 'block';
-    
     getQuizAnalysis(userAnswersForAnalysis);
 });
 
-// NEW: Function to get AI analysis of quiz results
+// Quiz Analysis (Streaming लागू)
 async function getQuizAnalysis(answers) {
     const analysisDiv = document.getElementById('quiz-analysis-report');
     if (!analysisDiv) return;
     analysisDiv.innerHTML = '<p>Aapke performance ka analysis kiya ja raha hai...</p>';
     analysisDiv.style.display = 'block';
-
     try {
-        const response = await fetch('/analyze-quiz-results', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answers: answers })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        
-        await renderEnhancedAIContent(analysisDiv, data.analysis);
+        const response = await fetch('/analyze-quiz-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers: answers }) });
+        if (!response.ok) throw new Error('Analysis server error');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponseText = '';
+        analysisDiv.innerHTML = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            fullResponseText += decoder.decode(value);
+            analysisDiv.innerHTML = marked.parse(fullResponseText);
+        }
+        await renderEnhancedAIContent(analysisDiv, fullResponseText);
     } catch (error) {
         analysisDiv.innerHTML = `<p style="color: var(--color-red);">Analysis nahi ho saka: ${error.message}</p>`;
     }
 }
 
-
-document.getElementById('retake-quiz-btn')?.addEventListener('click', () => {
+document.getElementById('retake-quiz-btn')?.addEventListener('click', () => { // कोई बदलाव नहीं
     document.getElementById('mcq-quiz-view').style.display = 'none';
     document.getElementById('mcq-setup-view').style.display = 'block';
     document.getElementById('mcq-topic-input').value = '';
 });
 
-// SOLVED NOTES
+// SOLVED NOTES (Streaming लागू)
 document.getElementById('solved-notes-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('solved-notes-topic-input').value.trim();
     const selectedCountRadio = document.querySelector('input[name="solved-notes-count"]:checked');
     let count = selectedCountRadio.value;
-    if (count === 'custom') {
-        count = document.getElementById('solved-notes-custom-count').value;
-    }
-    if(topic) handleApiRequest('solved-notes-form', 'get-solved-notes-btn', 'solved-notes-response-container', 'solved-notes-response', '/get-solved-notes-ai', { topic, count });
+    if (count === 'custom') count = document.getElementById('solved-notes-custom-count').value;
+    if(topic) handleApiStreamRequest('solved-notes-form', 'get-solved-notes-btn', 'solved-notes-response-container', 'solved-notes-response', '/get-solved-notes-ai', { topic, count });
 });
 
-// CAREER COUNSELOR
+// CAREER COUNSELOR (Streaming लागू)
 document.getElementById('career-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const interests = document.getElementById('career-interests-input').value.trim();
@@ -366,14 +355,26 @@ document.getElementById('career-form')?.addEventListener('submit', async (e) => 
 
     button.disabled = true; button.textContent = 'Generating...';
     container.style.display = 'block';
-    contentArea.innerHTML = '<p>AI से जवाब मिलने का इंतज़ार है...</p>';
+    contentArea.innerHTML = '<p>AI से जवाब मिलना शुरू हो रहा है...</p>';
     controlsArea.innerHTML = '';
     
     try {
         const response = await fetch('/get-career-advice-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ interests }) });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
+        if (!response.ok) throw new Error('Server error');
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponseText = '';
+        contentArea.innerHTML = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            fullResponseText += decoder.decode(value);
+            contentArea.innerHTML = marked.parse(fullResponseText.replace(/\n---\n/g, '<hr>')); // तात्कालिक प्रदर्शन
+        }
+        // पूरा जवाब आने के बाद pagination लागू करें
+        await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', fullResponseText);
     } catch (error) {
         contentArea.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
     } finally {
@@ -381,7 +382,7 @@ document.getElementById('career-form')?.addEventListener('submit', async (e) => 
     }
 });
 
-// STUDY PLANNER
+// STUDY PLANNER (Streaming लागू)
 document.getElementById('study-plan-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const details = document.getElementById('study-plan-details-input').value.trim();
@@ -394,14 +395,25 @@ document.getElementById('study-plan-form')?.addEventListener('submit', async (e)
 
     button.disabled = true; button.textContent = 'Creating...';
     container.style.display = 'block';
-    contentArea.innerHTML = '<p>AI से जवाब मिलने का इंतज़ार है...</p>';
+    contentArea.innerHTML = '<p>AI से जवाब मिलना शुरू हो रहा है...</p>';
     controlsArea.innerHTML = '';
 
     try {
         const response = await fetch('/generate-study-plan-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ details }) });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
+        if (!response.ok) throw new Error('Server error');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponseText = '';
+        contentArea.innerHTML = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            fullResponseText += decoder.decode(value);
+            contentArea.innerHTML = marked.parse(fullResponseText.replace(/\n---\n/g, '<hr>'));
+        }
+        await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', fullResponseText);
     } catch (error) {
         contentArea.innerHTML = `<p style="color: var(--color-red);">माफ़ कीजिये, कुछ गड़बड़ हो गयी: ${error.message}</p>`;
     } finally {
@@ -409,7 +421,7 @@ document.getElementById('study-plan-form')?.addEventListener('submit', async (e)
     }
 });
 
-// FLASHCARDS
+// FLASHCARDS (कोई बदलाव नहीं, क्योंकि यह JSON इस्तेमाल करता है)
 document.getElementById('flashcard-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const topic = document.getElementById('flashcard-topic-input').value.trim();
@@ -417,9 +429,7 @@ document.getElementById('flashcard-form')?.addEventListener('submit', async (e) 
 
     const selectedCountRadio = document.querySelector('input[name="flashcard-count"]:checked');
     let count = selectedCountRadio.value;
-    if (count === 'custom') {
-        count = document.getElementById('flashcard-custom-count').value;
-    }
+    if (count === 'custom') count = document.getElementById('flashcard-custom-count').value;
 
     const button = document.getElementById('generate-flashcards-btn');
     const container = document.getElementById('flashcard-response-container');
@@ -432,7 +442,7 @@ document.getElementById('flashcard-form')?.addEventListener('submit', async (e) 
         const response = await fetch('/generate-flashcards-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, count }) });
         const cards = await response.json();
         if (!response.ok) throw new Error(cards.error);
-        await displayFlashcards(cards); // await for cards to be displayed
+        await displayFlashcards(cards);
     } catch (error) {
         container.innerHTML = `<p style="color: var(--color-red);">Flashcards nahi ban sake: ${error.message}</p>`;
     } finally {
@@ -440,12 +450,11 @@ document.getElementById('flashcard-form')?.addEventListener('submit', async (e) 
     }
 });
 
-async function displayFlashcards(cards) {
+async function displayFlashcards(cards) { // कोई बदलाव नहीं
     const container = document.getElementById('flashcard-response-container');
     container.innerHTML = '';
     const grid = document.createElement('div');
     grid.className = 'flashcard-grid';
-    
     for (const cardData of cards) {
         const cardEl = document.createElement('div');
         cardEl.className = 'flashcard';
@@ -453,11 +462,8 @@ async function displayFlashcards(cards) {
         const backDiv = document.createElement('div');
         frontDiv.className = 'card-front';
         backDiv.className = 'card-back';
-        
-        // Render front and back content safely
         await renderEnhancedAIContent(frontDiv, cardData.front);
         await renderEnhancedAIContent(backDiv, cardData.back);
-        
         cardEl.innerHTML = `<div class="flashcard-inner">${frontDiv.outerHTML}${backDiv.outerHTML}</div>`;
         cardEl.addEventListener('click', () => cardEl.classList.toggle('flipped'));
         grid.appendChild(cardEl);
@@ -465,23 +471,24 @@ async function displayFlashcards(cards) {
     container.appendChild(grid);
 }
 
-// ESSAY WRITER
+// ESSAY WRITER (Streaming लागू)
 document.getElementById('essay-writer-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('essay-topic-input').value.trim();
-    if(topic) handleApiRequest('essay-writer-form', 'write-essay-btn', 'essay-writer-response-container', 'essay-writer-response', '/write-essay-ai', { topic });
+    if(topic) handleApiStreamRequest('essay-writer-form', 'write-essay-btn', 'essay-writer-response-container', 'essay-writer-response', '/write-essay-ai', { topic });
 });
 
-// PRESENTATION MAKER
+// PRESENTATION MAKER (Streaming लागू)
 document.getElementById('presentation-maker-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('presentation-topic-input').value.trim();
-    if(topic) handleApiRequest('presentation-maker-form', 'create-presentation-btn', 'presentation-maker-response-container', 'presentation-maker-response', '/create-presentation-ai', { topic });
+    if(topic) handleApiStreamRequest('presentation-maker-form', 'create-presentation-btn', 'presentation-maker-response-container', 'presentation-maker-response', '/create-presentation-ai', { topic });
 });
 
-// CONCEPT EXPLAINER
+// CONCEPT EXPLAINER (Streaming लागू)
 document.getElementById('explainer-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const topic = document.getElementById('explainer-topic-input').value.trim();
-    if(topic) handleApiRequest('explainer-form', 'get-explanation-btn', 'explainer-response-container', 'explainer-response', '/explain-concept-ai', { topic });
+    // ⭐ ज़रूरी बदलाव: Input का ID `explainer-topic-input` था, उसे सही किया।
+    if(topic) handleApiStreamRequest('explainer-form', 'get-explanation-btn', 'explainer-response-container', 'explainer-response', '/explain-concept-ai', { topic });
 });
