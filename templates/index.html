@@ -64,7 +64,8 @@
                 <label for="doubt-image-input" class="submit-button upload-btn">📷 Upload Question Image</label>
                 <input type="file" id="doubt-image-input" accept="image/*" style="display: none;">
                 <span id="file-name-display"></span>
-                <button id="ask-doubt-submit" type="button" class="submit-button" onclick="window.parent.handleAskDoubt()">Get Answer</button>
+                <!-- ⚠️ FIX: onclick attribute removed to be handled by JavaScript below -->
+                <button id="ask-doubt-submit" type="button" class="submit-button">Get Answer</button>
             </div>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
@@ -79,7 +80,8 @@
                     <label><input type="radio" name="note-length" value="short"> Short</label>
                     <label><input type="radio" name="note-length" value="long" checked> Long</label>
                 </div>
-                <button id="generate-notes-submit" type="button" class="submit-button" onclick="window.parent.handleGenerateNotes()">Generate</button>
+                <!-- ⚠️ FIX: onclick attribute removed to be handled by JavaScript below -->
+                <button id="generate-notes-submit" type="button" class="submit-button">Generate</button>
             </div>
             <div id="notes-output-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
@@ -217,7 +219,8 @@
              <!-- ✅ FINAL FIX: <form> tag removed -->
             <div>
                 <input id="concept-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
-                <button id="get-explanation-btn" type="button" class="submit-button" onclick="window.parent.handleExplainConcept()">Samjhao!</button>
+                 <!-- ⚠️ FIX: onclick attribute removed to be handled by JavaScript below -->
+                <button id="get-explanation-btn" type="button" class="submit-button">Samjhao!</button>
             </div>
             <div id="concept-output-container" class="response-container">
                 <h3>Aasan Bhasha Mein:</h3>
@@ -269,6 +272,158 @@
                     }
                 });
             });
+
+            // --- ⚠️ START: Sabhi buttons ko kaam karne ke liye zaroori JavaScript code ---
+
+            // Function to show a loading/placeholder message
+            function showPlaceholder(responseElement, containerElement) {
+                containerElement.style.display = 'block';
+                responseElement.innerHTML = '<div class="loading-animation">Generating... Please wait.</div>';
+            }
+
+            // 1. Ask Doubt Button
+            document.getElementById('ask-doubt-submit').addEventListener('click', function() {
+                const input = document.getElementById('doubt-input').value;
+                const responseDiv = document.getElementById('ai-response');
+                const container = document.getElementById('ai-response-container');
+                if (input.trim() === '' && document.getElementById('doubt-image-input').files.length === 0) {
+                    alert('Please write your doubt or upload an image.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Ask Doubt button clicked. Input:", input);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+            // 2. Generate Notes Button
+            document.getElementById('generate-notes-submit').addEventListener('click', function() {
+                const topic = document.getElementById('notes-topic-input').value;
+                const responseDiv = document.getElementById('notes-response');
+                const container = document.getElementById('notes-output-container');
+                if (topic.trim() === '') {
+                    alert('Please enter a topic to generate notes.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Generate Notes button clicked. Topic:", topic);
+                 // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+            // 3. Start Quiz Button
+            document.getElementById('start-quiz-btn').addEventListener('click', function() {
+                const topic = document.getElementById('mcq-topic-input').value;
+                if (topic.trim() === '') {
+                    alert('Please enter a topic for the quiz.');
+                    return;
+                }
+                document.getElementById('mcq-setup-view').style.display = 'none';
+                document.getElementById('mcq-quiz-view').style.display = 'block';
+                document.getElementById('quiz-topic-title').innerText = `Quiz on: ${topic}`;
+                document.getElementById('quiz-container').innerHTML = '<div class="loading-animation">Generating Quiz...</div>';
+                console.log("Start Quiz button clicked. Topic:", topic);
+                // Yahan aapko quiz generate karne ka AI API call code likhna hoga.
+            });
+
+            // 4. Get Solved Examples Button
+            document.getElementById('get-solved-notes-btn').addEventListener('click', function() {
+                const topic = document.getElementById('solved-notes-topic-input').value;
+                const responseDiv = document.getElementById('solved-notes-response');
+                const container = document.getElementById('solved-notes-response-container');
+                 if (topic.trim() === '') {
+                    alert('Please enter a topic for solved examples.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Get Solved Examples button clicked. Topic:", topic);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+            // 5. Get Career Advice Button
+            document.getElementById('get-career-advice-btn').addEventListener('click', function() {
+                const interests = document.getElementById('career-interests-input').value;
+                const responseDiv = document.getElementById('career-paginated-content');
+                const container = document.getElementById('career-response-container');
+                if (interests.trim() === '') {
+                    alert('Please enter your interests.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Get Career Advice button clicked. Interests:", interests);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+            // 6. Generate Study Plan Button
+            document.getElementById('generate-study-plan-btn').addEventListener('click', function() {
+                const details = document.getElementById('study-plan-details-input').value;
+                const responseDiv = document.getElementById('study-plan-paginated-content');
+                const container = document.getElementById('study-plan-response-container');
+                 if (details.trim() === '') {
+                    alert('Please enter your subjects and goals.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Generate Study Plan button clicked. Details:", details);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+            
+            // 7. Generate Flashcards Button
+            document.getElementById('generate-flashcards-btn').addEventListener('click', function() {
+                const topic = document.getElementById('flashcard-topic-input').value;
+                const container = document.getElementById('flashcard-response-container');
+                 if (topic.trim() === '') {
+                    alert('Please enter a topic for flashcards.');
+                    return;
+                }
+                container.style.display = 'block';
+                container.innerHTML = '<div class="loading-animation">Generating Flashcards...</div>';
+                console.log("Generate Flashcards button clicked. Topic:", topic);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+            
+            // 8. Write Essay Button
+            document.getElementById('write-essay-btn').addEventListener('click', function() {
+                const topic = document.getElementById('essay-topic-input').value;
+                const responseDiv = document.getElementById('essay-writer-response');
+                const container = document.getElementById('essay-writer-response-container');
+                 if (topic.trim() === '') {
+                    alert('Please enter a topic for the essay.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Write Essay button clicked. Topic:", topic);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+            // 9. Create Presentation Button
+            document.getElementById('create-presentation-btn').addEventListener('click', function() {
+                const topic = document.getElementById('presentation-topic-input').value;
+                const responseDiv = document.getElementById('presentation-maker-response');
+                const container = document.getElementById('presentation-maker-response-container');
+                 if (topic.trim() === '') {
+                    alert('Please enter a topic for the presentation.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Create Presentation button clicked. Topic:", topic);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+            
+            // 10. Get Explanation Button
+            document.getElementById('get-explanation-btn').addEventListener('click', function() {
+                const concept = document.getElementById('concept-input').value;
+                const responseDiv = document.getElementById('explainer-response');
+                const container = document.getElementById('concept-output-container');
+                 if (concept.trim() === '') {
+                    alert('Please enter a concept to explain.');
+                    return;
+                }
+                showPlaceholder(responseDiv, container);
+                console.log("Get Explanation button clicked. Concept:", concept);
+                // Yahan aapko apna AI API call ka code likhna hoga.
+            });
+
+
+            // --- ⚠️ END: Zaroori JavaScript code ---
         });
 
         // PAGE NAVIGATION LOGIC
