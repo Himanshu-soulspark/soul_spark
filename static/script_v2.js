@@ -32,7 +32,7 @@ window.addEventListener('load', () => {
                  setTimeout(() => appContainer.style.opacity = '1', 50);
             }
         }, 500); // 0.5 second baad welcome screen poori tarah se hat jaayegi
-    }, 3500); // 3.5 second tak welcome screen dikhegi
+    }, 3500); // 3.5 second तक welcome screen dikhegi
 });
 
 
@@ -126,10 +126,19 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
     try {
         const user = firebase.auth().currentUser;
         const headers = { 'Content-Type': 'application/json' };
+        
         if (user) {
-            const idToken = await user.getIdToken(true);
-            headers['Authorization'] = 'Bearer ' + idToken;
+            try {
+                const idToken = await user.getIdToken(true); // Force refresh token
+                headers['Authorization'] = 'Bearer ' + idToken;
+            } catch (tokenError) {
+                console.error('Error getting Firebase ID token:', tokenError);
+                // अगर टोकन प्राप्त करने में त्रुटि होती है, तो एक विशिष्ट त्रुटि फेंकें
+                throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+            }
         }
+        // अगर 'user' null है, तो 'Authorization' हेडर नहीं जोड़ा जाएगा।
+        // सर्वर तब सही ढंग से "प्रमाणीकरण विफल" के साथ प्रतिक्रिया देगा।
 
         const response = await fetch(url, {
             method: 'POST',
@@ -139,7 +148,14 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
 
         const data = await response.json();
         if (!response.ok) {
-            throw new Error(data.error || 'Server error occurred.');
+            // सर्वर से आए एरर मैसेज को प्राथमिकता दें, या एक सामान्य मैसेज दिखाएँ
+            let errorMessage = `Server error: ${response.status}`;
+            if (data && data.error) {
+                errorMessage = data.error;
+            } else if (response.statusText) {
+                errorMessage = response.statusText;
+            }
+            throw new Error(errorMessage);
         }
         
         const key = Object.keys(data)[0];
@@ -150,6 +166,7 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
         await renderEnhancedAIContent(responseDiv, fullText);
 
     } catch (error) {
+        // सुनिश्चित करें कि एरर का मैसेज दिखाया जाए
         responseDiv.innerHTML = `<p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>`;
     } finally {
         button.disabled = false;
@@ -271,11 +288,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const user = firebase.auth().currentUser;
-            const headers = {};
+            const headers = {}; // FormData के लिए Content-Type ब्राउज़र द्वारा सेट किया जाता है
              if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for image upload:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
+            // अगर 'user' null है, तो 'Authorization' हेडर नहीं जोड़ा जाएगा।
 
             const response = await fetch('/ask-ai-image', {
                 method: 'POST',
@@ -284,8 +307,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Server error occurred.');
+             if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                if (data && data.error) {
+                    errorMessage = data.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
             }
             
             const fullText = data.answer;
@@ -298,8 +327,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             button.disabled = false;
             button.textContent = 'Get Answer';
+            // यह सुनिश्चित करें कि UI सही ढंग से रीसेट हो, खासकर इमेज इनपुट के लिए
             questionInput.value = '';
-            imageInput.value = '';
+            if (imageInput) imageInput.value = ''; // imageInput.value को null या '' पर सेट करें
             if(fileNameDisplay) fileNameDisplay.textContent = '';
         }
     });
@@ -350,8 +380,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                 try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for MCQ:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
             
             const response = await fetch('/generate-mcq-ai', {
@@ -362,7 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const questions = await response.json();
             if (!response.ok) {
-                throw new Error(questions.error || 'Could not generate quiz.');
+                let errorMessage = `Server error: ${response.status}`;
+                if (questions && questions.error) {
+                    errorMessage = questions.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
             }
             window.currentQuizQuestions = questions;
             await displayQuestions(questions);
@@ -425,8 +466,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for career advice:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
 
             const response = await fetch('/get-career-advice-ai', {
@@ -436,7 +482,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Could not get career advice.');
+            if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                if (data && data.error) {
+                    errorMessage = data.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
+            }
             await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
@@ -469,8 +523,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for study plan:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
 
             const response = await fetch('/generate-study-plan-ai', {
@@ -479,7 +538,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ details })
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Could not create study plan.');
+            if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                if (data && data.error) {
+                    errorMessage = data.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
+            }
             await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
@@ -514,8 +581,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for flashcards:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
 
             const response = await fetch('/generate-flashcards-ai', {
@@ -525,7 +597,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const cards = await response.json();
-            if (!response.ok) throw new Error(cards.error || 'Could not create flashcards.');
+             if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                if (cards && cards.error) {
+                    errorMessage = cards.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
+            }
             await displayFlashcards(cards);
         } catch (error) {
             container.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
@@ -668,8 +748,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
-                const idToken = await user.getIdToken(true);
-                headers['Authorization'] = 'Bearer ' + idToken;
+                try {
+                    const idToken = await user.getIdToken(true);
+                    headers['Authorization'] = 'Bearer ' + idToken;
+                } catch (tokenError) {
+                    console.error('Error getting Firebase ID token for quiz analysis:', tokenError);
+                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                }
             }
 
             const response = await fetch('/analyze-quiz-results', {
@@ -678,7 +763,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ answers })
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Could not get analysis.');
+            if (!response.ok) {
+                let errorMessage = `Server error: ${response.status}`;
+                if (data && data.error) {
+                    errorMessage = data.error;
+                } else if (response.statusText) {
+                    errorMessage = response.statusText;
+                }
+                throw new Error(errorMessage);
+            }
 
             await renderEnhancedAIContent(analysisDiv, data.analysis);
         } catch (error) {
@@ -689,7 +782,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('retake-quiz-btn').addEventListener('click', function() {
         document.getElementById('mcq-quiz-view').style.display = 'none';
         document.getElementById('mcq-setup-view').style.display = 'block';
-        document.getElementById('mcq-topic-input').value = '';
+        // mcq-topic-input को भी रीसेट करें
+        const mcqTopicInput = document.getElementById('mcq-topic-input');
+        if (mcqTopicInput) mcqTopicInput.value = '';
     });
 
     async function displayFlashcards(cards) {
