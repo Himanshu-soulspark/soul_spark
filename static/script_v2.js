@@ -1,3 +1,27 @@
+// --- FIREBASE SETUP ---
+// यह कोड आपके वेबपेज को आपके Firebase प्रोजेक्ट से जोड़ता है।
+// यह सबसे ऊपर इसलिए रखा गया है ताकि बाकी कोई भी फंक्शन इसे इस्तेमाल कर सके।
+
+// ✅✅✅ यह नया कोड यहाँ से शुरू होता है ✅✅✅
+
+// 1. यह आपका Firebase कॉन्फ़िगरेशन है, जिसे आपने दिया था।
+const firebaseConfig = {
+  apiKey: "AIzaSyB2PG5JvDko2UmQDlY9gN5lBgga2vQy-Ws",
+  authDomain: "conceptra-c1000.firebaseapp.com",
+  databaseURL: "https://conceptra-c1000-default-rtdb.firebaseio.com",
+  projectId: "conceptra-c1000",
+  storageBucket: "conceptra-c1000.firebasestorage.app",
+  messagingSenderId: "298402987968",
+  appId: "1:298402987968:web:c0d0d7d6c08cdfa6bc5225",
+  measurementId: "G-QRQYEVSJJ6"
+};
+
+// 2. इस लाइन से Firebase शुरू होता है। अब आपका ऐप कनेक्ट हो गया है।
+firebase.initializeApp(firebaseConfig);
+
+// ✅✅✅ नया कोड यहाँ खत्म होता है ✅✅✅
+
+
 // --- WELCOME SCREEN LOGIC ---
 // Yeh hissa bilkul sahi tha aur ise waise hi rakha gaya hai. Yeh sunishchit karta hai ki welcome screen ke baad app sahi se dikhe.
 window.addEventListener('load', () => {
