@@ -1,24 +1,35 @@
-// --- FIREBASE SETUP ---
-// यह कोड आपके वेबपेज को आपके Firebase प्रोजेक्ट से जोड़ता है।
-// यह सबसे ऊपर इसलिए रखा गया है ताकि बाकी कोई भी फंक्शन इसे इस्तेमाल कर सके।
+// static/script_v2.js
 
+// --- START: FIREBASE SDK v9 IMPORTS ---
+// यह सुनिश्चित करता है कि हम Firebase के नवीनतम (v9) तरीके का उपयोग कर रहे हैं।
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { getAuth, getIdToken } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+// --- END: FIREBASE SDK v9 IMPORTS ---
+
+// --- FIREBASE SETUP (using v9) ---
+// यह वही firebaseConfig है जो आपके मुख्य ऐप (New File.js) में इस्तेमाल हो रहा है।
+// यह सुनिश्चित करता है कि दोनों स्क्रिप्ट एक ही Firebase प्रोजेक्ट से जुड़ें।
 const firebaseConfig = {
-  apiKey: "AIzaSyB2PG5JvDko2UmQDlY9gN5lBgga2vQy-Ws",
+  apiKey: "AIzaSyBKsycaVUdBKZMLIRhP3tkC36786MJFyq4", // <<<--- आपके New File.js से API Key
   authDomain: "conceptra-c1000.firebaseapp.com",
   databaseURL: "https://conceptra-c1000-default-rtdb.firebaseio.com",
   projectId: "conceptra-c1000",
-  storageBucket: "conceptra-c1000.firebasestorage.app",
+  storageBucket: "conceptra-c1000.appspot.com", // <<<--- आपके New File.js से storageBucket
   messagingSenderId: "298402987968",
   appId: "1:298402987968:web:c0d0d7d6c08cdfa6bc5225",
   measurementId: "G-QRQYEVSJJ6"
 };
 
-// इस लाइन से Firebase शुरू होता है। अब आपका ऐप कनेक्ट हो गया है।
-firebase.initializeApp(firebaseConfig);
+// Firebase v9 को शुरू करें।
+// हमने इसे "InsightAIFirebaseApp" नाम दिया है ताकि अगर आपके मुख्य ऐप में पहले से ही
+// डिफ़ॉल्ट नाम से Firebase शुरू हो चुका है, तो कोई टकराव न हो।
+const insightAIApp = initializeApp(firebaseConfig, "InsightAIFirebaseApp");
+const insightAIAuth = getAuth(insightAIApp); // v9 प्रमाणीकरण (auth) इंस्टैंस
+// --- END: FIREBASE SETUP (using v9) ---
 
 
 // --- WELCOME SCREEN LOGIC ---
-// Yeh hissa bilkul sahi tha aur ise waise hi rakha gaya hai. Yeh sunishchit karta hai ki welcome screen ke baad app sahi se dikhe.
+// इस हिस्से में कोई बदलाव नहीं किया गया है क्योंकि यह पहले से सही था।
 window.addEventListener('load', () => {
     const welcomeScreen = document.getElementById('welcome-screen');
     const appContainer = document.querySelector('.app-container');
@@ -27,17 +38,16 @@ window.addEventListener('load', () => {
         setTimeout(() => {
             if (welcomeScreen) welcomeScreen.style.display = 'none';
             if (appContainer) {
-                 appContainer.style.display = 'block'; // Yeh sunishchit karta hai ki app container dikhe
-                 // App container ko fade in karne ke liye joda gaya
+                 appContainer.style.display = 'block';
                  setTimeout(() => appContainer.style.opacity = '1', 50);
             }
-        }, 500); // 0.5 second baad welcome screen poori tarah se hat jaayegi
-    }, 3500); // 3.5 second तक welcome screen dikhegi
+        }, 500);
+    }, 3500);
 });
 
 
 // --- NAVIGATION LOGIC ---
-// Yeh function bhi bilkul sahi hai aur screen badalne ka kaam karta hai.
+// इस हिस्से में कोई बदलाव नहीं किया गया है।
 function navigateTo(screenId) {
     document.querySelectorAll('.app-container .screen').forEach(screen => screen.classList.remove('active'));
     const targetScreen = document.getElementById(screenId);
@@ -49,11 +59,10 @@ function navigateTo(screenId) {
 
 
 // --- AI CONTENT RENDERER ---
-// Yeh function markdown, math aur code ko sundar dikhane ke liye hai.
+// इस हिस्से में कोई बदलाव नहीं किया गया है।
 async function renderEnhancedAIContent(element, content) {
     if (!element) return;
     
-    // MathJax aur Chem tags ke liye ismein koi badlaav nahi kiya gaya hai.
     let processedContent = content.replace(/\[chem\](.*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
 
     const htmlContent = marked.parse(processedContent);
@@ -61,9 +70,7 @@ async function renderEnhancedAIContent(element, content) {
 
     const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
     
-    // ✅✅✅ बदला हुआ हिस्सा: मुख्य शब्दों (keywords) को अब रैंडम रंग मिलेगा। ✅✅✅
     element.querySelectorAll('strong').forEach((strongEl) => {
-        // यह हर बार एक रैंडम रंग चुनेगा।
         const randomColorClass = highlightColors[Math.floor(Math.random() * highlightColors.length)];
         strongEl.classList.add(randomColorClass);
     });
@@ -83,7 +90,7 @@ async function renderEnhancedAIContent(element, content) {
 
 
 // --- TYPEWRITER EFFECT FUNCTION ---
-// इस फंक्शन को डिलीट नहीं किया गया है, लेकिन अब इसका इस्तेमाल नहीं होगा।
+// इस हिस्से में कोई बदलाव नहीं किया गया है।
 async function typewriterEffect(element, text, onComplete) {
     let i = 0;
     element.innerHTML = "";
@@ -111,8 +118,7 @@ async function typewriterEffect(element, text, onComplete) {
 }
 
 
-// --- HELPER FUNCTION FOR API REQUESTS ---
-// Is function mein zaroori badlaav kiya gaya hai.
+// --- HELPER FUNCTION FOR API REQUESTS (Firebase v9 Auth के लिए अपडेट किया गया) ---
 async function handleApiRequest(button, container, responseDiv, url, getBody) {
     const body = getBody();
     if (!body) return;
@@ -124,23 +130,24 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
     responseDiv.innerHTML = '<div class="loading-animation">Generating... Please wait.</div>';
 
     try {
-        const user = firebase.auth().currentUser;
+        const user = insightAIAuth.currentUser; // <<<--- बदला हुआ: v9 auth इंस्टैंस का उपयोग करें
         const headers = { 'Content-Type': 'application/json' };
         
         if (user) {
             try {
-                const idToken = await user.getIdToken(true); // Force refresh token
-                headers['Authorization'] = 'Bearer ' + idToken;
+                // Firebase v9: getIdToken को सीधे कॉल करें, यूजर ऑब्जेक्ट को पहले आर्गुमेंट के रूप में पास करें
+                const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ: v9 getIdToken
+                headers['Authorization'] = 'Bearer ' + idTokenString;
             } catch (tokenError) {
-                console.error('Error getting Firebase ID token:', tokenError);
+                console.error('Firebase ID टोकन प्राप्त करने में त्रुटि (v9):', tokenError);
                 // अगर टोकन प्राप्त करने में त्रुटि होती है, तो एक विशिष्ट त्रुटि फेंकें
-                throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                throw new Error(`प्रमाणीकरण टोकन त्रुटि: ${tokenError.message}. कृपया पुनः लॉग इन करने का प्रयास करें।`);
             }
         }
-        // अगर 'user' null है, तो 'Authorization' हेडर नहीं जोड़ा जाएगा।
+        // अगर 'user' null है (यानी यूजर लॉग इन नहीं है), तो 'Authorization' हेडर नहीं जोड़ा जाएगा।
         // सर्वर तब सही ढंग से "प्रमाणीकरण विफल" के साथ प्रतिक्रिया देगा।
 
-        const response = await fetch(url, {
+        const response = await fetch(url, { // Python सर्वर का URL यहाँ कॉलर द्वारा उपयोग किया जाएगा
             method: 'POST',
             headers: headers,
             body: JSON.stringify(body)
@@ -149,9 +156,9 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
         const data = await response.json();
         if (!response.ok) {
             // सर्वर से आए एरर मैसेज को प्राथमिकता दें, या एक सामान्य मैसेज दिखाएँ
-            let errorMessage = `Server error: ${response.status}`;
+            let errorMessage = `सर्वर त्रुटि: ${response.status}`;
             if (data && data.error) {
-                errorMessage = data.error;
+                errorMessage = data.error; // सर्वर द्वारा भेजा गया विशिष्ट एरर
             } else if (response.statusText) {
                 errorMessage = response.statusText;
             }
@@ -159,26 +166,25 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
         }
         
         const key = Object.keys(data)[0];
-        const fullText = data[key] || "No content received.";
-
-        // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को हटा दिया गया है। ✅✅✅
-        // अब जवाब सीधा और एक बार में दिखेगा।
+        const fullText = data[key] || "कोई सामग्री प्राप्त नहीं हुई।";
         await renderEnhancedAIContent(responseDiv, fullText);
 
     } catch (error) {
         // सुनिश्चित करें कि एरर का मैसेज दिखाया जाए
-        responseDiv.innerHTML = `<p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>`;
+        responseDiv.innerHTML = `<p style="color: var(--color-red);">क्षमा करें, एक त्रुटि हुई: ${error.message}</p>`;
     } finally {
         button.disabled = false;
         button.textContent = originalText;
     }
 }
+// --- END: HELPER FUNCTION FOR API REQUESTS ---
 
 
 // --- PAGINATION LOGIC ---
-// Yeh sahi hai aur lambe jawabon ko page mein baantne ka kaam karta hai. Ismein koi badlaav nahi.
+// इस हिस्से में कोई बदलाव नहीं किया गया है।
 let paginationData = {};
 async function renderPaginatedContent(contentAreaId, controlsId, content) {
+    // ... (कोड अपरिवर्तित)
     const contentArea = document.getElementById(contentAreaId);
     const controlsArea = document.getElementById(controlsId);
     if (!contentArea || !controlsArea) return;
@@ -203,6 +209,7 @@ async function renderPaginatedContent(contentAreaId, controlsId, content) {
     updatePaginationControls(contentAreaId);
 }
 function changePage(contentAreaId, direction) {
+    // ... (कोड अपरिवर्तित)
     const data = paginationData[contentAreaId];
     if (!data) return;
     const newPage = data.currentPage + direction;
@@ -216,6 +223,7 @@ function changePage(contentAreaId, direction) {
     }
 }
 function updatePaginationControls(contentAreaId) {
+    // ... (कोड अपरिवर्तित)
     const data = paginationData[contentAreaId];
     if (!data) return;
     document.getElementById(`${contentAreaId}-indicator`).textContent = `Page ${data.currentPage + 1} of ${data.pages.length}`;
@@ -224,10 +232,11 @@ function updatePaginationControls(contentAreaId) {
 }
 
 
-// --- Yahan se mukhya event listeners shuru hote hain. Inmein koi badlaav nahi hai ---
+// --- मुख्य EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', function() {
 
-    // --- CUSTOM COUNT INPUT LOGIC ---
+    // --- CUSTOM COUNT INPUT LOGIC --- (कोई बदलाव नहीं)
+    // ... (कोड अपरिवर्तित)
     document.querySelectorAll('input[type="radio"][value="custom"]').forEach(radio => {
         radio.addEventListener('change', function() {
             const customInput = this.closest('.option-selector-group').querySelector('.custom-count-input');
@@ -245,7 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Image file ka naam dikhane ke liye
+
+    // Image file का नाम दिखाने के लिए (कोई बदलाव नहीं)
     const imageInput = document.getElementById('doubt-image-input');
     const fileNameDisplay = document.getElementById('file-name-display');
     if (imageInput && fileNameDisplay) {
@@ -259,16 +269,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // 1. Ask Doubt
+    // 1. Ask Doubt (Firebase v9 Auth के लिए अपडेट किया गया)
     document.getElementById('ask-doubt-submit').addEventListener('click', async function() {
         const button = this;
         const questionInput = document.getElementById('doubt-input');
-        const imageInput = document.getElementById('doubt-image-input');
+        const imageInputInternal = document.getElementById('doubt-image-input'); // वेरिएबल का नाम बदला ताकि ग्लोबल imageInput से क्लैश न हो
         const responseContainer = document.getElementById('ai-response-container');
         const responseDiv = document.getElementById('ai-response');
-        
+        const fileNameDisplayInternal = document.getElementById('file-name-display'); // वेरिएबल का नाम बदला
+
         const questionText = questionInput.value.trim();
-        const imageFile = imageInput.files[0];
+        const imageFile = imageInputInternal.files[0];
 
         if (questionText === '' && !imageFile) {
             alert('Please write your doubt or upload an image.');
@@ -287,28 +298,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const user = firebase.auth().currentUser;
-            const headers = {}; // FormData के लिए Content-Type ब्राउज़र द्वारा सेट किया जाता है
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ: v9 auth इंस्टैंस
+            const headers = {}; 
              if (user) {
                 try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ: v9 getIdToken
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
                 } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for image upload:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                    console.error('Firebase ID टोकन प्राप्त करने में त्रुटि (इमेज अपलोड v9):', tokenError);
+                    throw new Error(`प्रमाणीकरण टोकन त्रुटि: ${tokenError.message}. कृपया पुनः लॉग इन करने का प्रयास करें।`);
                 }
             }
-            // अगर 'user' null है, तो 'Authorization' हेडर नहीं जोड़ा जाएगा।
 
-            const response = await fetch('/ask-ai-image', {
+            const response = await fetch('/ask-ai-image', { // Python सर्वर एंडपॉइंट
                 method: 'POST',
-                headers: headers,
+                headers: headers, // FormData के लिए, Content-Type ब्राउज़र द्वारा सेट किया जाता है
                 body: formData
             });
 
             const data = await response.json();
              if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
+                let errorMessage = `सर्वर त्रुटि: ${response.status}`;
                 if (data && data.error) {
                     errorMessage = data.error;
                 } else if (response.statusText) {
@@ -318,8 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const fullText = data.answer;
-            
-            // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
             await renderEnhancedAIContent(responseDiv, fullText);
 
         } catch (error) {
@@ -327,14 +335,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             button.disabled = false;
             button.textContent = 'Get Answer';
-            // यह सुनिश्चित करें कि UI सही ढंग से रीसेट हो, खासकर इमेज इनपुट के लिए
             questionInput.value = '';
-            if (imageInput) imageInput.value = ''; // imageInput.value को null या '' पर सेट करें
-            if(fileNameDisplay) fileNameDisplay.textContent = '';
+            if (imageInputInternal) imageInputInternal.value = ''; 
+            if(fileNameDisplayInternal) fileNameDisplayInternal.textContent = '';
         }
     });
 
-    // 2. Generate Notes
+    // 2. Generate Notes - यह handleApiRequest का उपयोग करेगा, जो पहले ही अपडेट हो चुका है
     document.getElementById('generate-notes-submit').addEventListener('click', function() {
         const button = this;
         const topicInput = document.getElementById('notes-topic-input');
@@ -352,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 3. Practice MCQs
+    // 3. Practice MCQs (Firebase v9 Auth के लिए अपडेट किया गया, क्योंकि यह सीधे fetch कॉल करता है)
     document.getElementById('start-quiz-btn').addEventListener('click', async function() {
         const button = this;
         const topic = document.getElementById('mcq-topic-input').value.trim();
@@ -377,19 +384,19 @@ document.addEventListener('DOMContentLoaded', function() {
         button.textContent = 'Generating...';
 
         try {
-            const user = firebase.auth().currentUser;
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ: v9 auth इंस्टैंस
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
                  try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ: v9 getIdToken
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
                 } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for MCQ:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
+                    console.error('Firebase ID टोकन प्राप्त करने में त्रुटि (MCQ v9):', tokenError);
+                    throw new Error(`प्रमाणीकरण टोकन त्रुटि: ${tokenError.message}. कृपया पुनः लॉग इन करने का प्रयास करें।`);
                 }
             }
             
-            const response = await fetch('/generate-mcq-ai', {
+            const response = await fetch('/generate-mcq-ai', { // Python सर्वर एंडपॉइंट
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ topic, count })
@@ -397,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const questions = await response.json();
             if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
+                let errorMessage = `सर्वर त्रुटि: ${response.status}`;
                 if (questions && questions.error) {
                     errorMessage = questions.error;
                 } else if (response.statusText) {
@@ -422,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 4. Get Solved Examples
+    // 4. Get Solved Examples - यह handleApiRequest का उपयोग करेगा, जो अपडेट हो चुका है
     document.getElementById('get-solved-notes-btn').addEventListener('click', function() {
         const button = this;
         const topicInput = document.getElementById('solved-notes-topic-input');
@@ -443,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 5. Get Career Advice
+    // 5. Get Career Advice (Firebase v9 Auth के लिए अपडेट किया गया)
     document.getElementById('get-career-advice-btn').addEventListener('click', async function() {
         const button = this;
         const interests = document.getElementById('career-interests-input').value.trim();
@@ -463,16 +470,13 @@ document.addEventListener('DOMContentLoaded', function() {
         controlsArea.innerHTML = '';
 
         try {
-            const user = firebase.auth().currentUser;
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
                 try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
-                } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for career advice:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
-                }
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
+                } catch (tokenError) { console.error('Token error:', tokenError); throw new Error(`Auth token error: ${tokenError.message}`); }
             }
 
             const response = await fetch('/get-career-advice-ai', {
@@ -482,15 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
-                if (data && data.error) {
-                    errorMessage = data.error;
-                } else if (response.statusText) {
-                    errorMessage = response.statusText;
-                }
-                throw new Error(errorMessage);
-            }
+            if (!response.ok) { let e = data.error || response.statusText; throw new Error(e); }
             await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
@@ -500,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 6. Generate Study Plan
+    // 6. Generate Study Plan (Firebase v9 Auth के लिए अपडेट किया गया)
     document.getElementById('generate-study-plan-btn').addEventListener('click', async function() {
         const button = this;
         const details = document.getElementById('study-plan-details-input').value.trim();
@@ -508,114 +504,76 @@ document.addEventListener('DOMContentLoaded', function() {
         const contentArea = document.getElementById('study-plan-paginated-content');
         const controlsArea = document.getElementById('study-plan-pagination-controls');
 
-        if (details === '') {
-            alert('Please provide details for the plan.');
-            return;
-        }
+        if (details === '') { alert('Please provide details for the plan.'); return; }
 
-        button.disabled = true;
-        button.textContent = 'Creating...';
+        button.disabled = true; button.textContent = 'Creating...';
         container.style.display = 'block';
         contentArea.innerHTML = '<div class="loading-animation">Generating... Please wait.</div>';
         controlsArea.innerHTML = '';
 
         try {
-            const user = firebase.auth().currentUser;
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
                 try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
-                } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for study plan:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
-                }
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
+                } catch (tokenError) { console.error('Token error:', tokenError); throw new Error(`Auth token error: ${tokenError.message}`); }
             }
-
             const response = await fetch('/generate-study-plan-ai', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ details })
             });
             const data = await response.json();
-            if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
-                if (data && data.error) {
-                    errorMessage = data.error;
-                } else if (response.statusText) {
-                    errorMessage = response.statusText;
-                }
-                throw new Error(errorMessage);
-            }
+            if (!response.ok) { let e = data.error || response.statusText; throw new Error(e); }
             await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
-            button.disabled = false;
-            button.textContent = 'Create My Plan';
+            button.disabled = false; button.textContent = 'Create My Plan';
         }
     });
         
-    // 7. Generate Flashcards
+    // 7. Generate Flashcards (Firebase v9 Auth के लिए अपडेट किया गया)
     document.getElementById('generate-flashcards-btn').addEventListener('click', async function() {
         const button = this;
         const topic = document.getElementById('flashcard-topic-input').value.trim();
         const container = document.getElementById('flashcard-response-container');
         
-        if (topic === '') {
-            alert('Please enter a topic for flashcards.');
-            return;
-        }
-
+        if (topic === '') { alert('Please enter a topic for flashcards.'); return; }
         let count = document.querySelector('input[name="flashcard-count"]:checked').value;
-        if (count === 'custom') {
-            count = document.getElementById('flashcard-custom-count').value;
-        }
+        if (count === 'custom') { count = document.getElementById('flashcard-custom-count').value; }
 
-        button.disabled = true;
-        button.textContent = 'Creating...';
+        button.disabled = true; button.textContent = 'Creating...';
         container.style.display = 'block';
         container.innerHTML = '<div class="loading-animation">Generating Flashcards...</div>';
 
         try {
-            const user = firebase.auth().currentUser;
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
                 try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
-                } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for flashcards:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
-                }
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
+                } catch (tokenError) { console.error('Token error:', tokenError); throw new Error(`Auth token error: ${tokenError.message}`); }
             }
-
             const response = await fetch('/generate-flashcards-ai', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ topic, count })
             });
-
             const cards = await response.json();
-             if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
-                if (cards && cards.error) {
-                    errorMessage = cards.error;
-                } else if (response.statusText) {
-                    errorMessage = response.statusText;
-                }
-                throw new Error(errorMessage);
-            }
+            if (!response.ok) { let e = cards.error || response.statusText; throw new Error(e); }
             await displayFlashcards(cards);
         } catch (error) {
             container.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
-            button.disabled = false;
-            button.textContent = 'Create Flashcards';
+            button.disabled = false; button.textContent = 'Create Flashcards';
         }
     });
         
-    // 8. Write Essay
+    // 8. Write Essay - यह handleApiRequest का उपयोग करेगा
     document.getElementById('write-essay-btn').addEventListener('click', function() {
         const button = this;
         const topicInput = document.getElementById('essay-topic-input');
@@ -624,15 +582,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         handleApiRequest(button, container, responseDiv, '/write-essay-ai', () => {
             const topic = topicInput.value.trim();
-            if (topic === '') {
-                alert('Please enter a topic.');
-                return null;
-            }
+            if (topic === '') { alert('Please enter a topic.'); return null; }
             return { topic };
         });
     });
 
-    // 9. Create Presentation
+    // 9. Create Presentation - यह handleApiRequest का उपयोग करेगा
     document.getElementById('create-presentation-btn').addEventListener('click', function() {
         const button = this;
         const topicInput = document.getElementById('presentation-topic-input');
@@ -641,15 +596,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         handleApiRequest(button, container, responseDiv, '/create-presentation-ai', () => {
             const topic = topicInput.value.trim();
-            if (topic === '') {
-                alert('Please enter a topic.');
-                return null;
-            }
+            if (topic === '') { alert('Please enter a topic.'); return null; }
             return { topic };
         });
     });
         
-    // 10. Get Explanation
+    // 10. Get Explanation - यह handleApiRequest का उपयोग करेगा
     document.getElementById('get-explanation-btn').addEventListener('click', function() {
         const button = this;
         const conceptInput = document.getElementById('concept-input');
@@ -658,16 +610,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         handleApiRequest(button, container, responseDiv, '/explain-concept-ai', () => {
             const topic = conceptInput.value.trim();
-            if (topic === '') {
-                alert('Please enter a concept.');
-                return null;
-            }
+            if (topic === '') { alert('Please enter a concept.'); return null; }
             return { topic };
         });
     });
 
     // --- QUIZ HELPER FUNCTIONS ---
     async function displayQuestions(questions) {
+        // ... (यह कोड अपरिवर्तित)
         const quizContainer = document.getElementById('quiz-container');
         quizContainer.innerHTML = '';
         window.correctAnswers = questions.map(q => q.correct_answer);
@@ -698,6 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('submit-quiz-btn').addEventListener('click', function() {
+        // ... (यह कोड अपरिवर्तित क्योंकि यह getQuizAnalysis को कॉल करता है)
         let score = 0;
         const userAnswersForAnalysis = [];
 
@@ -736,25 +687,23 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.display = 'none';
         document.getElementById('post-quiz-options').style.display = 'block';
 
-        getQuizAnalysis(userAnswersForAnalysis);
+        getQuizAnalysis(userAnswersForAnalysis); // यह अब अपडेटेड getQuizAnalysis को कॉल करेगा
     });
 
+    // Quiz Analysis (Firebase v9 Auth के लिए अपडेट किया गया)
     async function getQuizAnalysis(answers) {
         const analysisDiv = document.getElementById('quiz-analysis-report');
         analysisDiv.style.display = 'block';
         analysisDiv.innerHTML = '<div class="loading-animation">Analyzing your performance...</div>';
 
         try {
-            const user = firebase.auth().currentUser;
+            const user = insightAIAuth.currentUser; // <<<--- बदला हुआ
             const headers = { 'Content-Type': 'application/json' };
             if (user) {
                 try {
-                    const idToken = await user.getIdToken(true);
-                    headers['Authorization'] = 'Bearer ' + idToken;
-                } catch (tokenError) {
-                    console.error('Error getting Firebase ID token for quiz analysis:', tokenError);
-                    throw new Error(`Authentication token error: ${tokenError.message}. Please try logging in again.`);
-                }
+                    const idTokenString = await getIdToken(user, true); // <<<--- बदला हुआ
+                    headers['Authorization'] = 'Bearer ' + idTokenString;
+                } catch (tokenError) { console.error('Token error:', tokenError); throw new Error(`Auth token error: ${tokenError.message}`); }
             }
 
             const response = await fetch('/analyze-quiz-results', {
@@ -763,16 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ answers })
             });
             const data = await response.json();
-            if (!response.ok) {
-                let errorMessage = `Server error: ${response.status}`;
-                if (data && data.error) {
-                    errorMessage = data.error;
-                } else if (response.statusText) {
-                    errorMessage = response.statusText;
-                }
-                throw new Error(errorMessage);
-            }
-
+            if (!response.ok) { let e = data.error || response.statusText; throw new Error(e); }
             await renderEnhancedAIContent(analysisDiv, data.analysis);
         } catch (error) {
             analysisDiv.innerHTML = `<p style="color: var(--color-red);">Could not get analysis: ${error.message}</p>`;
@@ -780,14 +720,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('retake-quiz-btn').addEventListener('click', function() {
+        // ... (यह कोड अपरिवर्तित)
         document.getElementById('mcq-quiz-view').style.display = 'none';
         document.getElementById('mcq-setup-view').style.display = 'block';
-        // mcq-topic-input को भी रीसेट करें
         const mcqTopicInput = document.getElementById('mcq-topic-input');
         if (mcqTopicInput) mcqTopicInput.value = '';
     });
 
     async function displayFlashcards(cards) {
+        // ... (यह कोड अपरिवर्तित)
         const container = document.getElementById('flashcard-response-container');
         container.innerHTML = '';
         const grid = document.createElement('div');
