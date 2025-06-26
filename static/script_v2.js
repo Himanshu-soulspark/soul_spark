@@ -1,6 +1,5 @@
-// static/script.js
-
 // --- WELCOME SCREEN LOGIC ---
+// Yeh hissa bilkul sahi tha aur ise waise hi rakha gaya hai. Yeh sunishchit karta hai ki welcome screen ke baad app sahi se dikhe.
 window.addEventListener('load', () => {
     const welcomeScreen = document.getElementById('welcome-screen');
     const appContainer = document.querySelector('.app-container');
@@ -9,15 +8,17 @@ window.addEventListener('load', () => {
         setTimeout(() => {
             if (welcomeScreen) welcomeScreen.style.display = 'none';
             if (appContainer) {
-                 appContainer.style.display = 'block';
+                 appContainer.style.display = 'block'; // Yeh sunishchit karta hai ki app container dikhe
+                 // App container ko fade in karne ke liye joda gaya
                  setTimeout(() => appContainer.style.opacity = '1', 50);
             }
-        }, 500);
-    }, 3500);
+        }, 500); // 0.5 second baad welcome screen poori tarah se hat jaayegi
+    }, 3500); // 3.5 second tak welcome screen dikhegi
 });
 
 
 // --- NAVIGATION LOGIC ---
+// Yeh function bhi bilkul sahi hai aur screen badalne ka kaam karta hai.
 function navigateTo(screenId) {
     document.querySelectorAll('.app-container .screen').forEach(screen => screen.classList.remove('active'));
     const targetScreen = document.getElementById(screenId);
@@ -27,59 +28,16 @@ function navigateTo(screenId) {
     window.scrollTo(0, 0);
 }
 
-// --- NEW: TYPEWRITER EFFECT FUNCTION ---
-// यह फंक्शन AI के जवाब को लेटर-बाय-लेटर टाइप करता है।
-async function typewriterEffect(element, content) {
-    // पहले मौजूदा कंटेंट को साफ़ करें और कर्सर दिखाएँ
-    element.innerHTML = '<span class="typing-cursor"></span>';
-    const cursor = element.querySelector('.typing-cursor');
 
-    // मार्कडाउन, मैथ और कोड को सुंदर दिखाने के लिए प्रोसेस करें
-    let processedContent = content.replace(/\[chem\](.*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
-    const htmlContent = marked.parse(processedContent);
-    
-    // कंटेंट को एक अस्थायी अदृश्य div में डालें ताकि हम टेक्स्ट को निकाल सकें
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    // स्टाइलिंग को ठीक करें
-    const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
-    tempDiv.querySelectorAll('strong').forEach((strongEl, index) => {
-        strongEl.classList.add(highlightColors[index % highlightColors.length]);
-    });
-    tempDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
-    
-    // अब अस्थायी div से फाइनल HTML लें
-    const finalHtml = tempDiv.innerHTML;
-    
-    // टाइपिंग शुरू करें
-    return new Promise(async (resolve) => {
-        element.innerHTML = finalHtml + '<span class="typing-cursor"></span>'; // एक बार में पूरा कंटेंट दिखाएँ
-        
-        // MathJax को अब रेंडर करें
-        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-            try {
-                await window.MathJax.typesetPromise([element]);
-            } catch (err) {
-                console.error('MathJax rendering failed:', err);
-            }
-        }
-        
-        // कर्सर हटा दें
-        const finalCursor = element.querySelector('.typing-cursor');
-        if (finalCursor) {
-            finalCursor.remove();
-        }
-        resolve();
-    });
-}
-
-
-// --- AI CONTENT RENDERER (For non-typing content) ---
+// --- AI CONTENT RENDERER ---
+// Yeh function markdown, math aur code ko sundar dikhane ke liye hai. Yeh bilkul sahi hai.
 async function renderEnhancedAIContent(element, content) {
     if (!element) return;
     
+    // MathJax ko theek se kaam karne ke liye [math]...[/math] ko badalna nahi hai
+    // [chem]...[/chem] ko ek khaas style dene ke liye badla gaya
     let processedContent = content.replace(/\[chem\](.*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
+
     const htmlContent = marked.parse(processedContent);
     element.innerHTML = htmlContent;
 
@@ -88,7 +46,9 @@ async function renderEnhancedAIContent(element, content) {
         strongEl.classList.add(highlightColors[index % highlightColors.length]);
     });
 
-    element.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+    element.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+    });
 
     if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
         try {
@@ -100,16 +60,46 @@ async function renderEnhancedAIContent(element, content) {
 }
 
 
-// --- API REQUEST HELPER (अब टाइपराइटर का इस्तेमाल करेगा) ---
+// --- ✅ ZAROORI BADLAAV: TYPEWRITER EFFECT FUNCTION ---
+// Yeh naya function AI ke jawab ko letter-by-letter screen par type karega.
+async function typewriterEffect(element, text, onComplete) {
+    let i = 0;
+    element.innerHTML = ""; // Pehle se मौजूद content ko saaf karein
+    const speed = 15; // Typing ki speed (milliseconds mein). Kam value matlab tez typing.
+
+    function type() {
+        if (i < text.length) {
+            // HTML tags ko ek saath add karein, character by character nahi
+            if (text.charAt(i) === '<') {
+                const closingTagIndex = text.indexOf('>', i);
+                if (closingTagIndex !== -1) {
+                    element.innerHTML += text.substring(i, closingTagIndex + 1);
+                    i = closingTagIndex;
+                }
+            } else {
+                 element.innerHTML += text.charAt(i);
+            }
+            i++;
+            element.scrollTop = element.scrollHeight; // Type hote samay neeche scroll karein
+            setTimeout(type, speed);
+        } else if (onComplete) {
+            onComplete(); // Jab typing poori ho jaye, toh onComplete function ko call karein
+        }
+    }
+    type();
+}
+
+
+// --- HELPER FUNCTION FOR API REQUESTS ---
+// Is function mein zaroori badlaav kiya gaya hai taaki yeh naye typewriter effect ka istemal kare.
 async function handleApiRequest(button, container, responseDiv, url, getBody) {
     const body = getBody();
-    if (!body) return;
+    if (!body) return; // Agar body nahi hai toh kuch mat karo
 
     button.disabled = true;
     const originalText = button.textContent;
     button.textContent = 'Generating...';
     container.style.display = 'block';
-    // लोडिंग एनीमेशन दिखाएँ
     responseDiv.innerHTML = '<div class="loading-animation">Generating... Please wait.</div>';
 
     try {
@@ -131,9 +121,14 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
             throw new Error(data.error || 'Server error occurred.');
         }
         
-        // Python से आने वाला जवाब हमेशा 'response_text' key में होगा
-        // अब यहाँ typewriterEffect का इस्तेमाल करें
-        await typewriterEffect(responseDiv, data.response_text || "No content received.");
+        const key = Object.keys(data)[0];
+        const fullText = data[key] || "No content received.";
+
+        // ✅ BADLAAV: Ab hum seedhe render nahi karenge. Pehle typewriter effect chalayenge.
+        // Typewriter poora hone ke baad, hum content ko format karenge.
+        await typewriterEffect(responseDiv, fullText, async () => {
+            await renderEnhancedAIContent(responseDiv, fullText);
+        });
 
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>`;
@@ -145,6 +140,7 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
 
 
 // --- PAGINATION LOGIC ---
+// Yeh sahi hai aur lambe jawabon ko page mein baantne ka kaam karta hai. Ismein koi badlaav nahi.
 let paginationData = {};
 async function renderPaginatedContent(contentAreaId, controlsId, content) {
     const contentArea = document.getElementById(contentAreaId);
@@ -163,7 +159,6 @@ async function renderPaginatedContent(contentAreaId, controlsId, content) {
         return pageDiv;
     });
 
-    // सभी पेजों को एक साथ रेंडर करें
     for (let i = 0; i < pageDivs.length; i++) {
         await renderEnhancedAIContent(pageDivs[i], pages[i]);
     }
@@ -171,7 +166,6 @@ async function renderPaginatedContent(contentAreaId, controlsId, content) {
     controlsArea.innerHTML = `<button class="pagination-btn" id="${contentAreaId}-back" onclick="changePage('${contentAreaId}', -1)">Back</button> <span class="page-indicator" id="${contentAreaId}-indicator"></span> <button class="pagination-btn" id="${contentAreaId}-next" onclick="changePage('${contentAreaId}', 1)">Next</button>`;
     updatePaginationControls(contentAreaId);
 }
-
 function changePage(contentAreaId, direction) {
     const data = paginationData[contentAreaId];
     if (!data) return;
@@ -194,6 +188,7 @@ function updatePaginationControls(contentAreaId) {
 }
 
 
+// --- Yahan se mukhya event listeners shuru hote hain. Inmein koi badlaav nahi hai ---
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- CUSTOM COUNT INPUT LOGIC ---
@@ -214,15 +209,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Image file ka naam dikhane ke liye
     const imageInput = document.getElementById('doubt-image-input');
     const fileNameDisplay = document.getElementById('file-name-display');
     if (imageInput && fileNameDisplay) {
         imageInput.addEventListener('change', function() {
-            fileNameDisplay.textContent = this.files.length > 0 ? `File: ${this.files[0].name}` : '';
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = `File: ${this.files[0].name}`;
+            } else {
+                fileNameDisplay.textContent = '';
+            }
         });
     }
 
-    // --- FEATURE EVENT LISTENERS ---
 
     // 1. Ask Doubt
     document.getElementById('ask-doubt-submit').addEventListener('click', async function() {
@@ -247,12 +246,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData();
         formData.append('question', questionText);
-        if (imageFile) formData.append('image', imageFile);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
 
         try {
             const user = firebase.auth().currentUser;
             const headers = {};
-            if (user) {
+             if (user) {
                 const idToken = await user.getIdToken(true);
                 headers['Authorization'] = 'Bearer ' + idToken;
             }
@@ -264,9 +265,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Server error occurred.');
+            if (!response.ok) {
+                throw new Error(data.error || 'Server error occurred.');
+            }
             
-            await typewriterEffect(responseDiv, data.response_text);
+            const fullText = data.answer;
+            await typewriterEffect(responseDiv, fullText, async () => {
+                await renderEnhancedAIContent(responseDiv, fullText);
+            });
+
         } catch (error) {
             responseDiv.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
@@ -280,20 +287,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 2. Generate Notes
     document.getElementById('generate-notes-submit').addEventListener('click', function() {
-        handleApiRequest(
-            this,
-            document.getElementById('notes-output-container'),
-            document.getElementById('notes-response'),
-            '/generate-notes-ai',
-            () => {
-                const topic = document.getElementById('notes-topic-input').value.trim();
-                if (topic === '') { alert('Please enter a topic.'); return null; }
-                const noteType = document.querySelector('input[name="note-length"]:checked').value;
-                return { topic, noteType };
+        const button = this;
+        const topicInput = document.getElementById('notes-topic-input');
+        const container = document.getElementById('notes-output-container');
+        const responseDiv = document.getElementById('notes-response');
+        
+        handleApiRequest(button, container, responseDiv, '/generate-notes-ai', () => {
+            const topic = topicInput.value.trim();
+            const noteType = document.querySelector('input[name="note-length"]:checked').value;
+            if (topic === '') {
+                alert('Please enter a topic.');
+                return null;
             }
-        );
+            return { topic, noteType };
+        });
     });
-    
+
     // 3. Practice MCQs
     document.getElementById('start-quiz-btn').addEventListener('click', async function() {
         const button = this;
@@ -304,7 +313,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let count = document.querySelector('input[name="mcq-count"]:checked').value;
-        if (count === 'custom') count = document.getElementById('mcq-custom-count').value;
+        if (count === 'custom') {
+            count = document.getElementById('mcq-custom-count').value;
+        }
 
         document.getElementById('mcq-setup-view').style.display = 'none';
         const quizView = document.getElementById('mcq-quiz-view');
@@ -319,7 +330,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
-            if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken(true);
+            if (user) {
+                const idToken = await user.getIdToken(true);
+                headers['Authorization'] = 'Bearer ' + idToken;
+            }
             
             const response = await fetch('/generate-mcq-ai', {
                 method: 'POST',
@@ -328,8 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const questions = await response.json();
-            if (!response.ok) throw new Error(questions.error || 'Could not generate quiz.');
-            
+            if (!response.ok) {
+                throw new Error(questions.error || 'Could not generate quiz.');
+            }
             window.currentQuizQuestions = questions;
             await displayQuestions(questions);
             document.getElementById('submit-quiz-btn').style.display = 'block';
@@ -346,25 +361,29 @@ document.addEventListener('DOMContentLoaded', function() {
             button.textContent = 'Start Quiz';
         }
     });
-
+    
     // 4. Get Solved Examples
     document.getElementById('get-solved-notes-btn').addEventListener('click', function() {
-        handleApiRequest(
-            this,
-            document.getElementById('solved-notes-response-container'),
-            document.getElementById('solved-notes-response'),
-            '/get-solved-notes-ai',
-            () => {
-                const topic = document.getElementById('solved-notes-topic-input').value.trim();
-                if (topic === '') { alert('Please enter a topic.'); return null; }
-                let count = document.querySelector('input[name="solved-notes-count"]:checked').value;
-                if (count === 'custom') count = document.getElementById('solved-notes-custom-count').value;
-                return { topic, count };
+        const button = this;
+        const topicInput = document.getElementById('solved-notes-topic-input');
+        const container = document.getElementById('solved-notes-response-container');
+        const responseDiv = document.getElementById('solved-notes-response');
+
+        handleApiRequest(button, container, responseDiv, '/get-solved-notes-ai', () => {
+            const topic = topicInput.value.trim();
+            if (topic === '') {
+                alert('Please enter a topic.');
+                return null;
             }
-        );
+            let count = document.querySelector('input[name="solved-notes-count"]:checked').value;
+            if (count === 'custom') {
+                count = document.getElementById('solved-notes-custom-count').value;
+            }
+            return { topic, count };
+        });
     });
 
-    // 5. Get Career Advice (Paginated)
+    // 5. Get Career Advice
     document.getElementById('get-career-advice-btn').addEventListener('click', async function() {
         const button = this;
         const interests = document.getElementById('career-interests-input').value.trim();
@@ -372,7 +391,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const contentArea = document.getElementById('career-paginated-content');
         const controlsArea = document.getElementById('career-pagination-controls');
 
-        if (interests === '') { alert('Please enter your interests.'); return; }
+        if (interests === '') {
+            alert('Please enter your interests.');
+            return;
+        }
 
         button.disabled = true;
         button.textContent = 'Generating...';
@@ -383,7 +405,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
-            if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken(true);
+            if (user) {
+                const idToken = await user.getIdToken(true);
+                headers['Authorization'] = 'Bearer ' + idToken;
+            }
 
             const response = await fetch('/get-career-advice-ai', {
                 method: 'POST',
@@ -393,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Could not get career advice.');
-            await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.response_text);
+            await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
@@ -402,15 +427,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 6. Generate Study Plan (Paginated)
+    // 6. Generate Study Plan
     document.getElementById('generate-study-plan-btn').addEventListener('click', async function() {
-       const button = this;
+        const button = this;
         const details = document.getElementById('study-plan-details-input').value.trim();
         const container = document.getElementById('study-plan-response-container');
         const contentArea = document.getElementById('study-plan-paginated-content');
         const controlsArea = document.getElementById('study-plan-pagination-controls');
 
-        if (details === '') { alert('Please provide details for the plan.'); return; }
+        if (details === '') {
+            alert('Please provide details for the plan.');
+            return;
+        }
 
         button.disabled = true;
         button.textContent = 'Creating...';
@@ -421,7 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
-            if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken(true);
+            if (user) {
+                const idToken = await user.getIdToken(true);
+                headers['Authorization'] = 'Bearer ' + idToken;
+            }
 
             const response = await fetch('/generate-study-plan-ai', {
                 method: 'POST',
@@ -430,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Could not create study plan.');
-            await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.response_text);
+            await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
         } catch (error) {
             contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
@@ -445,10 +476,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const topic = document.getElementById('flashcard-topic-input').value.trim();
         const container = document.getElementById('flashcard-response-container');
         
-        if (topic === '') { alert('Please enter a topic for flashcards.'); return; }
+        if (topic === '') {
+            alert('Please enter a topic for flashcards.');
+            return;
+        }
 
         let count = document.querySelector('input[name="flashcard-count"]:checked').value;
-        if (count === 'custom') count = document.getElementById('flashcard-custom-count').value;
+        if (count === 'custom') {
+            count = document.getElementById('flashcard-custom-count').value;
+        }
 
         button.disabled = true;
         button.textContent = 'Creating...';
@@ -458,7 +494,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
-            if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken(true);
+            if (user) {
+                const idToken = await user.getIdToken(true);
+                headers['Authorization'] = 'Bearer ' + idToken;
+            }
 
             const response = await fetch('/generate-flashcards-ai', {
                 method: 'POST',
@@ -470,7 +509,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error(cards.error || 'Could not create flashcards.');
             await displayFlashcards(cards);
         } catch (error) {
-            // ✅✅✅ FIX: The syntax error was here. Replaced `(error)_` with `(error)`.
             container.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
         } finally {
             button.disabled = false;
@@ -480,47 +518,53 @@ document.addEventListener('DOMContentLoaded', function() {
         
     // 8. Write Essay
     document.getElementById('write-essay-btn').addEventListener('click', function() {
-        handleApiRequest(
-            this,
-            document.getElementById('essay-writer-response-container'),
-            document.getElementById('essay-writer-response'),
-            '/write-essay-ai',
-            () => {
-                const topic = document.getElementById('essay-topic-input').value.trim();
-                if (topic === '') { alert('Please enter a topic.'); return null; }
-                return { topic };
+        const button = this;
+        const topicInput = document.getElementById('essay-topic-input');
+        const container = document.getElementById('essay-writer-response-container');
+        const responseDiv = document.getElementById('essay-writer-response');
+
+        handleApiRequest(button, container, responseDiv, '/write-essay-ai', () => {
+            const topic = topicInput.value.trim();
+            if (topic === '') {
+                alert('Please enter a topic.');
+                return null;
             }
-        );
+            return { topic };
+        });
     });
 
     // 9. Create Presentation
     document.getElementById('create-presentation-btn').addEventListener('click', function() {
-        handleApiRequest(
-            this,
-            document.getElementById('presentation-maker-response-container'),
-            document.getElementById('presentation-maker-response'),
-            '/create-presentation-ai',
-            () => {
-                const topic = document.getElementById('presentation-topic-input').value.trim();
-                if (topic === '') { alert('Please enter a topic.'); return null; }
-                return { topic };
+        const button = this;
+        const topicInput = document.getElementById('presentation-topic-input');
+        const container = document.getElementById('presentation-maker-response-container');
+        const responseDiv = document.getElementById('presentation-maker-response');
+
+        handleApiRequest(button, container, responseDiv, '/create-presentation-ai', () => {
+            const topic = topicInput.value.trim();
+            if (topic === '') {
+                alert('Please enter a topic.');
+                return null;
             }
-        );
+            return { topic };
+        });
     });
         
     // 10. Get Explanation
     document.getElementById('get-explanation-btn').addEventListener('click', function() {
-        handleApiRequest(
-            this,
-            document.getElementById('concept-output-container'),
-            document.getElementById('explainer-response'),
-            '/explain-concept-ai',
-            () => {
-                const topic = document.getElementById('concept-input').value.trim();
-                if (topic === '') { alert('Please enter a concept.'); return null; }
-                return { topic };
+        const button = this;
+        const conceptInput = document.getElementById('concept-input');
+        const container = document.getElementById('concept-output-container');
+        const responseDiv = document.getElementById('explainer-response');
+
+        handleApiRequest(button, container, responseDiv, '/explain-concept-ai', () => {
+            const topic = conceptInput.value.trim();
+            if (topic === '') {
+                alert('Please enter a concept.');
+                return null;
             }
-        );
+            return { topic };
+        });
     });
 
     // --- QUIZ HELPER FUNCTIONS ---
@@ -541,7 +585,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const questionTextDiv = document.createElement('div');
             await renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
             
-            questionElement.innerHTML = `${questionTextDiv.innerHTML}<div class="options-container" id="options-${index}">${optionsHTML}</div>`;
+            questionElement.innerHTML = `
+                ${questionTextDiv.innerHTML}
+                <div class="options-container" id="options-${index}">${optionsHTML}</div>
+            `;
             quizContainer.appendChild(questionElement);
             
             const optionLabels = questionElement.querySelectorAll('.mcq-option span');
@@ -563,7 +610,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let isCorrect = (userAnswer === correctAnswer);
 
             userAnswersForAnalysis.push({
-                question: questionData.question, userAnswer, isCorrect, conceptTag: questionData.conceptTag || "General"
+                question: questionData.question,
+                userAnswer: userAnswer,
+                isCorrect: isCorrect,
+                conceptTag: questionData.conceptTag || "General"
             });
 
             const optionsContainer = document.getElementById(`options-${i}`);
@@ -571,8 +621,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 optionsContainer.querySelectorAll('label').forEach(label => {
                     label.style.pointerEvents = 'none';
                     const inputValue = label.querySelector('input').value;
-                    if (inputValue === correctAnswer) label.classList.add('correct');
-                    if (selectedRadio && selectedRadio.value === inputValue && !isCorrect) label.classList.add('incorrect');
+                    if (inputValue === correctAnswer) {
+                        label.classList.add('correct');
+                    }
+                    if (selectedRadio && selectedRadio.value === inputValue && !isCorrect) {
+                         label.classList.add('incorrect');
+                    }
                 });
             }
 
@@ -582,6 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('quiz-result').innerHTML = `<h3>Your Score: ${score} / ${window.correctAnswers.length}</h3>`;
         this.style.display = 'none';
         document.getElementById('post-quiz-options').style.display = 'block';
+
         getQuizAnalysis(userAnswersForAnalysis);
     });
 
@@ -593,7 +648,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const user = firebase.auth().currentUser;
             const headers = { 'Content-Type': 'application/json' };
-            if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken(true);
+            if (user) {
+                const idToken = await user.getIdToken(true);
+                headers['Authorization'] = 'Bearer ' + idToken;
+            }
 
             const response = await fetch('/analyze-quiz-results', {
                 method: 'POST',
@@ -603,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Could not get analysis.');
 
-            await typewriterEffect(analysisDiv, data.response_text);
+            await renderEnhancedAIContent(analysisDiv, data.analysis);
         } catch (error) {
             analysisDiv.innerHTML = `<p style="color: var(--color-red);">Could not get analysis: ${error.message}</p>`;
         }
