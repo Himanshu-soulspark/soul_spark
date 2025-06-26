@@ -6,7 +6,7 @@ Conceptra AI - मुख्य सर्वर फ़ाइल (app.py)
 यूजर को मैनेज करता है, और पेमेंट को हैंडल करता है।
 """
 
---- SECTION 1: ज़रूरी लाइब्रेरी को इम्पोर्ट करना ---
+# --- SECTION 1: ज़रूरी लाइब्रेरी को इम्पोर्ट करना ---
 
 import os
 import json
@@ -22,12 +22,11 @@ import razorpay
 import time # Razorpay रसीद के लिए
 
 # ✅✅✅ नया बदलाव: मालिक की पहचान के लिए ईमेल ✅✅✅
-# ऊपर वाली लाइन को मैंने कमेंट कर दिया है ताकि यह एरर न दे।
 ADMIN_EMAIL = "himanshu@conceptra.ai"
 
---- SECTION 2: बाहरी सेवाओं (External Services) को शुरू करना ---
---- Firebase Admin SDK Initialization ---
-यह सर्वर को आपके Firestore डेटाबेस से सुरक्षित रूप से कनेक्ट करने की अनुमति देता है।
+# --- SECTION 2: बाहरी सेवाओं (External Services) को शुरू करना ---
+# --- Firebase Admin SDK Initialization ---
+# यह सर्वर को आपके Firestore डेटाबेस से सुरक्षित रूप से कनेक्ट करने की अनुमति देता है।
 
 try:
     # यह key.json फाइल को Render जैसे होस्टिंग प्लेटफॉर्म पर सही जगह से उठाएगा।
@@ -40,15 +39,15 @@ except Exception as e:
     print(f"FATAL ERROR: Firebase Admin SDK शुरू नहीं हो सका। कृपया सुनिश्चित करें कि 'key.json' फाइल सही जगह पर है। एरर: {e}")
     db = None
 
---- Flask App Initialization ---
+# --- Flask App Initialization ---
 
 app = Flask(__name__)
 
 # CORS (Cross-Origin Resource Sharing) को सक्षम करना ताकि आपका वेबपेज सर्वर से बात कर सके।
 CORS(app)
 
---- Razorpay Client Initialization ---
-यह आपके पेमेंट गेटवे को शुरू करता है।
+# --- Razorpay Client Initialization ---
+# यह आपके पेमेंट गेटवे को शुरू करता है।
 
 try:
     # यह आपकी Razorpay कीज़ को सुरक्षित रूप से Environment Variables से पढ़ता है।
@@ -72,7 +71,7 @@ except Exception as e:
     print(f"FATAL ERROR: Razorpay Client शुरू नहीं हो सका। कृपया अपनी कीज़ जांचें। एरर: {e}")
     razorpay_client = None
 
---- Google Gemini AI Model Configuration ---
+# --- Google Gemini AI Model Configuration ---
 
 try:
     # यह आपकी Google API Key को Environment Variable से पढ़ता है।
@@ -96,7 +95,7 @@ except Exception as e:
     print(f"FATAL ERROR: Google API Key या मॉडल कॉन्फ़िगर करने में विफल। एरर: {e}")
     model = None
 
---- SECTION 3: हेल्पर फंक्शन्स (Helper Functions) ---
+# --- SECTION 3: हेल्पर फंक्शन्स (Helper Functions) ---
 # ये छोटे फंक्शन हैं जो बार-बार इस्तेमाल होते हैं।
 
 def get_response_text(response):
@@ -182,7 +181,7 @@ def check_user_privileges(uid, cost_in_tokens):
     # अगर सामान्य यूजर के पास टोकन हैं, तो उसे भी अनुमति है
     return True, None, None
 
---- सभी AI Prompts के लिए कॉमन फॉर्मेटिंग निर्देश ---
+# --- सभी AI Prompts के लिए कॉमन फॉर्मेटिंग निर्देश ---
 
 FORMATTING_INSTRUCTIONS = """
 VERY IMPORTANT FORMATTING RULES:
@@ -200,14 +199,14 @@ Do NOT use any other formatting for reactions or formulas.
 Use --- on a new line to separate large sections or pages where applicable.
 """
 
---- SECTION 4: APP ROUTES (API Endpoints) ---
+# --- SECTION 4: APP ROUTES (API Endpoints) ---
 
 @app.route('/')
 def home():
     """मुख्य पेज (index.html) को रेंडर करता है।"""
     return render_template('index.html')
 
---- Payment Routes ---
+# --- Payment Routes ---
 # इनमें कोई बदलाव नहीं है क्योंकि ये पहले से सही काम कर रहे थे।
 
 @app.route('/create-order', methods=['POST'])
@@ -266,7 +265,7 @@ def razorpay_webhook():
                 print(f"Firestore अपडेट एरर (Webhook): {e}")
     return 'OK', 200
 
---- Feature Routes ---
+# --- Feature Routes ---
 # 1. Ask a Doubt
 
 @app.route('/ask-ai-image', methods=['POST'])
@@ -527,7 +526,7 @@ def analyze_quiz_results():
     response = model.generate_content(prompt)
     return jsonify({'analysis': get_response_text(response)})
 
---- SECTION 5: Main Execution Block ---
+# --- SECTION 5: Main Execution Block ---
 
 if __name__ == '__main__':
     # यह सुनिश्चित करता है कि सर्वर सही पोर्ट पर चले, खासकर Render जैसे प्लेटफॉर्म पर।
