@@ -68,7 +68,6 @@
                 <label for="doubt-image-input" class="submit-button upload-btn">📷 Upload Question Image</label>
                 <input type="file" id="doubt-image-input" accept="image/*" style="display: none;">
                 <span id="file-name-display"></span>
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="ask-doubt-submit" type="button" class="submit-button">Get Answer</button>
             </div>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
@@ -83,7 +82,6 @@
                     <label><input type="radio" name="note-length" value="short"> Short</label>
                     <label><input type="radio" name="note-length" value="long" checked> Long</label>
                 </div>
-                 <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="generate-notes-submit" type="button" class="submit-button">Generate</button>
             </div>
             <div id="notes-output-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
@@ -103,7 +101,6 @@
                     <label><input type="radio" name="mcq-count" value="custom"> Custom:</label>
                     <input type="number" id="mcq-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
                 </div>
-                <!-- यह बटन फॉर्म में नहीं है, इसलिए इसका type="button" करना सबसे सही है -->
                 <button id="start-quiz-btn" type="button" class="submit-button">Start Quiz</button>
             </div>
             <div id="mcq-quiz-view" style="display: none;">
@@ -132,7 +129,6 @@
                     <label><input type="radio" name="solved-notes-count" value="custom"> Custom:</label>
                     <input type="number" id="solved-notes-custom-count" class="custom-count-input" min="1" max="50" value="3" disabled>
                 </div>
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="get-solved-notes-btn" type="button" class="submit-button">Get Solved Examples</button>
             </div>
             <div id="solved-notes-response-container" class="response-container"><h3>Solved Examples:</h3><div id="solved-notes-response" class="ai-generated-content"></div></div>
@@ -143,7 +139,6 @@
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Career Counselor</h1></div>
             <div>
                 <textarea id="career-interests-input" class="textarea-box" rows="4" placeholder="Apni ruchi (interests) aur pasandida subjects likhein. Jaise: 'Mujhe Science aur Computers mein interest hai. Math achha lagta hai.'"></textarea>
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="get-career-advice-btn" type="button" class="submit-button">Get Career Advice</button>
             </div>
             <div id="career-response-container" class="response-container">
@@ -158,7 +153,6 @@
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Personalized Study Planner</h1></div>
             <div>
                 <textarea id="study-plan-details-input" class="textarea-box" rows="4" placeholder="Apne subjects aur goal likhein. Jaise: 'Subjects: Physics, Chemistry, Math. Agle mahine final exams hain. Mujhe ek hafte ka plan chahiye.'"></textarea>
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="generate-study-plan-btn" type="button" class="submit-button">Create My Plan</button>
             </div>
             <div id="study-plan-response-container" class="response-container">
@@ -181,7 +175,6 @@
                     <label><input type="radio" name="flashcard-count" value="custom"> Custom:</label>
                     <input type="number" id="flashcard-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
                 </div>
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="generate-flashcards-btn" type="button" class="submit-button">Create Flashcards</button>
             </div>
             <div id="flashcard-response-container" class="response-container"></div>
@@ -192,7 +185,6 @@
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Essay Writer</h1></div>
             <div>
                 <input id="essay-topic-input" type="text" class="input-box" placeholder="Aapko kis topic par essay chahiye?">
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="write-essay-btn" type="button" class="submit-button">Write Essay</button>
             </div>
             <div id="essay-writer-response-container" class="response-container">
@@ -206,7 +198,6 @@
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Presentation Maker</h1></div>
             <div>
                 <input id="presentation-topic-input" type="text" class="input-box" placeholder="Aapki presentation ka topic kya hai?">
-                <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="create-presentation-btn" type="button" class="submit-button">Create Presentation</button>
             </div>
             <div id="presentation-maker-response-container" class="response-container">
@@ -219,9 +210,7 @@
         <div id="concept-explainer-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Concept Explainer</h1></div>
             <div>
-                 <!-- ✅ सुधार: ID को JavaScript के अनुसार 'concept-input' किया गया -->
                 <input id="concept-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
-                 <!-- ✅ सुधार: Button type को "button" किया गया ताकि पेज रीलोड न हो -->
                 <button id="get-explanation-btn" type="button" class="submit-button">Samjhao!</button>
             </div>
             <div id="concept-output-container" class="response-container">
@@ -240,10 +229,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <!-- ✅✅✅ सबसे ज़रूरी बदलाव! ✅✅✅ -->
-    <!-- आपकी मुख्य JavaScript फ़ाइल को यहाँ लोड किया गया है। -->
-    <!-- `defer` यह सुनिश्चित करता है कि स्क्रिप्ट पूरे पेज के लोड होने के बाद ही चले। -->
-    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <!-- ✅✅✅ यही सबसे ज़रूरी बदलाव है! ✅✅✅ -->
+    <!-- आपकी मुख्य JavaScript फ़ाइल को यहाँ सही नाम से लोड किया गया है। -->
+    <script src="{{ url_for('static', filename='script_v2.js') }}" defer></script>
 
 </body>
 </html>
