@@ -225,13 +225,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <!-- Firebase SDKs -->
+    <!-- इन SDKs की अब सीधे तौर पर script_v2.js के लिए आवश्यकता नहीं है, 
+         क्योंकि script_v2.js अब सीधे CDN से v9 मॉड्यूलर SDK इम्पोर्ट करेगा।
+         अगर आपका मुख्य ऐप (New File.js) भी v9 मॉड्यूलर SDK का उपयोग करता है, तो यह ठीक है।
+         अगर New File.js इन पुराने SDKs पर निर्भर था, तो आपको उसे भी v9 में अपडेट करना होगा,
+         लेकिन अभी हम सिर्फ script_v2.js पर ध्यान केंद्रित कर रहे हैं।
+    -->
+    <!-- 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    -->
 
     <!-- ✅✅✅ यही सबसे ज़रूरी बदलाव है! ✅✅✅ -->
-    <!-- आपकी मुख्य JavaScript फ़ाइल को यहाँ सही नाम से लोड किया गया है। -->
-    <script src="{{ url_for('static', filename='script_v2.js') }}" defer></script>
+    <!-- आपकी मुख्य JavaScript फ़ाइल को यहाँ सही नाम से लोड किया गया है और type="module" जोड़ा गया है। -->
+    <script type="module" src="{{ url_for('static', filename='script_v2.js') }}" defer></script>
+
+    <!-- अगर आपका New File.js भी एक मॉड्यूल है और Firebase SDK v9 का उपयोग करता है, तो उसे भी type="module" के साथ लोड करें। -->
+    <!-- उदाहरण: <script type="module" src="{{ url_for('static', filename='New File.js') }}" defer></script> -->
+    <!-- यदि New File.js को पहले से ही सही तरीके से लोड किया जा रहा है, तो उसे न बदलें। -->
+
 
 </body>
 </html>
