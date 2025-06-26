@@ -58,33 +58,33 @@
         <!-- Ask Doubt Screen -->
         <div id="ask-doubt-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Ask a Doubt</h1></div>
-            <form id="doubt-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <textarea id="doubt-input" class="textarea-box" rows="4" placeholder="Agar photo mein sawaal hai, toh yahan bas 'Solve this' likh dein."></textarea>
                 <label for="doubt-image-input" class="submit-button upload-btn">📷 Upload Question Image</label>
                 <input type="file" id="doubt-image-input" accept="image/*" style="display: none;">
                 <span id="file-name-display"></span>
-                <button id="ask-doubt-submit" type="submit" class="submit-button">Get Answer</button>
-            </form>
+                <button id="ask-doubt-submit" type="button" class="submit-button" onclick="window.parent.handleAskDoubt()">Get Answer</button>
+            </div>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
         
-        <!-- Generate Notes Screen (UPDATED) -->
+        <!-- Generate Notes Screen -->
         <div id="generate-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Generate Notes</h1></div>
-            <!-- ✅✅✅ UPDATE: <form> TAG REMOVED FROM HERE ✅✅✅ -->
+            <!-- ✅ FINAL FIX: <form> tag removed -->
             <div>
                 <input id="notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Photosynthesis'">
                 <div class="option-selector-group">
                     <label><input type="radio" name="note-length" value="short"> Short</label>
                     <label><input type="radio" name="note-length" value="long" checked> Long</label>
                 </div>
-                <!-- ✅✅✅ UPDATE: type="button" and onclick added to call parent JS function ✅✅✅ -->
                 <button id="generate-notes-submit" type="button" class="submit-button" onclick="window.parent.handleGenerateNotes()">Generate</button>
             </div>
             <div id="notes-output-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
 
-        <!-- Practice MCQ Screen (Your original code is preserved) -->
+        <!-- Practice MCQ Screen -->
         <div id="practice-mcq-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Practice MCQs</h1></div>
             <div id="mcq-setup-view">
@@ -105,9 +105,7 @@
                 <div id="quiz-container"></div>
                 <button id="submit-quiz-btn" class="submit-button" style="margin-top: 20px;">Submit Quiz</button>
                 <div id="quiz-result"></div>
-                
                 <div id="quiz-analysis-report" class="ai-generated-content" style="margin-top: 20px; text-align: left;"></div>
-
                 <div id="post-quiz-options" style="display: none; margin-top: 20px;">
                     <button id="retake-quiz-btn" class="submit-button secondary">Take Another Quiz</button>
                     <button onclick="navigateTo('home-screen')" class="submit-button" style="margin-top: 10px;">Go to Dashboard</button>
@@ -115,10 +113,11 @@
             </div>
         </div>
 
-        <!-- Solved Notes Screen (Your original code is preserved) -->
+        <!-- Solved Notes Screen -->
         <div id="solved-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Solved Notes & Examples</h1></div>
-             <form id="solved-notes-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <input id="solved-notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Projectile Motion Problems'">
                 <p>Kitne examples chahiye? (Max: 50)</p>
                 <div class="option-selector-group">
@@ -128,18 +127,19 @@
                     <label><input type="radio" name="solved-notes-count" value="custom"> Custom:</label>
                     <input type="number" id="solved-notes-custom-count" class="custom-count-input" min="1" max="50" value="3" disabled>
                 </div>
-                <button id="get-solved-notes-btn" type="submit" class="submit-button">Get Solved Examples</button>
-            </form>
+                <button id="get-solved-notes-btn" type="button" class="submit-button">Get Solved Examples</button>
+            </div>
             <div id="solved-notes-response-container" class="response-container"><h3>Solved Examples:</h3><div id="solved-notes-response" class="ai-generated-content"></div></div>
         </div>
 
-        <!-- Career Counselor Screen (Your original code is preserved) -->
+        <!-- Career Counselor Screen -->
         <div id="career-counselor-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Career Counselor</h1></div>
-            <form id="career-form">
+             <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <textarea id="career-interests-input" class="textarea-box" rows="4" placeholder="Apni ruchi (interests) aur pasandida subjects likhein. Jaise: 'Mujhe Science aur Computers mein interest hai. Math achha lagta hai.'"></textarea>
-                <button id="get-career-advice-btn" type="submit" class="submit-button">Get Career Advice</button>
-            </form>
+                <button id="get-career-advice-btn" type="button" class="submit-button">Get Career Advice</button>
+            </div>
             <div id="career-response-container" class="response-container">
                 <h3>Career Roadmap:</h3>
                 <div id="career-paginated-content" class="paginated-content-area"></div>
@@ -147,13 +147,14 @@
             </div>
         </div>
 
-        <!-- Study Planner Screen (Your original code is preserved) -->
+        <!-- Study Planner Screen -->
         <div id="study-planner-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Personalized Study Planner</h1></div>
-            <form id="study-plan-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <textarea id="study-plan-details-input" class="textarea-box" rows="4" placeholder="Apne subjects aur goal likhein. Jaise: 'Subjects: Physics, Chemistry, Math. Agle mahine final exams hain. Mujhe ek hafte ka plan chahiye.'"></textarea>
-                <button id="generate-study-plan-btn" type="submit" class="submit-button">Create My Plan</button>
-            </form>
+                <button id="generate-study-plan-btn" type="button" class="submit-button">Create My Plan</button>
+            </div>
             <div id="study-plan-response-container" class="response-container">
                 <h3>Your Study Plan:</h3>
                 <div id="study-plan-paginated-content" class="paginated-content-area"></div>
@@ -161,10 +162,11 @@
             </div>
         </div>
 
-        <!-- Flashcard Screen (Your original code is preserved) -->
+        <!-- Flashcard Screen -->
         <div id="flashcard-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Flashcards</h1></div>
-            <form id="flashcard-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <input id="flashcard-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Human Heart'">
                  <p>Kitne flashcards chahiye? (Max: 50)</p>
                 <div class="option-selector-group">
@@ -176,31 +178,33 @@
                     <label><input type="radio" name="flashcard-count" value="custom"> Custom:</label>
                     <input type="number" id="flashcard-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
                 </div>
-                <button id="generate-flashcards-btn" type="submit" class="submit-button">Create Flashcards</button>
-            </form>
+                <button id="generate-flashcards-btn" type="button" class="submit-button">Create Flashcards</button>
+            </div>
             <div id="flashcard-response-container" class="response-container"></div>
         </div>
 
-        <!-- Essay Writer Screen (Your original code is preserved) -->
+        <!-- Essay Writer Screen -->
         <div id="essay-writer-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Essay Writer</h1></div>
-            <form id="essay-writer-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <input id="essay-topic-input" type="text" class="input-box" placeholder="Aapko kis topic par essay chahiye?">
-                <button id="write-essay-btn" type="submit" class="submit-button">Write Essay</button>
-            </form>
+                <button id="write-essay-btn" type="button" class="submit-button">Write Essay</button>
+            </div>
             <div id="essay-writer-response-container" class="response-container">
                 <h3>AI Generated Essay:</h3>
                 <div id="essay-writer-response" class="ai-generated-content"></div>
             </div>
         </div>
 
-        <!-- Presentation Maker Screen (Your original code is preserved) -->
+        <!-- Presentation Maker Screen -->
         <div id="presentation-maker-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Presentation Maker</h1></div>
-            <form id="presentation-maker-form">
+            <!-- ✅ FINAL FIX: <form> tag removed -->
+            <div>
                 <input id="presentation-topic-input" type="text" class="input-box" placeholder="Aapki presentation ka topic kya hai?">
-                <button id="create-presentation-btn" type="submit" class="submit-button">Create Presentation</button>
-            </form>
+                <button id="create-presentation-btn" type="button" class="submit-button">Create Presentation</button>
+            </div>
             <div id="presentation-maker-response-container" class="response-container">
                 <h3>AI Generated Presentation:</h3>
                 <div id="presentation-maker-response" class="ai-generated-content"></div>
@@ -210,14 +214,11 @@
         <!-- Concept Explainer Screen -->
         <div id="concept-explainer-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Concept Explainer</h1></div>
-             <!-- ✅✅✅ UPDATE: <form> TAG REMOVED FROM HERE ✅✅✅ -->
+             <!-- ✅ FINAL FIX: <form> tag removed -->
             <div>
-                 <!-- ✅✅✅ UPDATE: ID changed to match parent JS function requirements ✅✅✅ -->
                 <input id="concept-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
-                 <!-- ✅✅✅ UPDATE: type="button" and onclick added ✅✅✅ -->
                 <button id="get-explanation-btn" type="button" class="submit-button" onclick="window.parent.handleExplainConcept()">Samjhao!</button>
             </div>
-             <!-- ✅✅✅ UPDATE: ID changed to match parent JS function requirements ✅✅✅ -->
             <div id="concept-output-container" class="response-container">
                 <h3>Aasan Bhasha Mein:</h3>
                 <div id="explainer-response" class="ai-generated-content"></div>
@@ -229,12 +230,13 @@
     <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- Firebase SDKs - ये यहाँ रहें या न रहें, ज़्यादा फ़र्क नहीं पड़ता क्योंकि ऑथेंटिकेशन Main App से हो रहा है -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <!-- ✅✅✅ --- START OF FINAL JAVASCRIPT --- ✅✅✅ -->
-    <!-- यह जावास्क्रिप्ट सिर्फ इस iframe के अंदर के UI को कंट्रोल करेगा। -->
+    <!-- ✅✅✅ START OF FINAL JAVASCRIPT FOR UI CONTROL ✅✅✅ -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // WELCOME SCREEN LOGIC
@@ -254,7 +256,7 @@
                 }
             }, 3500); 
 
-            // CUSTOM COUNT INPUT LOGIC
+            // CUSTOM COUNT INPUT LOGIC 
             const customRadioButtons = document.querySelectorAll('input[type="radio"][value="custom"]');
             customRadioButtons.forEach(radio => {
                 radio.addEventListener('change', function() {
@@ -284,10 +286,7 @@
             }
         }
     </script>
-    <!-- ✅✅✅ --- END OF FINAL JAVASCRIPT --- ✅✅✅ -->
+    <!-- ✅✅✅ END OF FINAL JAVASCRIPT ✅✅✅ -->
 
-    <!-- ✅✅✅ --- IMPORTANT --- ✅✅✅ -->
-    <!-- The external script file link is commented out to prevent conflicts. -->
-    <!-- <script src="{{ url_for('static', filename='script_v2.js') }}"></script> -->
 </body>
 </html>
