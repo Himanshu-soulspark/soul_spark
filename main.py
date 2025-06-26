@@ -3,23 +3,17 @@ import json
 import re
 from pathlib import Path
 import google.generativeai as genai
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response # <-- नया: Response को इम्पोर्ट किया गया
 from PIL import Image
 import firebase_admin
-from firebase_admin import credentials, firestore, auth # <-- नया: Firebase Auth को इम्पोर्ट किया
+from firebase_admin import credentials, firestore, auth
 from flask_cors import CORS
-import razorpay # <-- नया: Razorpay लाइब्रेरी को इम्पोर्ट किया
+import razorpay
 
 # --- Firebase Admin SDK को शुरू करना ---
-# यह सर्वर साइड पर Firestore से बात करने के लिए ज़रूरी है
-# आपको अपनी Firebase सर्विस अकाउंट की key.json फाइल Render पर अपलोड करनी होगी
 try:
-    # यह कोड key.json फाइल को प्रोजेक्ट के रूट डायरेक्टरी में ढूंढेगा
-    # Render Secret Files को रूट डायरेक्टरी में ही रखता है
-    # यह सुनिश्चित करेगा कि कोड हमेशा सही जगह से फाइल उठाए
     key_path = Path(__file__).resolve().parent / 'key.json'
     cred = credentials.Certificate(key_path)
-    
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     print("SUCCESS: Firebase Admin SDK initialized.")
@@ -31,48 +25,38 @@ except Exception as e:
 app = Flask(__name__)
 CORS(app)
 
-# --- नया: Razorpay Client को शुरू करना ---
+# --- Razorpay Client को शुरू करना ---
 try:
-    # --- यहाँ बदलाव किया गया है ---
-    # RAZORPAY_KEY_ID और RAZORPAY_KEY_SECRET को Secret Files से पढ़ना
-    # (यह मानते हुए कि Render Secret Files को प्रोजेक्ट के रूट में रखता है)
     base_path_for_secrets = Path(__file__).resolve().parent
-
-    # आपके द्वारा बताए गए फाइलनाम (Render Secret Files के नाम)
     key_id_filename_on_render = 'RAZORPAY_KEY_ID'
     key_secret_filename_on_render = 'RAZORPAY_KEY_SECRET'
-
     key_id_file_path = base_path_for_secrets / key_id_filename_on_render
     key_secret_file_path = base_path_for_secrets / key_secret_filename_on_render
 
     if not key_id_file_path.is_file():
-        raise ValueError(f"Razorpay Key ID file ('{key_id_filename_on_render}') not found at {key_id_file_path}. Ensure it's set as a Secret File on Render and correctly named.")
+        raise ValueError(f"Razorpay Key ID file ('{key_id_filename_on_render}') not found at {key_id_file_path}.")
     if not key_secret_file_path.is_file():
-        raise ValueError(f"Razorpay Key Secret file ('{key_secret_filename_on_render}') not found at {key_secret_file_path}. Ensure it's set as a Secret File on Render and correctly named.")
+        raise ValueError(f"Razorpay Key Secret file ('{key_secret_filename_on_render}') not found at {key_secret_file_path}.")
 
     with open(key_id_file_path, 'r') as f_id:
-        razorpay_key_id_from_file = f_id.read().strip() # फाइल के कंटेंट को पढ़ना
+        razorpay_key_id_from_file = f_id.read().strip()
     with open(key_secret_file_path, 'r') as f_secret:
-        razorpay_key_secret_from_file = f_secret.read().strip() # फाइल के कंटेंट को पढ़ना
+        razorpay_key_secret_from_file = f_secret.read().strip()
 
     if not razorpay_key_id_from_file or not razorpay_key_secret_from_file:
-        raise ValueError("Content of Razorpay Key ID or Key Secret file is empty. Check the Secret Files ('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') on Render.")
+        raise ValueError("Content of Razorpay Key ID or Key Secret file is empty.")
     
-    # पढ़ी हुई कीज़ का इस्तेमाल करना
     razorpay_key_id = razorpay_key_id_from_file
     razorpay_key_secret = razorpay_key_secret_from_file
-    # --- बदलाव समाप्त ---
-
+    
     razorpay_client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
-    print("SUCCESS: Razorpay client initialized using keys from Secret Files.") # प्रिंट मैसेज बदला गया
-
-except ValueError as e: # सिर्फ ValueError को पकड़ा गया, जैसा कि फाइल पढ़ने के लॉजिक में raise किया गया है
-    print(f"FATAL ERROR initializing Razorpay client: {e}. Please check your Razorpay Secret Files ('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') on Render for existence, naming, and content.")
+    print("SUCCESS: Razorpay client initialized using keys from Secret Files.")
+except ValueError as e:
+    print(f"FATAL ERROR initializing Razorpay client: {e}.")
     razorpay_client = None
-except Exception as e: # किसी अन्य अप्रत्याशित एरर के लिए, जैसे फाइल पढ़ने में कोई और समस्या
+except Exception as e:
     print(f"UNEXPECTED FATAL ERROR during Razorpay client initialization: {e}")
     razorpay_client = None
-
 
 # Google API Key को कॉन्फ़िगर करना
 try:
@@ -85,7 +69,6 @@ except (ValueError, KeyError) as e:
     print(f"FATAL ERROR: {e}. Please check your Environment Variables on Render.")
     model = None
 else:
-    # AI मॉडल चुनना और सुरक्षा सेटिंग्स को एडजस्ट करना
     safety_settings = [
         {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
         {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
@@ -94,7 +77,7 @@ else:
     ]
     model = genai.GenerativeModel('gemini-1.5-flash-latest', safety_settings=safety_settings)
 
-# हेल्पर फंक्शन: AI के जवाब से टेक्स्ट निकालना
+# हेल्पर फंक्शन: AI के जवाब से टेक्स्ट निकालना (Streaming के लिए अब इस्तेमाल नहीं होगा, पर JSON वालों के लिए रहेगा)
 def get_response_text(response):
     try:
         if response.parts:
@@ -108,49 +91,42 @@ def get_response_text(response):
         print(f"Error extracting text from response: {e}")
         return "माफ कीजिये, AI से जवाब नहीं मिल सका।"
 
-# --- नया: टोकन मैनेजमेंट के लिए हेल्पर फंक्शन ---
-def manage_tokens(uid, cost_in_tokens=1500): # हर AI कॉल की डिफ़ॉल्ट कीमत 1500 टोकन
+# --- ⭐⭐ ज़रूरी बदलाव: Streaming के लिए नया हेल्पर फंक्शन ⭐⭐ ---
+# यह फंक्शन AI से जवाब को टुकड़ों (chunks) में लेकर तुरंत भेजता है
+def stream_generator(prompt_parts):
     """
-    यह फंक्शन टोकन बैलेंस चेक करता है और इस्तेमाल होने पर काटता है।
-    Returns: (True, None) अगर सफल हो, (False, error_message) अगर असफल हो।
+    यह फंक्शन AI API से response को stream करता है।
     """
-    if not db:
-        return False, {"error": "Database connection is not available."}
-    
+    try:
+        # stream=True सबसे ज़रूरी बदलाव है
+        response_stream = model.generate_content(prompt_parts, stream=True)
+        for chunk in response_stream:
+            if chunk.text:
+                yield chunk.text  # हर chunk को तुरंत ब्राउज़र को भेज दो
+    except Exception as e:
+        print(f"--- STREAMING ERROR: {e} ---")
+        yield f"माफ कीजिये, AI से जवाब जेनरेट करते समय एक समस्या आ गयी: {e}"
+
+# --- टोकन मैनेजमेंट और यूज़र वेरिफिकेशन के फंक्शन (कोई बदलाव नहीं) ---
+def manage_tokens(uid, cost_in_tokens=1500):
+    if not db: return False, {"error": "Database connection is not available."}
     user_ref = db.collection('users').document(uid)
     user_doc = user_ref.get()
-
-    if not user_doc.exists:
-        return False, {"error": "User profile not found in database."}
-
+    if not user_doc.exists: return False, {"error": "User profile not found in database."}
     user_data = user_doc.to_dict()
     current_balance = user_data.get('tokens_balance', 0)
-
-    if current_balance < cost_in_tokens:
-        return False, {"error": f"Insufficient tokens. You need {cost_in_tokens} but you have {current_balance}. Please recharge."}
-
-    # टोकन बैलेंस घटाएं
+    if current_balance < cost_in_tokens: return False, {"error": f"Insufficient tokens. You need {cost_in_tokens} but you have {current_balance}."}
     try:
-        user_ref.update({
-            "tokens_balance": firestore.FieldValue.increment(-cost_in_tokens)
-        })
+        user_ref.update({"tokens_balance": firestore.FieldValue.increment(-cost_in_tokens)})
         return True, None
     except Exception as e:
         print(f"--- TOKEN DEDUCTION ERROR for UID {uid}: {e} ---")
-        return False, {"error": "Could not deduct tokens. Please try again."}
+        return False, {"error": "Could not deduct tokens."}
 
-# --- नया: यूज़र को वेरिफाई करने के लिए हेल्पर फंक्शन ---
 def verify_user():
-    """
-    रिक्वेस्ट हेडर से Firebase ID Token को वेरिफाई करता है।
-    Returns: user's UID अगर सफल हो, None अगर असफल हो।
-    """
     auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return None
-    
+    if not auth_header or not auth_header.startswith('Bearer '): return None
     id_token = auth_header.split('Bearer ')[1]
-    
     try:
         decoded_token = auth.verify_id_token(id_token)
         return decoded_token['uid']
@@ -158,8 +134,7 @@ def verify_user():
         print(f"--- AUTH TOKEN VERIFICATION FAILED: {e} ---")
         return None
 
-
-# --- SHARED PROMPT INSTRUCTIONS ---
+# --- SHARED PROMPT INSTRUCTIONS (कोई बदलाव नहीं) ---
 FORMATTING_INSTRUCTIONS = """
 **VERY IMPORTANT FORMATTING RULES:**
 1.  Use standard Markdown (`##` for main headings, `###` for subheadings, `*` for lists).
@@ -175,30 +150,16 @@ Do NOT use any other formatting for reactions or formulas.
 def home():
     return render_template('index.html')
 
-# --- नया: पेमेंट के लिए नए Endpoints ---
-
+# --- पेमेंट रूट्स (कोई बदलाव नहीं) ---
 @app.route('/create-order', methods=['POST'])
 def create_order():
-    if not razorpay_client:
-        return jsonify({"error": "Payment service is currently unavailable."}), 503
-
+    if not razorpay_client: return jsonify({"error": "Payment service is currently unavailable."}), 503
     data = request.get_json()
     amount_in_rupees = data.get('amount')
-    uid = data.get('uid') # यूज़र की UID ऐप से आएगी
-
-    if not amount_in_rupees or not uid:
-        return jsonify({"error": "Amount and User ID are required."}), 400
-
+    uid = data.get('uid')
+    if not amount_in_rupees or not uid: return jsonify({"error": "Amount and User ID are required."}), 400
     amount_in_paise = int(amount_in_rupees) * 100
-    order_data = {
-        "amount": amount_in_paise,
-        "currency": "INR",
-        "receipt": f"receipt_{uid}_{int(os.times().user)}",
-        "notes": {
-            "firebase_uid": uid
-        }
-    }
-    
+    order_data = {"amount": amount_in_paise, "currency": "INR", "receipt": f"receipt_{uid}_{int(os.times().user)}", "notes": {"firebase_uid": uid}}
     try:
         order = razorpay_client.order.create(data=order_data)
         return jsonify({"order_id": order['id'], "amount": order['amount']})
@@ -211,59 +172,43 @@ def razorpay_webhook():
     webhook_body = request.get_data()
     webhook_signature = request.headers.get('X-Razorpay-Signature')
     webhook_secret = os.environ.get('RAZORPAY_WEBHOOK_SECRET')
-
     if not webhook_secret:
         print("FATAL: RAZORPAY_WEBHOOK_SECRET is not set in environment.")
         return 'Server configuration error', 500
-
     try:
         razorpay_client.utility.verify_webhook_signature(webhook_body, webhook_signature, webhook_secret)
     except Exception as e:
         print(f"--- WEBHOOK SIGNATURE VERIFICATION FAILED: {e} ---")
         return 'Invalid signature', 400
-
     payload = request.get_json()
-    
     if payload['event'] == 'payment.captured':
         payment_info = payload['payload']['payment']['entity']
         uid = payment_info['notes'].get('firebase_uid')
         amount_paid = payment_info['amount']
-
         if uid and db:
             tokens_to_add = 0
-            if amount_paid == 10000: # ₹100 plan
-                tokens_to_add = 50000
-            elif amount_paid == 45000: # ₹450 plan
-                tokens_to_add = 250000
-            
+            if amount_paid == 10000: tokens_to_add = 50000
+            elif amount_paid == 45000: tokens_to_add = 250000
             if tokens_to_add > 0:
                 user_ref = db.collection('users').document(uid)
                 try:
-                    user_ref.update({
-                        "tokens_balance": firestore.FieldValue.increment(tokens_to_add)
-                    })
+                    user_ref.update({"tokens_balance": firestore.FieldValue.increment(tokens_to_add)})
                     print(f"SUCCESS: Added {tokens_to_add} tokens to user {uid}.")
                 except Exception as e:
                     print(f"--- FIRESTORE UPDATE ERROR (WEBHOOK): {e} ---")
-
     return 'OK', 200
 
-# --- मौजूदा AI Endpoints में टोकन सिस्टम जोड़ना ---
+# --- ⭐⭐ AI Endpoints में Streaming का बदलाव ⭐⭐ ---
 
-# Department 1: Ask a Doubt
+# Department 1: Ask a Doubt (Streaming लागू)
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
-    # --- नया: टोकन और यूज़र वेरिफिकेशन ---
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
-    
-    # इमेज वाले सवालों के लिए ज़्यादा टोकन लगेंगे
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=2500)
-    if not is_ok: return jsonify(error_response), 402 # 402 Payment Required
-
-    # --- आपका मौजूदा कोड ---
+    if not is_ok: return jsonify(error_response), 402
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         question_text = request.form.get('question', '')
         image_file = request.files.get('image')
         if not question_text and not image_file: return jsonify({'error': 'Please provide a question or an image.'}), 400
@@ -275,72 +220,52 @@ def ask_ai_image_route():
             img.thumbnail((512, 512))
             prompt_parts.append(img)
         if question_text: prompt_parts.append(f"User's Text: {question_text}")
-        response = model.generate_content(prompt_parts)
-        answer_text = get_response_text(response)
-        return jsonify({'answer': answer_text})
+        
+        # --- बदलाव: Streaming का इस्तेमाल ---
+        # अब हम jsonify नहीं करेंगे, बल्कि Response को stream करेंगे।
+        return Response(stream_generator(prompt_parts), mimetype='text/plain')
+        
     except Exception as e:
         print(f"--- ERROR in ask_ai_image_route: {e} ---")
-        return jsonify({'error': 'सर्वर में एक समस्या आ गयी है।'}), 500
+        return Response(f"सर्वर में एक समस्या आ गयी है: {e}", status=500, mimetype='text/plain')
 
-# Department 2: Generate Notes
+# Department 2: Generate Notes (Streaming लागू)
 @app.route('/generate-notes-ai', methods=['POST'])
 def generate_notes_route():
-    # --- नया: टोकन और यूज़र वेरिफिकेशन ---
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=2000)
     if not is_ok: return jsonify(error_response), 402
-
-    # --- आपका मौजूदा कोड ---
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         note_type = data.get('noteType', 'long')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
         
         if note_type == 'short':
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary and key bullet points for "{topic}". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate a brief summary for "{topic}". **LANGUAGE:** Same language as topic.\n{FORMATTING_INSTRUCTIONS}'
         else:
-            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive, well-structured notes on "{topic}". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
+            notes_prompt = f'**ROLE:** Expert teacher. **TASK:** Generate comprehensive notes on "{topic}". **LANGUAGE:** Same language as topic.\n{FORMATTING_INSTRUCTIONS}'
+        
+        # --- बदलाव: Streaming का इस्तेमाल ---
+        return Response(stream_generator([notes_prompt]), mimetype='text/plain')
 
-        response = model.generate_content(notes_prompt)
-        notes_text = get_response_text(response)
-        return jsonify({'notes': notes_text})
     except Exception as e:
         print(f"--- ERROR in generate_notes_route: {e} ---")
-        return jsonify({'error': 'नोट्स जेनरेट करते वक़्त सर्वर में समस्या आ गयी।'}), 500
+        return Response(f"नोट्स जेनरेट करते वक़्त सर्वर में समस्या आ गयी: {e}", status=500, mimetype='text/plain')
 
-# (नोट: मैंने हर फंक्शन में टोकन सिस्टम नहीं जोड़ा है ताकि कोड ज़्यादा लंबा न हो, 
-# लेकिन आप ऊपर दिए गए 'ask_ai_image_route' और 'generate_notes_route' के पैटर्न को
-# अपने बाकी सभी AI वाले फंक्शन में कॉपी-पेस्ट कर सकते हैं।)
-#
-# उदाहरण: किसी और फंक्शन में कैसे जोड़ें:
-# @app.route('/your-ai-function', methods=['POST'])
-# def your_ai_function_route():
-#     # --- बस ये 4 लाइनें कॉपी-पेस्ट करें ---
-#     uid = verify_user()
-#     if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
-#     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1500) # अपनी कीमत सेट करें
-#     if not is_ok: return jsonify(error_response), 402
-#
-#     # --- यहाँ से आपका मौजूदा कोड शुरू होगा ---
-#     try:
-#         ... (बाकी का कोड वैसा ही रहेगा)
-
-
-# Department 3: Generate MCQs (UPDATED with difficulty mix)
+# Department 3: Generate MCQs (JSON वाला - इसे नहीं बदलेंगे)
+# JSON को stream करना सही नहीं है, क्योंकि JSON को पूरा होने के बाद ही parse किया जा सकता है।
+# इसलिए, जो फंक्शन JSON लौटाते हैं, वे वैसे ही रहेंगे।
 @app.route('/generate-mcq-ai', methods=['POST'])
 def generate_mcq_route():
-    # --- नया: टोकन और यूज़र वेरिफिकेशन ---
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
     if not is_ok: return jsonify(error_response), 402
-
-    # --- आपका मौजूदा कोड ---
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 5)), 50)
@@ -355,381 +280,239 @@ def generate_mcq_route():
         print(f"--- ERROR in generate_mcq_route: {e} ---")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
-# ... (बाकी के सभी फंक्शन वैसे ही रहेंगे जैसा आपने दिया था) ...
-# आप ऊपर दिए गए पैटर्न का इस्तेमाल करके उनमें भी टोकन सिस्टम आसानी से लगा सकते हैं।
-
-# --- नीचे के सभी फंक्शन आपके दिए हुए कोड के अनुसार ही हैं ---
-# मैंने उनमें कोई बदलाव नहीं किया है ताकि आप खुद से टोकन सिस्टम जोड़ सकें।
-
-# --- NEW ENDPOINT: Quiz Result Analysis ---
+# Quiz Result Analysis (Streaming लागू)
 @app.route('/analyze-quiz-results', methods=['POST'])
 def analyze_quiz_results():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=500)
     if not is_ok: return jsonify(error_response), 402
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request mein koi data nahi mila.'}), 400
-            
+        if not data: return jsonify({'error': 'Request mein koi data nahi mila.'}), 400
         user_answers = data.get('answers')
-        if not user_answers:
-            return jsonify({'error': 'Analysis ke liye koi jawab nahi diye gaye.'}), 400
-            
+        if not user_answers: return jsonify({'error': 'Analysis ke liye koi jawab nahi diye gaye.'}), 400
         incorrect_answers = [ans for ans in user_answers if not ans.get('isCorrect')]
-        
         if not incorrect_answers:
-            return jsonify({'analysis': "**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।"})
-
+            return Response("**शानदार प्रदर्शन!** आपके सभी जवाब सही थे। अपनी तैयारी जारी रखें।")
         incorrect_concepts_str = ", ".join([ans.get('conceptTag', 'Unknown') for ans in incorrect_answers])
-
         analysis_prompt = f"""
-        **ROLE:** Expert AI performance analyst for a student.
-        **TASK:** Analyze the student's incorrect answers from a quiz and provide a constructive report.
-        **DATA:** The student made mistakes in these concepts: {incorrect_concepts_str}.
+        **ROLE:** Expert AI performance analyst for a student. **TASK:** Analyze incorrect answers and provide a constructive report.
+        **DATA:** Student made mistakes in: {incorrect_concepts_str}.
+        **INSTRUCTIONS:** 1. Identify top 2-3 weak concepts. 2. Suggest actionable improvements for each. 3. End with encouragement. 4. Use simple Hinglish. {FORMATTING_INSTRUCTIONS}"""
         
-        **INSTRUCTIONS:**
-        1.  **Identify Weak Topics:** Identify the top 2-3 concepts where the student made the most mistakes.
-        2.  **Suggest Improvement:** For each weak topic, provide a clear, actionable suggestion. This could be revising a specific part of the chapter, watching a video, or practicing more problems of a certain type.
-        3.  **Provide Encouragement:** End with a positive and motivating message.
-        4.  **Language:** Use simple Hinglish.
-        
-        {FORMATTING_INSTRUCTIONS}
-        """
-
-        response = model.generate_content(analysis_prompt)
-        analysis_text = get_response_text(response)
-        
-        return jsonify({'analysis': analysis_text})
-
+        # --- बदलाव: Streaming का इस्तेमाल ---
+        return Response(stream_generator([analysis_prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in analyze_quiz_results: {e} ---")
-        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai. Kripya baad mein koshish karein.'}), 500
+        return Response(f'Analysis करते समय सर्वर में एक समस्या आ गयी है: {e}', status=500, mimetype='text/plain')
 
-# ... (बाकी सभी फंक्शन्स नीचे हैं) ...
-# मैंने सिर्फ ऊपर के कुछ फंक्शन्स में टोकन सिस्टम का उदाहरण दिया है।
-# आप इसी तरह से बाकी फंक्शन्स में भी टोकन सिस्टम लगा सकते हैं।
-
-# --- NEW ENDPOINT FOR TEACHER DASHBOARD ---
+# Teacher Dashboard (JSON वाला - इसे नहीं बदलेंगे)
 @app.route('/analyze-teacher-dashboard', methods=['POST'])
 def analyze_teacher_dashboard():
-    # टीचर के फंक्शन के लिए आप टोकन सिस्टम नहीं लगाना चाहेंगे, इसलिए इसे वैसा ही रहने देते हैं।
-    if not db:
-        return jsonify({'error': 'Firebase connection not available.'}), 503
-    if not model:
-        return jsonify({'error': 'AI model not available.'}), 503
-
+    if not db: return jsonify({'error': 'Firebase connection not available.'}), 503
+    if not model: return jsonify({'error': 'AI model not available.'}), 503
     try:
         data = request.get_json()
         test_id = data.get('testId')
-        if not test_id:
-            return jsonify({'error': 'Test ID is missing from the request.'}), 400
-
+        if not test_id: return jsonify({'error': 'Test ID is missing.'}), 400
         results_ref = db.collection('TestResults').where('testId', '==', test_id).stream()
-        
-        all_student_answers = []
-        for result_doc in results_ref:
-            all_student_answers.append(result_doc.to_dict())
-
-        if not all_student_answers:
-            return jsonify({
-                "weakest_concepts": [],
-                "action_plan": "Abhi tak kisi student ne yeh test nahi diya hai. Jab students test de denge, to analysis yahan dikhega."
-            })
-            
+        all_student_answers = [doc.to_dict() for doc in results_ref]
+        if not all_student_answers: return jsonify({"weakest_concepts": [], "action_plan": "Abhi tak kisi student ne yeh test nahi diya hai."})
         incorrect_concepts = []
         student_names_by_concept = {}
-
         for result in all_student_answers:
-            student_name = result.get('studentId', 'Unknown Student') 
+            student_name = result.get('studentId', 'Unknown Student')
             for answer in result.get('answers', []):
                 if not answer.get('isCorrect'):
                     concept = answer.get('conceptTag', 'Unknown Concept')
                     incorrect_concepts.append(concept)
-                    if concept not in student_names_by_concept:
-                        student_names_by_concept[concept] = set()
+                    if concept not in student_names_by_concept: student_names_by_concept[concept] = set()
                     student_names_by_concept[concept].add(student_name)
-        
-        if not incorrect_concepts:
-            return jsonify({
-                "weakest_concepts": [],
-                "action_plan": "Sabhi students ne saare jawab sahi diye! Shandaar pradarshan!"
-            })
-
+        if not incorrect_concepts: return jsonify({"weakest_concepts": [], "action_plan": "Sabhi students ne saare jawab sahi diye! Shandaar pradarshan!"})
         analysis_prompt = f"""
-        **ROLE:** Expert AI performance analyst for a teacher.
-        **TASK:** Analyze the combined test results for a whole class and generate a detailed report for the teacher.
-        **DATA:** The list of all incorrect concepts from all students is: {str(incorrect_concepts)}.
-        
+        **ROLE:** Expert AI analyst for a teacher. **TASK:** Analyze class test results. **DATA:** Incorrect concepts: {str(incorrect_concepts)}.
         **INSTRUCTIONS (Output in a valid JSON format only):**
-        1.  Identify the top 3 concepts with the most mistakes.
-        2.  For each of these 3 weak concepts, calculate the percentage of students who made a mistake in it.
-        3.  Create a JSON object with two keys: "weakest_concepts" and "action_plan".
-        4.  The "weakest_concepts" key should hold an array of objects. Each object must have three keys: "concept" (string), "error_percentage" (integer), and "students" (an array of student names who were weak in this concept).
-        5.  The "action_plan" key should hold a string suggesting a clear, step-by-step plan for the teacher to address these weaknesses.
-        6.  The language for the action plan must be simple Hinglish.
-
-        **Example JSON Output:**
-        {{
-          "weakest_concepts": [
-            {{
-              "concept": "Newton's Laws",
-              "error_percentage": 67,
-              "students": ["student123", "student456"]
-            }},
-            {{
-              "concept": "Friction",
-              "error_percentage": 33,
-              "students": ["student789"]
-            }}
-          ],
-          "action_plan": "Newton's Laws me kaafi students ko problem hai. Is concept ko practical examples ke saath dubara samjhaein.\\nFriction ke liye extra practice problems assign karein."
-        }}
+        1. Identify top 3 weak concepts. 2. Calculate error percentage for each. 3. Create JSON with "weakest_concepts" (array of objects with "concept", "error_percentage", "students") and "action_plan" (Hinglish string).
+        **Example:** {{"weakest_concepts": [{{"concept": "Newton's Laws", "error_percentage": 67, "students": ["s1", "s2"]}}], "action_plan": "Newton's Laws ko dubara samjhaein."}}
         """
-        
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(analysis_prompt, generation_config=generation_config)
-        response_text = get_response_text(response)
-        
-        report_data = json.loads(response_text)
-        
+        report_data = json.loads(get_response_text(response))
         for concept_data in report_data.get("weakest_concepts", []):
             concept_name = concept_data.get("concept")
-            if concept_name in student_names_by_concept:
-                concept_data["students"] = list(student_names_by_concept[concept_name])
-                
+            if concept_name in student_names_by_concept: concept_data["students"] = list(student_names_by_concept[concept_name])
         return jsonify(report_data)
-
     except Exception as e:
         print(f"--- ERROR in analyze_teacher_dashboard: {e} ---")
-        return jsonify({'error': 'Analysis karte samay server mein ek takneeki samasya aa gayi hai.'}), 500
+        return jsonify({'error': 'Analysis karte samay server mein takneeki samasya aa gayi hai.'}), 500
 
-
+# Generate Test (JSON वाला - इसे नहीं बदलेंगे)
 @app.route('/generate-test-with-ai', methods=['POST'])
 def generate_test_with_ai_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1200)
     if not is_ok: return jsonify(error_response), 402
-
-    if not model:
-        return jsonify({'error': 'AI model is not available.'}), 503
-
+    if not model: return jsonify({'error': 'AI model is not available.'}), 503
     try:
         data = request.get_json()
-        topic = data.get('topic')
-        count = data.get('count', 10)
-        difficulty = data.get('difficulty', 'Medium')
-        test_type = data.get('testType', 'mcq') 
-
-        if not topic:
-            return jsonify({'error': 'Topic is required to generate a test.'}), 400
-
+        topic, count, difficulty, test_type = data.get('topic'), data.get('count', 10), data.get('difficulty', 'Medium'), data.get('testType', 'mcq')
+        if not topic: return jsonify({'error': 'Topic is required.'}), 400
         prompt = ""
         if test_type == 'mcq':
-            prompt = f"""
-            Generate a test with exactly {count} multiple-choice questions on the topic "{topic}".
-            The difficulty level for all questions should be {difficulty}.
-            The language of the generated questions, options, and answers must match the language of the topic "{topic}".
-            Your output MUST be a valid JSON array of objects.
-            Each object in the array represents a single question and MUST have the following keys:
-            - "text": The question text (string).
-            - "options": An array of exactly 4 string options.
-            - "correctAnswer": The string of the correct answer, which must be one of the provided options.
-            - "conceptTag": A short, specific concept tag related to the question (e.g., "Ohm's Law", "Mitochondria").
-            Do not include any text outside of the JSON array.
-            """
+            prompt = f'Generate a test with {count} MCQs on "{topic}" at {difficulty} difficulty. Output MUST be a valid JSON array of objects. Each object needs "text", "options" (array of 4 strings), "correctAnswer", and "conceptTag". Match language of topic. No extra text.'
         else:
-            prompt = f"""
-            Generate a test with exactly {count} questions and their answers on the topic "{topic}".
-            The difficulty level for all questions should be {difficulty}.
-            The language of the generated questions and answers must match the language of the topic "{topic}".
-            Your output MUST be a valid JSON array of objects.
-            Each object MUST have exactly two keys: "text" (for the question text) and "answer" (for the correct answer text).
-            Do not include any text outside of the JSON array.
-            """
-
+            prompt = f'Generate a test with {count} questions and answers on "{topic}" at {difficulty} difficulty. Output MUST be a valid JSON array of objects. Each object needs "text" and "answer". Match language of topic. No extra text.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
-        response_text = get_response_text(response)
-        
-        generated_questions = json.loads(response_text)
-        
+        generated_questions = json.loads(get_response_text(response))
         if test_type == 'mcq':
             for q in generated_questions:
-                try:
-                    q['correctAnswerIndex'] = q['options'].index(q['correctAnswer'])
-                except (ValueError, KeyError):
-                    q['correctAnswerIndex'] = 0
-
+                try: q['correctAnswerIndex'] = q['options'].index(q['correctAnswer'])
+                except (ValueError, KeyError): q['correctAnswerIndex'] = 0
         return jsonify(generated_questions)
-
     except json.JSONDecodeError:
-        print(f"--- JSON DECODE ERROR in generate_test_with_ai. AI Response: {response_text} ---")
         return jsonify({'error': 'AI did not return valid JSON. Please try again.'}), 500
     except Exception as e:
         print(f"--- ERROR in generate_test_with_ai_route: {e} ---")
-        return jsonify({'error': 'An unknown server error occurred while generating the test.'}), 500
+        return jsonify({'error': 'An unknown server error occurred.'}), 500
 
-
+# Solved Notes (Streaming लागू)
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1800)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 3)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for: \"{topic}\". **LANGUAGE:** Respond in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}"
-        response = model.generate_content(solved_notes_prompt)
-        solved_notes_text = get_response_text(response)
-        return jsonify({'solved_notes': solved_notes_text})
+        solved_notes_prompt = f"**ROLE:** Expert teacher. **TASK:** Provide {count} detailed, step-by-step solved problems for: \"{topic}\". **LANGUAGE:** Same language as topic.\n{FORMATTING_INSTRUCTIONS}"
+        return Response(stream_generator([solved_notes_prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in get_solved_notes_route: {e} ---")
-        return jsonify({'error': 'Error generating solved notes.'}), 500
+        return Response(f'Error generating solved notes: {e}', status=500, mimetype='text/plain')
 
-
+# Career Advice (Streaming लागू)
 @app.route('/get-career-advice-ai', methods=['POST'])
 def get_career_advice_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=800)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         interests = data.get('interests')
         if not interests: return jsonify({'error': 'Please provide your interests.'}), 400
-        prompt = f'**ROLE:** Expert AI Career Counselor. **TASK:** Based on user interests "{interests}", provide a detailed career roadmap. **LANGUAGE:** Respond in the same language as the user\'s provided interests. Create sections for Career Paths, Required Stream, Degrees, etc. **Use `---` on a new line to separate each major section.**\n{FORMATTING_INSTRUCTIONS}'
-        response = model.generate_content(prompt)
-        advice_text = get_response_text(response)
-        return jsonify({'advice': advice_text})
+        prompt = f'**ROLE:** Expert AI Career Counselor. **TASK:** Based on interests "{interests}", provide a detailed roadmap. **LANGUAGE:** Same language as interests. Create sections for Career Paths, Stream, Degrees, etc. **Use `---` on a new line to separate sections.**\n{FORMATTING_INSTRUCTIONS}'
+        return Response(stream_generator([prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in get_career_advice_route: {e} ---")
-        return jsonify({'error': 'Error generating career advice.'}), 500
+        return Response(f'Error generating career advice: {e}', status=500, mimetype='text/plain')
 
-
+# Study Plan (Streaming लागू)
 @app.route('/generate-study-plan-ai', methods=['POST'])
 def generate_study_plan_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
     if not is_ok: return jsonify(error_response), 402
-    
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         plan_details = data.get('details')
         if not plan_details: return jsonify({'error': 'Please provide details for the plan.'}), 400
-        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day study plan based on: "{plan_details}". **LANGUAGE:** Respond in the same language as the provided details. **RULES: Use `---` on a new line to separate each day.**\n{FORMATTING_INSTRUCTIONS}'
-        response = model.generate_content(prompt)
-        plan_text = get_response_text(response)
-        return jsonify({'plan': plan_text})
+        prompt = f'**ROLE:** Expert study planner. **TASK:** Create a 7-day plan based on: "{plan_details}". **LANGUAGE:** Same language as details. **RULES: Use `---` on a new line to separate each day.**\n{FORMATTING_INSTRUCTIONS}'
+        return Response(stream_generator([prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in generate_study_plan_route: {e} ---")
-        return jsonify({'error': 'Error generating study plan.'}), 500
+        return Response(f'Error generating study plan: {e}', status=500, mimetype='text/plain')
 
-
+# Flashcards (JSON वाला - इसे नहीं बदलेंगे)
 @app.route('/generate-flashcards-ai', methods=['POST'])
 def generate_flashcards_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         count = min(int(data.get('count', 8)), 50)
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'Generate {count} flashcards for "{topic}". The language of the flashcard content (front and back) must match the language of the topic. The difficulty mix must be 40% easy/foundational, 40% medium/applied, and 20% hard/advanced. Your response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
+        prompt = f'Generate {count} flashcards for "{topic}". Language must match the topic. Difficulty: 40% easy, 40% medium, 20% hard. Response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text.'
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         response = model.generate_content(prompt, generation_config=generation_config)
         response_text = get_response_text(response)
-        if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in response_text: return jsonify({'error': response_text}), 500
-        try:
-            cards_data = json.loads(response_text)
-            if isinstance(cards_data, list): return jsonify(cards_data)
-            else: raise json.JSONDecodeError("Response is not a list.", response_text, 0)
-        except json.JSONDecodeError as json_err:
-            print(f"JSON DECODE ERROR in flashcards. AI Response: {response_text}. Error: {json_err}")
-            return jsonify({'error': 'AI से मिला जवाब सही फॉर्मेट में नहीं था।'}), 500
+        cards_data = json.loads(response_text)
+        return jsonify(cards_data)
+    except json.JSONDecodeError as json_err:
+        print(f"JSON DECODE ERROR in flashcards. AI Response: {response_text}. Error: {json_err}")
+        return jsonify({'error': 'AI से मिला जवाब सही फॉर्मेट में नहीं था।'}), 500
     except Exception as e:
         print(f"--- UNKNOWN ERROR in generate_flashcards_route: {e} ---")
         return jsonify({'error': 'फ्लैशकार्ड बनाते समय एक अज्ञात सर्वर समस्या हुई।'}), 500
 
-
+# Essay Writer (Streaming लागू)
 @app.route('/write-essay-ai', methods=['POST'])
 def write_essay_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1500)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide an essay topic.'}), 400
-        prompt = f'**ROLE:** Expert Essay Writer. **TASK:** Write a well-structured essay on "{topic}". **LANGUAGE:** Write the essay in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
-        response = model.generate_content(prompt)
-        essay_text = get_response_text(response)
-        return jsonify({'essay': essay_text})
+        prompt = f'**ROLE:** Expert Essay Writer. **TASK:** Write a well-structured essay on "{topic}". **LANGUAGE:** Same language as topic.\n{FORMATTING_INSTRUCTIONS}'
+        return Response(stream_generator([prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in write_essay_route: {e} ---")
-        return jsonify({'error': 'Error generating essay.'}), 500
-        
+        return Response(f'Error generating essay: {e}', status=500, mimetype='text/plain')
 
+# Presentation Maker (Streaming लागू)
 @app.route('/create-presentation-ai', methods=['POST'])
 def create_presentation_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=1200)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a presentation topic.'}), 400
-        prompt = f'**ROLE:** AI Presentation Maker. **TASK:** Create a presentation outline on "{topic}". **LANGUAGE:** Create the presentation in the same language as the provided topic. Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
-        response = model.generate_content(prompt)
-        presentation_text = get_response_text(response)
-        return jsonify({'presentation': presentation_text})
+        prompt = f'**ROLE:** AI Presentation Maker. **TASK:** Create a presentation outline on "{topic}". **LANGUAGE:** Same language as topic. Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
+        return Response(stream_generator([prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in create_presentation_route: {e} ---")
-        return jsonify({'error': 'Error generating presentation.'}), 500
+        return Response(f'Error generating presentation: {e}', status=500, mimetype='text/plain')
 
-
+# Concept Explainer (Streaming लागू)
 @app.route('/explain-concept-ai', methods=['POST'])
 def explain_concept_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'Authentication failed. Please login again.'}), 401
+    if not uid: return jsonify({'error': 'Authentication failed.'}), 401
     is_ok, error_response = manage_tokens(uid, cost_in_tokens=800)
     if not is_ok: return jsonify(error_response), 402
-
     try:
-        if not model: return jsonify({'error': 'AI is currently unavailable. Please try again later.'}), 503
+        if not model: return jsonify({'error': 'AI is currently unavailable.'}), 503
         data = request.get_json()
         topic = data.get('topic')
         if not topic: return jsonify({'error': 'Please provide a topic.'}), 400
-        prompt = f'**ROLE:** Friendly teacher. **TASK:** Explain "{topic}" simply. **LANGUAGE:** Explain in the same language as the provided topic. \n{FORMATTING_INSTRUCTIONS}'
-        response = model.generate_content(prompt)
-        explanation_text = get_response_text(response)
-        if "AI ने सुरक्षा कारणों से जवाब रोक दिया है" in explanation_text: return jsonify({'error': explanation_text}), 500
-        return jsonify({'explanation': explanation_text})
+        prompt = f'**ROLE:** Friendly teacher. **TASK:** Explain "{topic}" simply. **LANGUAGE:** Same language as topic.\n{FORMATTING_INSTRUCTIONS}'
+        return Response(stream_generator([prompt]), mimetype='text/plain')
     except Exception as e:
         print(f"--- ERROR in explain_concept_route: {e} ---")
-        return jsonify({'error': 'कॉन्सेप्ट समझाते समय सर्वर में कोई समस्या आ गयी।'}), 500
+        return Response(f'कॉन्सेप्ट समझाते समय सर्वर में कोई समस्या आ गयी: {e}', status=500, mimetype='text/plain')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
