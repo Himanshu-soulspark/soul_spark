@@ -21,6 +21,11 @@ from flask_cors import CORS
 import razorpay
 import time # Razorpay रसीद के लिए
 
+# ✅✅✅ नया बदलाव: मालिक की पहचान के लिए ईमेल ✅✅✅
+# जब आप इस ईमेल से लॉग-इन करेंगे, तो टोकन नहीं कटेंगे।
+ADMIN_EMAIL = "himanshu@conceptra.ai"
+
+
 # --- SECTION 2: बाहरी सेवाओं (External Services) को शुरू करना ---
 
 # --- Firebase Admin SDK Initialization ---
@@ -45,6 +50,7 @@ CORS(app)
 # यह आपके पेमेंट गेटवे को शुरू करता है।
 try:
     # यह आपकी Razorpay कीज़ को सुरक्षित रूप से Environment Variables से पढ़ता है।
+    # Render पर, आपको इन्हें 'Secret Files' के रूप में सेट करना होगा।
     key_id_file_path = Path(__file__).resolve().parent / 'RAZORPAY_KEY_ID'
     key_secret_file_path = Path(__file__).resolve().parent / 'RAZORPAY_KEY_SECRET'
 
@@ -106,15 +112,6 @@ def get_response_text(response):
 
 def manage_tokens(uid, cost_in_tokens=1500):
     """यूजर के टोकन बैलेंस को चेक और अपडेट करता है।"""
-    
-    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव START ✅✅✅
-    # चूँकि अभी लॉगिन सिस्टम नहीं है, हम मान लेते हैं कि यूजर 'TEST_USER_ID' है
-    # और टोकन चेक को बायपास कर देते हैं ताकि आप AI फीचर्स टेस्ट कर सकें।
-    if uid == "TEST_USER_ID":
-        print("WARNING: टेस्टिंग मोड में टोकन चेक को बायपास किया गया।")
-        return True, None
-    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव END ✅✅✅
-
     if not db:
         return False, {"error": "डेटाबेस कनेक्शन उपलब्ध नहीं है।"}
 
@@ -137,17 +134,6 @@ def manage_tokens(uid, cost_in_tokens=1500):
 
 def verify_user():
     """रिक्वेस्ट हेडर से Firebase ID Token को वेरिफाई करता है।"""
-    
-    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव START ✅✅✅
-    # यह फंक्शन हमेशा एक नकली यूजर आईडी ('TEST_USER_ID') लौटाएगा।
-    # इससे प्रमाणीकरण हमेशा पास हो जाएगा। यह सिर्फ टेस्टिंग के लिए है।
-    print("WARNING: प्रमाणीकरण को टेस्टिंग के लिए बायपास किया गया है। यह सुरक्षित नहीं है।")
-    return "TEST_USER_ID"
-    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव END ✅✅✅
-
-    """
-    --- यह आपका असली कोड है, जिसे डिलीट नहीं किया गया है ---
-    --- जब आप लॉगिन सिस्टम बना लेंगे, तब ऊपर की 3 लाइनें हटाकर इसे वापस चालू कर देंगे ---
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return None
@@ -159,7 +145,36 @@ def verify_user():
     except Exception as e:
         print(f"Auth Token वेरिफिकेशन में विफल: {e}")
         return None
+
+# ✅✅✅ नया बदलाव: मालिक की जाँच करने और टोकन मैनेज करने के लिए नया फंक्शन ✅✅✅
+def check_user_privileges(uid, cost_in_tokens):
     """
+    यह फंक्शन पहले यूजर की पहचान करता है।
+    - अगर यूजर लॉग-इन नहीं है, तो एरर देता है।
+    - अगर यूजर 'मालिक' (Admin) है, तो उसे अनुमति देता है और टोकन नहीं काटता।
+    - अगर यूजर सामान्य है, तो उसके टोकन चेक करता है और काटता है।
+    """
+    if not uid:
+        return False, jsonify({'error': 'प्रमाणीकरण विफल। कृपया दोबारा लॉगिन करें।'}), 401
+    
+    try:
+        # Firebase से यूजर की पूरी जानकारी (ईमेल समेत) निकालते हैं
+        user_record = auth.get_user(uid)
+        # अगर यूजर का ईमेल, मालिक के ईमेल से मिलता है, तो उसे आगे बढ़ने दें
+        if user_record.email == ADMIN_EMAIL:
+            print(f"ADMIN ACCESS: User {user_record.email} is bypassing token check.")
+            return True, None, None # अनुमति है, कोई एरर नहीं
+    except Exception as e:
+        # अगर यूजर की जानकारी निकालने में कोई एरर आए, तो उसे सामान्य यूजर मानें
+        print(f"Admin check failed for UID {uid}. Treating as regular user. Error: {e}")
+
+    # अगर यूजर मालिक नहीं है, तो उसके टोकन की जाँच करें
+    is_ok, error_response = manage_tokens(uid, cost_in_tokens)
+    if not is_ok:
+        return False, jsonify(error_response), 402 # अनुमति नहीं है
+    
+    # अगर सामान्य यूजर के पास टोकन हैं, तो उसे भी अनुमति है
+    return True, None, None
 
 # --- सभी AI Prompts के लिए कॉमन फॉर्मेटिंग निर्देश ---
 FORMATTING_INSTRUCTIONS = """
@@ -167,13 +182,12 @@ VERY IMPORTANT FORMATTING RULES:
 - Use standard Markdown (## for main headings, ### for subheadings, * for lists).
 - For important keywords that need emphasis, wrap them in **double asterisks**.
 - For chemical reactions, wrap them ONLY in [chem]...[/chem] tags. Example: [chem]2H₂ + O₂ → 2H₂O[/chem].
-- For mathematical formulas, wrap them ONLY in [math]...[/math]tags. Example: [math]E = mc²[/math].
+- For mathematical formulas, wrap them ONLY in [math]...[/math] tags. Example: [math]E = mc²[/math].
 - Do NOT use any other formatting for reactions or formulas.
 - Use --- on a new line to separate large sections or pages where applicable.
 """
 
 # --- SECTION 4: APP ROUTES (API Endpoints) ---
-# बाकी के कोड में कोई बदलाव नहीं किया गया है।
 
 @app.route('/')
 def home():
@@ -181,18 +195,16 @@ def home():
     return render_template('index.html')
 
 # --- Payment Routes ---
+# इनमें कोई बदलाव नहीं है क्योंकि ये पहले से सही काम कर रहे थे।
 @app.route('/create-order', methods=['POST'])
 def create_order():
-    """Razorpay पेमेंट ऑर्डर बनाता है।"""
     if not razorpay_client:
         return jsonify({"error": "पेमेंट सेवा अभी उपलब्ध नहीं है।"}), 503
-
     data = request.get_json()
     amount = data.get('amount')
     uid = data.get('uid')
     if not amount or not uid:
         return jsonify({"error": "राशि और यूजर आईडी आवश्यक हैं।"}), 400
-
     order_data = {
         "amount": int(amount) * 100,  # राशि पैसे में
         "currency": "INR",
@@ -208,12 +220,10 @@ def create_order():
 
 @app.route('/razorpay-webhook', methods=['POST'])
 def razorpay_webhook():
-    """Razorpay से पेमेंट कन्फर्मेशन को हैंडल करता है और टोकन जोड़ता है।"""
     webhook_secret = os.environ.get('RAZORPAY_WEBHOOK_SECRET')
     if not webhook_secret:
         print("FATAL: RAZORPAY_WEBHOOK_SECRET एनवायरनमेंट में सेट नहीं है।")
         return 'Server configuration error', 500
-
     try:
         razorpay_client.utility.verify_webhook_signature(
             request.get_data(), 
@@ -223,19 +233,16 @@ def razorpay_webhook():
     except Exception as e:
         print(f"Webhook सिग्नेचर वेरिफिकेशन में विफल: {e}")
         return 'Invalid signature', 400
-
     payload = request.get_json()
     if payload['event'] == 'payment.captured' and db:
         payment_info = payload['payload']['payment']['entity']
         uid = payment_info['notes'].get('firebase_uid')
         amount_paid = payment_info['amount']  # यह पैसे में है
-
         tokens_to_add = 0
         if amount_paid == 10000:    # ₹100 plan
             tokens_to_add = 50000
         elif amount_paid == 45000:  # ₹450 plan
             tokens_to_add = 250000
-
         if uid and tokens_to_add > 0:
             try:
                 user_ref = db.collection('users').document(uid)
@@ -243,7 +250,6 @@ def razorpay_webhook():
                 print(f"SUCCESS: यूजर {uid} को {tokens_to_add} टोकन जोड़े गए।")
             except Exception as e:
                 print(f"Firestore अपडेट एरर (Webhook): {e}")
-    
     return 'OK', 200
 
 # --- Feature Routes ---
@@ -252,9 +258,10 @@ def razorpay_webhook():
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल। कृपया दोबारा लॉगिन करें।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=2500) # इमेज के लिए ज्यादा टोकन
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=2500)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -275,9 +282,10 @@ def ask_ai_image_route():
 @app.route('/generate-notes-ai', methods=['POST'])
 def generate_notes_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=2000)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=2000)
+    if not is_authorized:
+        return error_json, status_code
     
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -298,9 +306,10 @@ def generate_notes_route():
 @app.route('/generate-mcq-ai', methods=['POST'])
 def generate_mcq_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
 
@@ -318,13 +327,17 @@ def generate_mcq_route():
         print(f"MCQ बनाते समय एरर: {e}")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
+# ... इसी तरह आपके बाकी सभी फंक्शन यहाँ आएंगे ...
+# मैंने आपकी मूल फ़ाइल से सभी रूट्स को यहाँ शामिल कर लिया है।
+
 # 4. Solved Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1800)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1800)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -341,9 +354,10 @@ def get_solved_notes_route():
 @app.route('/get-career-advice-ai', methods=['POST'])
 def get_career_advice_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=800)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=800)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -359,9 +373,10 @@ def get_career_advice_route():
 @app.route('/generate-study-plan-ai', methods=['POST'])
 def generate_study_plan_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
 
@@ -377,9 +392,10 @@ def generate_study_plan_route():
 @app.route('/generate-flashcards-ai', methods=['POST'])
 def generate_flashcards_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1000)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
 
@@ -401,9 +417,10 @@ def generate_flashcards_route():
 @app.route('/write-essay-ai', methods=['POST'])
 def write_essay_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1500)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1500)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -419,9 +436,10 @@ def write_essay_route():
 @app.route('/create-presentation-ai', methods=['POST'])
 def create_presentation_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=1200)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1200)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -437,9 +455,10 @@ def create_presentation_route():
 @app.route('/explain-concept-ai', methods=['POST'])
 def explain_concept_route():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=800)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=800)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
     
@@ -456,9 +475,10 @@ def explain_concept_route():
 @app.route('/analyze-quiz-results', methods=['POST'])
 def analyze_quiz_results():
     uid = verify_user()
-    if not uid: return jsonify({'error': 'प्रमाणीकरण विफल।'}), 401
-    is_ok, error_response = manage_tokens(uid, cost_in_tokens=500)
-    if not is_ok: return jsonify(error_response), 402
+    # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
+    is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=500)
+    if not is_authorized:
+        return error_json, status_code
 
     if not model: return jsonify({'error': 'AI अभी अनुपलब्ध है।'}), 503
 
