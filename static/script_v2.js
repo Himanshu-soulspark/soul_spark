@@ -2,9 +2,6 @@
 // यह कोड आपके वेबपेज को आपके Firebase प्रोजेक्ट से जोड़ता है।
 // यह सबसे ऊपर इसलिए रखा गया है ताकि बाकी कोई भी फंक्शन इसे इस्तेमाल कर सके।
 
-// ✅✅✅ यह नया कोड यहाँ से शुरू होता है ✅✅✅
-
-// 1. यह आपका Firebase कॉन्फ़िगरेशन है, जिसे आपने दिया था।
 const firebaseConfig = {
   apiKey: "AIzaSyB2PG5JvDko2UmQDlY9gN5lBgga2vQy-Ws",
   authDomain: "conceptra-c1000.firebaseapp.com",
@@ -16,10 +13,8 @@ const firebaseConfig = {
   measurementId: "G-QRQYEVSJJ6"
 };
 
-// 2. इस लाइन से Firebase शुरू होता है। अब आपका ऐप कनेक्ट हो गया है।
+// इस लाइन से Firebase शुरू होता है। अब आपका ऐप कनेक्ट हो गया है।
 firebase.initializeApp(firebaseConfig);
-
-// ✅✅✅ नया कोड यहाँ खत्म होता है ✅✅✅
 
 
 // --- WELCOME SCREEN LOGIC ---
@@ -54,20 +49,23 @@ function navigateTo(screenId) {
 
 
 // --- AI CONTENT RENDERER ---
-// Yeh function markdown, math aur code ko sundar dikhane ke liye hai. Yeh bilkul sahi hai.
+// Yeh function markdown, math aur code ko sundar dikhane ke liye hai.
 async function renderEnhancedAIContent(element, content) {
     if (!element) return;
     
-    // MathJax ko theek se kaam karne ke liye [math]...[/math] ko badalna nahi hai
-    // [chem]...[/chem] ko ek khaas style dene ke liye badla gaya
+    // MathJax aur Chem tags ke liye ismein koi badlaav nahi kiya gaya hai.
     let processedContent = content.replace(/\[chem\](.*?)\[\/chem\]/g, '<span class="chem-reaction">$1</span>');
 
     const htmlContent = marked.parse(processedContent);
     element.innerHTML = htmlContent;
 
     const highlightColors = ['highlight-yellow', 'highlight-skyblue', 'highlight-pink'];
-    element.querySelectorAll('strong').forEach((strongEl, index) => {
-        strongEl.classList.add(highlightColors[index % highlightColors.length]);
+    
+    // ✅✅✅ बदला हुआ हिस्सा: मुख्य शब्दों (keywords) को अब रैंडम रंग मिलेगा। ✅✅✅
+    element.querySelectorAll('strong').forEach((strongEl) => {
+        // यह हर बार एक रैंडम रंग चुनेगा।
+        const randomColorClass = highlightColors[Math.floor(Math.random() * highlightColors.length)];
+        strongEl.classList.add(randomColorClass);
     });
 
     element.querySelectorAll('pre code').forEach((block) => {
@@ -84,16 +82,15 @@ async function renderEnhancedAIContent(element, content) {
 }
 
 
-// --- ✅ ZAROORI BADLAAV: TYPEWRITER EFFECT FUNCTION ---
-// Yeh naya function AI ke jawab ko letter-by-letter screen par type karega.
+// --- TYPEWRITER EFFECT FUNCTION ---
+// इस फंक्शन को डिलीट नहीं किया गया है, लेकिन अब इसका इस्तेमाल नहीं होगा।
 async function typewriterEffect(element, text, onComplete) {
     let i = 0;
-    element.innerHTML = ""; // Pehle se मौजूद content ko saaf karein
-    const speed = 15; // Typing ki speed (milliseconds mein). Kam value matlab tez typing.
+    element.innerHTML = "";
+    const speed = 15;
 
     function type() {
         if (i < text.length) {
-            // HTML tags ko ek saath add karein, character by character nahi
             if (text.charAt(i) === '<') {
                 const closingTagIndex = text.indexOf('>', i);
                 if (closingTagIndex !== -1) {
@@ -104,10 +101,10 @@ async function typewriterEffect(element, text, onComplete) {
                  element.innerHTML += text.charAt(i);
             }
             i++;
-            element.scrollTop = element.scrollHeight; // Type hote samay neeche scroll karein
+            element.scrollTop = element.scrollHeight;
             setTimeout(type, speed);
         } else if (onComplete) {
-            onComplete(); // Jab typing poori ho jaye, toh onComplete function ko call karein
+            onComplete();
         }
     }
     type();
@@ -115,10 +112,10 @@ async function typewriterEffect(element, text, onComplete) {
 
 
 // --- HELPER FUNCTION FOR API REQUESTS ---
-// Is function mein zaroori badlaav kiya gaya hai taaki yeh naye typewriter effect ka istemal kare.
+// Is function mein zaroori badlaav kiya gaya hai.
 async function handleApiRequest(button, container, responseDiv, url, getBody) {
     const body = getBody();
-    if (!body) return; // Agar body nahi hai toh kuch mat karo
+    if (!body) return;
 
     button.disabled = true;
     const originalText = button.textContent;
@@ -148,11 +145,9 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
         const key = Object.keys(data)[0];
         const fullText = data[key] || "No content received.";
 
-        // ✅ BADLAAV: Ab hum seedhe render nahi karenge. Pehle typewriter effect chalayenge.
-        // Typewriter poora hone ke baad, hum content ko format karenge.
-        await typewriterEffect(responseDiv, fullText, async () => {
-            await renderEnhancedAIContent(responseDiv, fullText);
-        });
+        // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को हटा दिया गया है। ✅✅✅
+        // अब जवाब सीधा और एक बार में दिखेगा।
+        await renderEnhancedAIContent(responseDiv, fullText);
 
     } catch (error) {
         responseDiv.innerHTML = `<p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>`;
@@ -294,9 +289,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const fullText = data.answer;
-            await typewriterEffect(responseDiv, fullText, async () => {
-                await renderEnhancedAIContent(responseDiv, fullText);
-            });
+            
+            // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
+            await renderEnhancedAIContent(responseDiv, fullText);
 
         } catch (error) {
             responseDiv.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
