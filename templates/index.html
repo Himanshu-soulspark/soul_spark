@@ -10,9 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
-    <!-- ✅✅✅ --- START OF UPDATE (Sirf yeh hissa joda gaya hai) --- ✅✅✅ -->
-    <!-- MathJax Library ko configure aur load karne ke liye scripts -->
-    <!-- Yeh [math]...[/math] tags ko sundar formulas mein badal dega -->
     <script>
       MathJax = {
         tex: {
@@ -25,7 +22,6 @@
       };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- ✅✅✅ --- END OF UPDATE --- ✅✅✅ -->
 
 </head>
 <body>
@@ -62,28 +58,38 @@
         <!-- Ask Doubt Screen -->
         <div id="ask-doubt-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Ask a Doubt</h1></div>
-            <form id="doubt-form">
+            <!-- ✅ UPDATE: FORM tag removed -->
+            <div>
                 <textarea id="doubt-input" class="textarea-box" rows="4" placeholder="Agar photo mein sawaal hai, toh yahan bas 'Solve this' likh dein."></textarea>
                 <label for="doubt-image-input" class="submit-button upload-btn">📷 Upload Question Image</label>
                 <input type="file" id="doubt-image-input" accept="image/*" style="display: none;">
                 <span id="file-name-display"></span>
-                <button id="ask-doubt-submit" type="submit" class="submit-button">Get Answer</button>
-            </form>
+                <!-- ✅ UPDATE: type="button" and onclick added. This will call the function in your *main app's* JS. -->
+                <button id="ask-doubt-submit" type="button" class="submit-button" onclick="window.parent.handleAskDoubt()">Get Answer</button>
+            </div>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
         
         <!-- Generate Notes Screen (UPDATED) -->
         <div id="generate-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Generate Notes</h1></div>
-            <form id="notes-form">
+             <!-- ✅ UPDATE: FORM tag removed -->
+            <div>
+                 <!-- ✅ UPDATE: ID is correct and matches JS requirement. -->
                 <input id="notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Photosynthesis'">
                 <div class="option-selector-group">
-                    <label><input type="radio" name="note-type" value="short"> Short</label>
-                    <label><input type="radio" name="note-type" value="long" checked> Long</label>
+                     <!-- ✅ UPDATE: name changed to match JS requirement. -->
+                    <label><input type="radio" name="note-length" value="short"> Short</label>
+                    <label><input type="radio" name="note-length" value="long" checked> Long</label>
                 </div>
-                <button id="generate-notes-submit" type="submit" class="submit-button">Generate</button>
-            </form>
-            <div id="notes-response-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
+                <!-- ✅ UPDATE: type="button" and onclick added to call the correct JS function in the parent window. -->
+                <button id="generate-notes-submit" type="button" class="submit-button" onclick="window.parent.handleGenerateNotes()">Generate</button>
+            </div>
+            <!-- ✅ UPDATE: ID changed to match JS requirement. -->
+            <div id="notes-output-container" class="response-container">
+                <h3>Generated Notes:</h3>
+                <div class="ai-generated-content"></div>
+            </div>
         </div>
 
         <!-- Practice MCQ Screen (UPDATED with Analysis Div) -->
@@ -213,13 +219,17 @@
         <!-- Concept Explainer Screen -->
         <div id="concept-explainer-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Concept Explainer</h1></div>
-            <form id="explainer-form">
-                <input id="explainer-topic-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
-                <button id="get-explanation-btn" type="submit" class="submit-button">Samjhao!</button>
-            </form>
-            <div id="explainer-response-container" class="response-container">
+             <!-- ✅ UPDATE: FORM tag removed -->
+            <div>
+                 <!-- ✅ UPDATE: ID changed to match JS requirement. -->
+                <input id="concept-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
+                 <!-- ✅ UPDATE: type="button" and onclick added to call the correct JS function in the parent window. -->
+                <button id="get-explanation-btn" type="button" class="submit-button" onclick="window.parent.handleExplainConcept()">Samjhao!</button>
+            </div>
+             <!-- ✅ UPDATE: ID changed to match JS requirement. -->
+            <div id="concept-output-container" class="response-container">
                 <h3>Aasan Bhasha Mein:</h3>
-                <div id="explainer-response" class="ai-generated-content"></div>
+                <div class="ai-generated-content"></div>
             </div>
         </div>
 
@@ -234,6 +244,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <script src="{{ url_for('static', filename='script_v2.js') }}"></script>
+    <!-- ✅ UPDATE: script_v2.js से script.js किया गया (आप अपने हिसाब से नाम रख सकते हैं) -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
