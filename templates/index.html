@@ -8,11 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <!-- यह आपकी CSS फाइल का लिंक है, सुनिश्चित करें कि यह सही है -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <script>
-      // MathJax का कॉन्फ़िगरेशन, यह सही है और इसे बदलने की ज़रूरत नहीं है
       MathJax = {
         tex: {
           inlineMath: [['[math]', '[/math]']],
@@ -28,7 +26,7 @@
 </head>
 <body>
 
-    <!-- WELCOME SCREEN (यह वैसा ही है) -->
+    <!-- WELCOME SCREEN -->
     <div id="welcome-screen">
         <div class="welcome-content">
             <div class="logo">🤖</div>
@@ -60,134 +58,236 @@
         <!-- Ask Doubt Screen -->
         <div id="ask-doubt-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Ask a Doubt</h1></div>
-            <!-- ✅ UPDATE: <form> टैग हटा दिया गया है -->
-            <div>
+            <form id="doubt-form">
                 <textarea id="doubt-input" class="textarea-box" rows="4" placeholder="Agar photo mein sawaal hai, toh yahan bas 'Solve this' likh dein."></textarea>
                 <label for="doubt-image-input" class="submit-button upload-btn">📷 Upload Question Image</label>
                 <input type="file" id="doubt-image-input" accept="image/*" style="display: none;">
                 <span id="file-name-display"></span>
-                <!-- ✅ UPDATE: type="button" और onclick इवेंट जोड़ा गया है। यह मेन ऐप के JS को कॉल करेगा। -->
-                <button id="ask-doubt-submit" type="button" class="submit-button" onclick="window.parent.handleAskDoubt()">Get Answer</button>
-            </div>
+                <button id="ask-doubt-submit" type="submit" class="submit-button">Get Answer</button>
+            </form>
             <div id="ai-response-container" class="response-container"><h3>AI's Answer:</h3><div id="ai-response" class="ai-generated-content"></div></div>
         </div>
         
         <!-- Generate Notes Screen (UPDATED) -->
         <div id="generate-notes-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Generate Notes</h1></div>
-            <!-- ✅ UPDATE: <form> टैग हटा दिया गया है -->
+            <!-- ✅✅✅ UPDATE: <form> TAG REMOVED FROM HERE ✅✅✅ -->
             <div>
-                <!-- ✅ UPDATE: ID आपके Main App JS के अनुसार सही है -->
                 <input id="notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Photosynthesis'">
                 <div class="option-selector-group">
-                    <!-- ✅ UPDATE: name आपके Main App JS के अनुसार सही है -->
                     <label><input type="radio" name="note-length" value="short"> Short</label>
                     <label><input type="radio" name="note-length" value="long" checked> Long</label>
                 </div>
-                 <!-- ✅ UPDATE: type="button" और onclick इवेंट जोड़ा गया है -->
+                <!-- ✅✅✅ UPDATE: type="button" and onclick added to call parent JS function ✅✅✅ -->
                 <button id="generate-notes-submit" type="button" class="submit-button" onclick="window.parent.handleGenerateNotes()">Generate</button>
             </div>
-            <!-- ✅ UPDATE: ID आपके Main App JS के अनुसार सही है -->
-            <div id="notes-output-container" class="response-container"><h3>Generated Notes:</h3><div class="ai-generated-content"></div></div>
+            <div id="notes-output-container" class="response-container"><h3>Generated Notes:</h3><div id="notes-response" class="ai-generated-content"></div></div>
         </div>
 
-        <!-- Practice MCQ Screen -->
+        <!-- Practice MCQ Screen (Your original code is preserved) -->
         <div id="practice-mcq-screen" class="screen">
-            <!-- यह सेक्शन अभी के लिए वैसा ही है, क्योंकि इसका JS अभी नहीं बनाया गया है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Practice MCQs</h1></div>
+            <div id="mcq-setup-view">
+                <p>Kis topic par quiz chahiye?</p>
+                <input id="mcq-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Solar System'">
+                <p>Kitne sawaal chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="mcq-count" value="10" checked> 10</label>
+                    <label><input type="radio" name="mcq-count" value="20"> 20</label>
+                    <label><input type="radio" name="mcq-count" value="30"> 30</label>
+                    <label><input type="radio" name="mcq-count" value="custom"> Custom:</label>
+                    <input type="number" id="mcq-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
+                </div>
+                <button id="start-quiz-btn" class="submit-button">Start Quiz</button>
+            </div>
+            <div id="mcq-quiz-view" style="display: none;">
+                <h2 id="quiz-topic-title"></h2>
+                <div id="quiz-container"></div>
+                <button id="submit-quiz-btn" class="submit-button" style="margin-top: 20px;">Submit Quiz</button>
+                <div id="quiz-result"></div>
+                
+                <div id="quiz-analysis-report" class="ai-generated-content" style="margin-top: 20px; text-align: left;"></div>
+
+                <div id="post-quiz-options" style="display: none; margin-top: 20px;">
+                    <button id="retake-quiz-btn" class="submit-button secondary">Take Another Quiz</button>
+                    <button onclick="navigateTo('home-screen')" class="submit-button" style="margin-top: 10px;">Go to Dashboard</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Solved Notes Screen -->
+        <!-- Solved Notes Screen (Your original code is preserved) -->
         <div id="solved-notes-screen" class="screen">
-            <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Solved Notes & Examples</h1></div>
+             <form id="solved-notes-form">
+                <input id="solved-notes-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Projectile Motion Problems'">
+                <p>Kitne examples chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="solved-notes-count" value="3" checked> 3</label>
+                    <label><input type="radio" name="solved-notes-count" value="5"> 5</label>
+                    <label><input type="radio" name="solved-notes-count" value="10"> 10</label>
+                    <label><input type="radio" name="solved-notes-count" value="custom"> Custom:</label>
+                    <input type="number" id="solved-notes-custom-count" class="custom-count-input" min="1" max="50" value="3" disabled>
+                </div>
+                <button id="get-solved-notes-btn" type="submit" class="submit-button">Get Solved Examples</button>
+            </form>
+            <div id="solved-notes-response-container" class="response-container"><h3>Solved Examples:</h3><div id="solved-notes-response" class="ai-generated-content"></div></div>
         </div>
 
-        <!-- Career Counselor Screen -->
+        <!-- Career Counselor Screen (Your original code is preserved) -->
         <div id="career-counselor-screen" class="screen">
-             <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Career Counselor</h1></div>
+            <form id="career-form">
+                <textarea id="career-interests-input" class="textarea-box" rows="4" placeholder="Apni ruchi (interests) aur pasandida subjects likhein. Jaise: 'Mujhe Science aur Computers mein interest hai. Math achha lagta hai.'"></textarea>
+                <button id="get-career-advice-btn" type="submit" class="submit-button">Get Career Advice</button>
+            </form>
+            <div id="career-response-container" class="response-container">
+                <h3>Career Roadmap:</h3>
+                <div id="career-paginated-content" class="paginated-content-area"></div>
+                <div id="career-pagination-controls" class="pagination-controls"></div>
+            </div>
         </div>
 
-        <!-- Study Planner Screen -->
+        <!-- Study Planner Screen (Your original code is preserved) -->
         <div id="study-planner-screen" class="screen">
-            <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>Personalized Study Planner</h1></div>
+            <form id="study-plan-form">
+                <textarea id="study-plan-details-input" class="textarea-box" rows="4" placeholder="Apne subjects aur goal likhein. Jaise: 'Subjects: Physics, Chemistry, Math. Agle mahine final exams hain. Mujhe ek hafte ka plan chahiye.'"></textarea>
+                <button id="generate-study-plan-btn" type="submit" class="submit-button">Create My Plan</button>
+            </form>
+            <div id="study-plan-response-container" class="response-container">
+                <h3>Your Study Plan:</h3>
+                <div id="study-plan-paginated-content" class="paginated-content-area"></div>
+                <div id="study-plan-pagination-controls" class="pagination-controls"></div>
+            </div>
         </div>
 
-        <!-- Flashcard Screen -->
+        <!-- Flashcard Screen (Your original code is preserved) -->
         <div id="flashcard-screen" class="screen">
-            <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Flashcards</h1></div>
+            <form id="flashcard-form">
+                <input id="flashcard-topic-input" type="text" class="input-box" placeholder="Topic likhein, jaise 'Human Heart'">
+                 <p>Kitne flashcards chahiye? (Max: 50)</p>
+                <div class="option-selector-group">
+                    <label><input type="radio" name="flashcard-count" value="10" checked> 10</label>
+                    <label><input type="radio" name="flashcard-count" value="20"> 20</label>
+                    <label><input type="radio" name="flashcard-count" value="30"> 30</label>
+                    <label><input type="radio" name="flashcard-count" value="40"> 40</label>
+                    <label><input type="radio" name="flashcard-count" value="50"> 50</label>
+                    <label><input type="radio" name="flashcard-count" value="custom"> Custom:</label>
+                    <input type="number" id="flashcard-custom-count" class="custom-count-input" min="1" max="50" value="10" disabled>
+                </div>
+                <button id="generate-flashcards-btn" type="submit" class="submit-button">Create Flashcards</button>
+            </form>
+            <div id="flashcard-response-container" class="response-container"></div>
         </div>
 
-        <!-- Essay Writer Screen -->
+        <!-- Essay Writer Screen (Your original code is preserved) -->
         <div id="essay-writer-screen" class="screen">
-            <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Essay Writer</h1></div>
+            <form id="essay-writer-form">
+                <input id="essay-topic-input" type="text" class="input-box" placeholder="Aapko kis topic par essay chahiye?">
+                <button id="write-essay-btn" type="submit" class="submit-button">Write Essay</button>
+            </form>
+            <div id="essay-writer-response-container" class="response-container">
+                <h3>AI Generated Essay:</h3>
+                <div id="essay-writer-response" class="ai-generated-content"></div>
+            </div>
         </div>
 
-        <!-- Presentation Maker Screen -->
+        <!-- Presentation Maker Screen (Your original code is preserved) -->
         <div id="presentation-maker-screen" class="screen">
-             <!-- यह सेक्शन अभी के लिए वैसा ही है -->
+            <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Presentation Maker</h1></div>
+            <form id="presentation-maker-form">
+                <input id="presentation-topic-input" type="text" class="input-box" placeholder="Aapki presentation ka topic kya hai?">
+                <button id="create-presentation-btn" type="submit" class="submit-button">Create Presentation</button>
+            </form>
+            <div id="presentation-maker-response-container" class="response-container">
+                <h3>AI Generated Presentation:</h3>
+                <div id="presentation-maker-response" class="ai-generated-content"></div>
+            </div>
         </div>
 
         <!-- Concept Explainer Screen -->
         <div id="concept-explainer-screen" class="screen">
             <div class="header"><button class="back-button" onclick="navigateTo('home-screen')">←</button><h1>AI Concept Explainer</h1></div>
-            <!-- ✅ UPDATE: <form> टैग हटा दिया गया है -->
+             <!-- ✅✅✅ UPDATE: <form> TAG REMOVED FROM HERE ✅✅✅ -->
             <div>
-                <!-- ✅ UPDATE: ID आपके Main App JS के अनुसार सही है -->
+                 <!-- ✅✅✅ UPDATE: ID changed to match parent JS function requirements ✅✅✅ -->
                 <input id="concept-input" type="text" class="input-box" placeholder="Koi bhi topic likhein, jaise 'Quantum Physics'">
-                <!-- ✅ UPDATE: type="button" और onclick इवेंट जोड़ा गया है -->
+                 <!-- ✅✅✅ UPDATE: type="button" and onclick added ✅✅✅ -->
                 <button id="get-explanation-btn" type="button" class="submit-button" onclick="window.parent.handleExplainConcept()">Samjhao!</button>
             </div>
-             <!-- ✅ UPDATE: ID आपके Main App JS के अनुसार सही है -->
+             <!-- ✅✅✅ UPDATE: ID changed to match parent JS function requirements ✅✅✅ -->
             <div id="concept-output-container" class="response-container">
                 <h3>Aasan Bhasha Mein:</h3>
-                <div class="ai-generated-content"></div>
+                <div id="explainer-response" class="ai-generated-content"></div>
             </div>
         </div>
 
     </div>
 
-    <!-- JavaScript Libraries (ये वैसे ही हैं) -->
+    <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    
-    <!-- ✅✅✅ --- START OF JAVASCRIPT UPDATE --- ✅✅✅ -->
-    <!-- यह नया JavaScript कोड है जो HTML के अंदर ही रहेगा -->
-    <!-- यह वेलकम स्क्रीन को हैंडल करेगा और AI ऐप के अंदर पेजों के बीच नेविगेट करेगा -->
+
+    <!-- ✅✅✅ --- START OF FINAL JAVASCRIPT --- ✅✅✅ -->
+    <!-- यह जावास्क्रिप्ट सिर्फ इस iframe के अंदर के UI को कंट्रोल करेगा। -->
     <script>
-        // यह सुनिश्चित करता है कि पूरा पेज लोड होने के बाद ही कोड चले
-        window.addEventListener('load', function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            // WELCOME SCREEN LOGIC
             const welcomeScreen = document.getElementById('welcome-screen');
             const appContainer = document.querySelector('.app-container');
 
-            // 3.5 सेकंड के बाद वेलकम स्क्रीन को छिपाएं और मुख्य ऐप दिखाएं
             setTimeout(() => {
                 if (welcomeScreen) {
-                    welcomeScreen.style.display = 'none';
+                    welcomeScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        welcomeScreen.style.display = 'none';
+                        if (appContainer) {
+                            appContainer.style.display = 'block';
+                            appContainer.style.opacity = '1';
+                        }
+                    }, 500); 
                 }
-                if (appContainer) {
-                    appContainer.style.display = 'block';
-                }
-            }, 3500); // 3.5 सेकंड
+            }, 3500); 
+
+            // CUSTOM COUNT INPUT LOGIC
+            const customRadioButtons = document.querySelectorAll('input[type="radio"][value="custom"]');
+            customRadioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const customInput = this.closest('.option-selector-group').querySelector('.custom-count-input');
+                    if (customInput) {
+                        customInput.disabled = !this.checked;
+                        if (this.checked) {
+                            customInput.focus();
+                        }
+                    }
+                });
+            });
         });
 
-        // यह फ़ंक्शन AI ऐप के अंदर एक स्क्रीन से दूसरी स्क्रीन पर जाने के लिए है
+        // PAGE NAVIGATION LOGIC
         function navigateTo(screenId) {
-            // सभी स्क्रीनों को छिपाएं
-            const allScreens = document.querySelectorAll('.screen');
+            const allScreens = document.querySelectorAll('.app-container .screen');
             allScreens.forEach(screen => {
                 screen.classList.remove('active');
             });
 
-            // सिर्फ़ टारगेट स्क्रीन को दिखाएं
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
                 targetScreen.classList.add('active');
+            } else {
+                console.error("Screen not found: " + screenId);
             }
         }
     </script>
-    <!-- ✅✅✅ --- END OF JAVASCRIPT UPDATE --- ✅✅✅ -->
+    <!-- ✅✅✅ --- END OF FINAL JAVASCRIPT --- ✅✅✅ -->
 
+    <!-- ✅✅✅ --- IMPORTANT --- ✅✅✅ -->
+    <!-- The external script file link is commented out to prevent conflicts. -->
+    <!-- <script src="{{ url_for('static', filename='script_v2.js') }}"></script> -->
 </body>
 </html>
