@@ -45,7 +45,6 @@ CORS(app)
 # यह आपके पेमेंट गेटवे को शुरू करता है।
 try:
     # यह आपकी Razorpay कीज़ को सुरक्षित रूप से Environment Variables से पढ़ता है।
-    # Render पर, आपको इन्हें 'Secret Files' के रूप में सेट करना होगा।
     key_id_file_path = Path(__file__).resolve().parent / 'RAZORPAY_KEY_ID'
     key_secret_file_path = Path(__file__).resolve().parent / 'RAZORPAY_KEY_SECRET'
 
@@ -107,6 +106,15 @@ def get_response_text(response):
 
 def manage_tokens(uid, cost_in_tokens=1500):
     """यूजर के टोकन बैलेंस को चेक और अपडेट करता है।"""
+    
+    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव START ✅✅✅
+    # चूँकि अभी लॉगिन सिस्टम नहीं है, हम मान लेते हैं कि यूजर 'TEST_USER_ID' है
+    # और टोकन चेक को बायपास कर देते हैं ताकि आप AI फीचर्स टेस्ट कर सकें।
+    if uid == "TEST_USER_ID":
+        print("WARNING: टेस्टिंग मोड में टोकन चेक को बायपास किया गया।")
+        return True, None
+    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव END ✅✅✅
+
     if not db:
         return False, {"error": "डेटाबेस कनेक्शन उपलब्ध नहीं है।"}
 
@@ -129,6 +137,17 @@ def manage_tokens(uid, cost_in_tokens=1500):
 
 def verify_user():
     """रिक्वेस्ट हेडर से Firebase ID Token को वेरिफाई करता है।"""
+    
+    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव START ✅✅✅
+    # यह फंक्शन हमेशा एक नकली यूजर आईडी ('TEST_USER_ID') लौटाएगा।
+    # इससे प्रमाणीकरण हमेशा पास हो जाएगा। यह सिर्फ टेस्टिंग के लिए है।
+    print("WARNING: प्रमाणीकरण को टेस्टिंग के लिए बायपास किया गया है। यह सुरक्षित नहीं है।")
+    return "TEST_USER_ID"
+    # ✅✅✅ सिर्फ टेस्टिंग के लिए बदलाव END ✅✅✅
+
+    """
+    --- यह आपका असली कोड है, जिसे डिलीट नहीं किया गया है ---
+    --- जब आप लॉगिन सिस्टम बना लेंगे, तब ऊपर की 3 लाइनें हटाकर इसे वापस चालू कर देंगे ---
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return None
@@ -140,6 +159,7 @@ def verify_user():
     except Exception as e:
         print(f"Auth Token वेरिफिकेशन में विफल: {e}")
         return None
+    """
 
 # --- सभी AI Prompts के लिए कॉमन फॉर्मेटिंग निर्देश ---
 FORMATTING_INSTRUCTIONS = """
@@ -147,12 +167,13 @@ VERY IMPORTANT FORMATTING RULES:
 - Use standard Markdown (## for main headings, ### for subheadings, * for lists).
 - For important keywords that need emphasis, wrap them in **double asterisks**.
 - For chemical reactions, wrap them ONLY in [chem]...[/chem] tags. Example: [chem]2H₂ + O₂ → 2H₂O[/chem].
-- For mathematical formulas, wrap them ONLY in [math]...[/math] tags. Example: [math]E = mc²[/math].
+- For mathematical formulas, wrap them ONLY in [math]...[/math]tags. Example: [math]E = mc²[/math].
 - Do NOT use any other formatting for reactions or formulas.
 - Use --- on a new line to separate large sections or pages where applicable.
 """
 
 # --- SECTION 4: APP ROUTES (API Endpoints) ---
+# बाकी के कोड में कोई बदलाव नहीं किया गया है।
 
 @app.route('/')
 def home():
@@ -296,9 +317,6 @@ def generate_mcq_route():
     except Exception as e:
         print(f"MCQ बनाते समय एरर: {e}")
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
-
-# ... इसी तरह आपके बाकी सभी फंक्शन यहाँ आएंगे ...
-# मैंने आपकी मूल फ़ाइल से सभी रूट्स को यहाँ शामिल कर लिया है।
 
 # 4. Solved Examples
 @app.route('/get-solved-notes-ai', methods=['POST'])
