@@ -17,7 +17,7 @@
     --color-orange: #e67e22;
     --color-purple: #9b59b6;
 
-    /* --- NAYE COLORS FOR HIGHLIGHTING --- */
+    /* NAYE COLORS FOR HIGHLIGHTING --- */
     --color-saffron: #F49A26; /* Saffron for Chem */
     --color-light-yellow: #fdeea7; /* Light yellow for Math */
 }
@@ -41,7 +41,7 @@ body {
 @keyframes load { from { width: 0%; } to { width: 100%; } }
 
 /* --- App Container --- */
-.app-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+.app-container { max-width: 1000px; margin: 0 auto; padding: 20px; opacity: 0; transition: opacity 0.5s ease-in; }
 
 /* --- Screen Styles --- */
 .screen { display: none; animation: fadeIn 0.5s ease-in-out; }
@@ -73,13 +73,6 @@ body {
 #file-name-display { display: block; text-align: center; margin-bottom: 20px; font-size: 14px; font-style: italic; }
 .response-container { display: none; margin-top: 20px; }
 .response-container h3 { margin-bottom: 15px; color: var(--primary-color); }
-
-/* --- ⭐⭐ ज़रूरी बदलाव: Accessibility और बेहतर UX के लिए Focus Styles ⭐⭐ --- */
-.card:focus-visible, .submit-button:focus-visible, .back-button:focus-visible, .pagination-btn:focus-visible, .mcq-option:focus-visible {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 3px;
-    box-shadow: 0 0 15px rgba(24, 210, 163, 0.5);
-}
 
 /* --- Option Selector Styles --- */
 .option-selector-group { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; background-color: var(--card-bg-color); padding: 10px; border-radius: 8px; margin-bottom: 20px; }
@@ -120,11 +113,11 @@ body {
 
 /* --- AI Generated Content Styling --- */
 .ai-generated-content { line-height: 1.7; font-size: 16px; }
-.ai-generated-content h1, 
+.ai-generated-content h1,
 .ai-generated-content h2 { color: var(--color-red); border-bottom: 1px solid var(--light-gray); padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; font-family: var(--brand-font); }
 .ai-generated-content h3 { color: var(--color-green); margin-top: 20px; }
 .ai-generated-content h4 { color: var(--color-yellow); font-family: var(--brand-font); }
-.ai-generated-content strong { font-weight: 600; }
+.ai-generated-content strong { font-weight: 600; /* Remove color from here, JS will handle it */ }
 .ai-generated-content code { background-color: #2e2e2e; color: var(--color-sky-blue); padding: 3px 6px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }
 .ai-generated-content pre { background-color: #0d1117; border-radius: 8px; padding: 15px; border: 1px solid var(--light-gray); overflow-x: auto; }
 .ai-generated-content pre code { background-color: transparent; color: var(--text-color); padding: 0; border-radius: 0; }
@@ -133,7 +126,7 @@ body {
 .ai-generated-content blockquote { color: var(--color-orange); border-left: 3px solid var(--color-orange); background-color: #2a2a2a; padding: 10px 15px; margin: 15px 0; border-radius: 5px; font-style: italic; }
 .ai-generated-content hr { border: 0; height: 1px; margin: 30px 0; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--color-purple), rgba(0, 0, 0, 0)); }
 
-/* --- Highlighting Classes --- */
+/* --- NEW: Highlighting Classes --- */
 .ai-generated-content .highlight-yellow { color: var(--color-yellow); }
 .ai-generated-content .highlight-skyblue { color: var(--color-sky-blue); }
 .ai-generated-content .highlight-pink { color: var(--color-pink); }
@@ -147,12 +140,13 @@ body {
     text-shadow: 0 0 5px rgba(244, 154, 38, 0.4);
 }
 
-/* 
-   .math-formula क्लास का इस्तेमाल नहीं हो रहा था क्योंकि MathJax अपना स्टाइल खुद हैंडल करता है, 
-   इसलिए इसे हटाना कोड को साफ़ रखने के लिए बेहतर है।
-*/
+.ai-generated-content .math-formula {
+    color: var(--color-light-yellow);
+    font-size: 1.1em;
+    font-family: 'Georgia', serif;
+}
 
-/* --- Quiz Analysis Report Styles --- */
+/* --- NEW: Quiz Analysis Report Styles --- */
 #quiz-analysis-report {
     background-color: var(--card-bg-color);
     border-top: 2px solid var(--primary-color);
@@ -160,24 +154,46 @@ body {
     border-radius: 0 0 12px 12px;
 }
 
-/* --- ⭐⭐ ज़रूरी बदलाव: लोडिंग एनीमेशन के लिए स्टाइल ⭐⭐ --- */
-/* यह स्टाइल आपके JavaScript में इस्तेमाल होने वाले लोडिंग टेक्स्ट पर लागू होगी */
-.response-container p {
-    padding: 20px;
+
+/**************************************************/
+/* ✅✅✅ यह नया कोड यहाँ से शुरू होता है ✅✅✅ */
+/**************************************************/
+
+/* यह स्टाइल आपके "Generating... Please wait" वाले div पर लागू होगी */
+.loading-animation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
     background-color: var(--card-bg-color);
     border-radius: 8px;
-    border-left: 4px solid var(--primary-color);
-    animation: pulse 1.5s infinite;
+    border: 1px solid var(--light-gray);
+    color: var(--primary-color);
+    font-size: 1.1em;
+    text-align: center;
+    min-height: 100px; /* यह सुनिश्चित करता है कि लोडर बहुत छोटा न दिखे */
 }
 
-@keyframes pulse {
-    0% {
-        background-color: var(--card-bg-color);
-    }
-    50% {
-        background-color: #2a2a2a;
-    }
-    100% {
-        background-color: var(--card-bg-color);
+/* यह घूमने वाला स्पिनर (spinner) बनाता है */
+.loading-animation::before {
+    content: '';
+    display: inline-block;
+    width: 24px;       /* स्पिनर का आकार */
+    height: 24px;
+    margin-right: 15px; /* स्पिनर और टेक्स्ट के बीच की जगह */
+    
+    /* स्पिनर का डिज़ाइन */
+    border: 3px solid rgba(24, 210, 163, 0.3); /* हल्का, पारदर्शी बॉर्डर */
+    border-top-color: var(--primary-color);       /* मुख्य रंग जो घूमेगा */
+    border-radius: 50%;
+    
+    /* यहाँ एनीमेशन लागू होता है */
+    animation: spin 1s linear infinite;
+}
+
+/* यह 'spin' एनीमेशन को परिभाषित करता है */
+@keyframes spin {
+    to {
+        transform: rotate(360deg); /* 0 डिग्री से 360 डिग्री तक घुमाएं */
     }
 }
