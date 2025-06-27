@@ -50,7 +50,6 @@ window.scrollTo(0, 0);
 async function renderEnhancedAIContent(element, content) {
 if (!element) return;
 
-Generated code
 // MathJax aur Chem tags ke liye ismein koi badlaav nahi kiya gaya hai.
 let processedContent = content.replace(/[chem](.*?)[/chem]/g, '<span class="chem-reaction">$1</span>');
 
@@ -87,13 +86,12 @@ let i = 0;
 element.innerHTML = "";
 const speed = 15;
 
-Generated code
 function type() {
 if (i < text.length) {
 if (text.charAt(i) === '<') {
 const closingTagIndex = text.indexOf('>', i);
 if (closingTagIndex !== -1) {
-element.innerHTML += text.substring(i, closingTagIndex + 1);
+element.innerHTML += text.substring(i, closingTagTagIndex + 1);
 i = closingTagIndex;
 }
 } else {
@@ -108,7 +106,6 @@ onComplete();
 }
 type();
 
-
 }
 
 // --- HELPER FUNCTION FOR API REQUESTS ---
@@ -117,7 +114,6 @@ async function handleApiRequest(button, container, responseDiv, url, getBody) {
 const body = getBody();
 if (!body) return;
 
-Generated code
 button.disabled = true;
 const originalText = button.textContent;
 button.textContent = 'Generating...';
@@ -132,16 +128,15 @@ const idToken = await user.getIdToken(true);
 headers['Authorization'] = 'Bearer ' + idToken;
 }
 
-Generated code
 const response = await fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(body)
+method: 'POST',
+headers: headers,
+body: JSON.stringify(body)
 });
 
 const data = await response.json();
 if (!response.ok) {
-    throw new Error(data.error || 'Server error occurred.');
+throw new Error(data.error || 'Server error occurred.');
 }
 
 const key = Object.keys(data)[0];
@@ -150,24 +145,14 @@ const fullText = data[key] || "No content received.";
 // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को हटा दिया गया है। ✅✅✅
 // अब जवाब सीधा और एक बार में दिखेगा।
 await renderEnhancedAIContent(responseDiv, fullText);
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 } catch (error) {
-responseDiv.innerHTML = <p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>;
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+responseDiv.innerHTML = `<p style="color: var(--color-red);">Sorry, an error occurred: ${error.message}</p>`;
 } finally {
 button.disabled = false;
 button.textContent = originalText;
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
-
 }
 
 // --- PAGINATION LOGIC ---
@@ -178,7 +163,6 @@ const contentArea = document.getElementById(contentAreaId);
 const controlsArea = document.getElementById(controlsId);
 if (!contentArea || !controlsArea) return;
 
-Generated code
 const pages = content.split(/\n---\n/).map(p => p.trim()).filter(p => p.length > 0);
 paginationData[contentAreaId] = { pages: pages, currentPage: 0 };
 
@@ -195,13 +179,9 @@ for (let i = 0; i < pageDivs.length; i++) {
 await renderEnhancedAIContent(pageDivs[i], pages[i]);
 }
 
-controlsArea.innerHTML = <button class="pagination-btn" id="${contentAreaId}-back" onclick="changePage('${contentAreaId}', -1)">Back</button> <span class="page-indicator" id="${contentAreaId}-indicator"></span> <button class="pagination-btn" id="${contentAreaId}-next" onclick="changePage('${contentAreaId}', 1)">Next</button>;
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+controlsArea.innerHTML = `<button class="pagination-btn" id="${contentAreaId}-back" onclick="changePage('${contentAreaId}', -1)">Back</button> <span class="page-indicator" id="${contentAreaId}-indicator"></span> <button class="pagination-btn" id="${contentAreaId}-next" onclick="changePage('${contentAreaId}', 1)">Next</button>`;
 updatePaginationControls(contentAreaId);
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 }
 function changePage(contentAreaId, direction) {
@@ -220,58 +200,15 @@ updatePaginationControls(contentAreaId);
 function updatePaginationControls(contentAreaId) {
 const data = paginationData[contentAreaId];
 if (!data) return;
-document.getElementById(${contentAreaId}-indicator).textContent = Page ${data.currentPage + 1} of 
-𝑑
-𝑎
-𝑡
-𝑎
-.
-𝑝
-𝑎
-𝑔
-𝑒
-𝑠
-.
-𝑙
-𝑒
-𝑛
-𝑔
-𝑡
-ℎ
-;
-𝑑
-𝑜
-𝑐
-𝑢
-𝑚
-𝑒
-𝑛
-𝑡
-.
-𝑔
-𝑒
-𝑡
-𝐸
-𝑙
-𝑒
-𝑚
-𝑒
-𝑛
-𝑡
-𝐵
-𝑦
-𝐼
-𝑑
-(
-data.pages.length;document.getElementById(
-{contentAreaId}-back).disabled = (data.currentPage === 0);
-document.getElementById(${contentAreaId}-next).disabled = (data.currentPage === data.pages.length - 1);
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ का syntax पूरी तरह से theek kiya gaya hai ✅✅✅
+document.getElementById(`${contentAreaId}-indicator`).textContent = `Page ${data.currentPage + 1} of ${data.pages.length}`;
+document.getElementById(`${contentAreaId}-back`).disabled = (data.currentPage === 0);
+document.getElementById(`${contentAreaId}-next`).disabled = (data.currentPage === data.pages.length - 1);
 }
 
 // --- Yahan se mukhya event listeners shuru hote hain. Inmein koi badlaav nahi hai ---
 document.addEventListener('DOMContentLoaded', function() {
 
-Generated code
 // --- CUSTOM COUNT INPUT LOGIC ---
 document.querySelectorAll('input[type="radio"][value="custom"]').forEach(radio => {
 radio.addEventListener('change', function() {
@@ -296,7 +233,8 @@ const fileNameDisplay = document.getElementById('file-name-display');
 if (imageInput && fileNameDisplay) {
 imageInput.addEventListener('change', function() {
 if (this.files.length > 0) {
-fileNameDisplay.textContent = File: ${this.files[0].name};
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+fileNameDisplay.textContent = `File: ${this.files[0].name}`;
 } else {
 fileNameDisplay.textContent = '';
 }
@@ -311,13 +249,12 @@ const imageInput = document.getElementById('doubt-image-input');
 const responseContainer = document.getElementById('ai-response-container');
 const responseDiv = document.getElementById('ai-response');
 
-Generated code
 const questionText = questionInput.value.trim();
 const imageFile = imageInput.files[0];
 
 if (questionText === '' && !imageFile) {
-    alert('Please write your doubt or upload an image.');
-    return;
+alert('Please write your doubt or upload an image.');
+return;
 }
 
 button.disabled = true;
@@ -328,47 +265,43 @@ responseDiv.innerHTML = '<div class="loading-animation">Generating... Please wai
 const formData = new FormData();
 formData.append('question', questionText);
 if (imageFile) {
-    formData.append('image', imageFile);
+formData.append('image', imageFile);
 }
 
 try {
-    const user = firebase.auth().currentUser;
-    const headers = {};
-     if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
+const user = firebase.auth().currentUser;
+const headers = {};
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
+}
 
-    const response = await fetch('/ask-ai-image', {
-        method: 'POST',
-        headers: headers,
-        body: formData
-    });
+const response = await fetch('/ask-ai-image', {
+method: 'POST',
+headers: headers,
+body: formData
+});
 
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.error || 'Server error occurred.');
-    }
-    
-    const fullText = data.answer;
-    
-    // ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
-    await renderEnhancedAIContent(responseDiv, fullText);
+const data = await response.json();
+if (!response.ok) {
+throw new Error(data.error || 'Server error occurred.');
+}
+
+const fullText = data.answer;
+
+// ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़फेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
+await renderEnhancedAIContent(responseDiv, fullText);
 
 } catch (error) {
-    responseDiv.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
+// ✅✅✅ यह लाइन पहले से सही थी (backticks theek hain) ✅✅✅
+responseDiv.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
 } finally {
-    button.disabled = false;
-    button.textContent = 'Get Answer';
-    questionInput.value = '';
-    imageInput.value = '';
-    if(fileNameDisplay) fileNameDisplay.textContent = '';
+button.disabled = false;
+button.textContent = 'Get Answer';
+questionInput.value = '';
+imageInput.value = '';
+if(fileNameDisplay) fileNameDisplay.textContent = '';
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -379,21 +312,15 @@ const topicInput = document.getElementById('notes-topic-input');
 const container = document.getElementById('notes-output-container');
 const responseDiv = document.getElementById('notes-response');
 
-Generated code
 handleApiRequest(button, container, responseDiv, '/generate-notes-ai', () => {
-    const topic = topicInput.value.trim();
-    const noteType = document.querySelector('input[name="note-length"]:checked').value;
-    if (topic === '') {
-        alert('Please enter a topic.');
-        return null;
-    }
-    return { topic, noteType };
+const topic = topicInput.value.trim();
+const noteType = document.querySelector('input[name="note-length"]:checked').value;
+if (topic === '') {
+alert('Please enter a topic.');
+return null;
+}
+return { topic, noteType };
 });
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -406,10 +333,9 @@ alert('Please enter a topic for the quiz.');
 return;
 }
 
-Generated code
 let count = document.querySelector('input[name="mcq-count"]:checked').value;
 if (count === 'custom') {
-    count = document.getElementById('mcq-custom-count').value;
+count = document.getElementById('mcq-custom-count').value;
 }
 
 document.getElementById('mcq-setup-view').style.display = 'none';
@@ -423,43 +349,39 @@ button.disabled = true;
 button.textContent = 'Generating...';
 
 try {
-    const user = firebase.auth().currentUser;
-    const headers = { 'Content-Type': 'application/json' };
-    if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
-    
-    const response = await fetch('/generate-mcq-ai', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ topic, count })
-    });
+const user = firebase.auth().currentUser;
+const headers = { 'Content-Type': 'application/json' };
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
+}
 
-    const questions = await response.json();
-    if (!response.ok) {
-        throw new Error(questions.error || 'Could not generate quiz.');
-    }
-    window.currentQuizQuestions = questions;
-    await displayQuestions(questions);
-    document.getElementById('submit-quiz-btn').style.display = 'block';
-    document.getElementById('post-quiz-options').style.display = 'none';
-    document.getElementById('quiz-result').innerHTML = '';
-    document.getElementById('quiz-analysis-report').innerHTML = '';
+const response = await fetch('/generate-mcq-ai', {
+method: 'POST',
+headers: headers,
+body: JSON.stringify({ topic, count })
+});
+
+const questions = await response.json();
+if (!response.ok) {
+throw new Error(questions.error || 'Could not generate quiz.');
+}
+window.currentQuizQuestions = questions;
+await displayQuestions(questions);
+document.getElementById('submit-quiz-btn').style.display = 'block';
+document.getElementById('post-quiz-options').style.display = 'none';
+document.getElementById('quiz-result').innerHTML = '';
+document.getElementById('quiz-analysis-report').innerHTML = '';
 
 } catch (error) {
-    quizContainer.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
-    document.getElementById('mcq-setup-view').style.display = 'block';
-    quizView.style.display = 'none';
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+quizContainer.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
+document.getElementById('mcq-setup-view').style.display = 'block';
+quizView.style.display = 'none';
 } finally {
-    button.disabled = false;
-    button.textContent = 'Start Quiz';
+button.disabled = false;
+button.textContent = 'Start Quiz';
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -470,24 +392,18 @@ const topicInput = document.getElementById('solved-notes-topic-input');
 const container = document.getElementById('solved-notes-response-container');
 const responseDiv = document.getElementById('solved-notes-response');
 
-Generated code
 handleApiRequest(button, container, responseDiv, '/get-solved-notes-ai', () => {
-    const topic = topicInput.value.trim();
-    if (topic === '') {
-        alert('Please enter a topic.');
-        return null;
-    }
-    let count = document.querySelector('input[name="solved-notes-count"]:checked').value;
-    if (count === 'custom') {
-        count = document.getElementById('solved-notes-custom-count').value;
-    }
-    return { topic, count };
+const topic = topicInput.value.trim();
+if (topic === '') {
+alert('Please enter a topic.');
+return null;
+}
+let count = document.querySelector('input[name="solved-notes-count"]:checked').value;
+if (count === 'custom') {
+count = document.getElementById('solved-notes-custom-count').value;
+}
+return { topic, count };
 });
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -499,10 +415,9 @@ const container = document.getElementById('career-response-container');
 const contentArea = document.getElementById('career-paginated-content');
 const controlsArea = document.getElementById('career-pagination-controls');
 
-Generated code
 if (interests === '') {
-    alert('Please enter your interests.');
-    return;
+alert('Please enter your interests.');
+return;
 }
 
 button.disabled = true;
@@ -512,33 +427,29 @@ contentArea.innerHTML = '<div class="loading-animation">Generating... Please wai
 controlsArea.innerHTML = '';
 
 try {
-    const user = firebase.auth().currentUser;
-    const headers = { 'Content-Type': 'application/json' };
-    if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
-
-    const response = await fetch('/get-career-advice-ai', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ interests })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Could not get career advice.');
-    await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
-} catch (error) {
-    contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
-} finally {
-    button.disabled = false;
-    button.textContent = 'Get Career Advice';
+const user = firebase.auth().currentUser;
+const headers = { 'Content-Type': 'application/json' };
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+
+const response = await fetch('/get-career-advice-ai', {
+method: 'POST',
+headers: headers,
+body: JSON.stringify({ interests })
+});
+
+const data = await response.json();
+if (!response.ok) throw new Error(data.error || 'Could not get career advice.');
+await renderPaginatedContent('career-paginated-content', 'career-pagination-controls', data.advice);
+} catch (error) {
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
+} finally {
+button.disabled = false;
+button.textContent = 'Get Career Advice';
+}
 
 });
 
@@ -550,10 +461,9 @@ const container = document.getElementById('study-plan-response-container');
 const contentArea = document.getElementById('study-plan-paginated-content');
 const controlsArea = document.getElementById('study-plan-pagination-controls');
 
-Generated code
 if (details === '') {
-    alert('Please provide details for the plan.');
-    return;
+alert('Please provide details for the plan.');
+return;
 }
 
 button.disabled = true;
@@ -563,32 +473,28 @@ contentArea.innerHTML = '<div class="loading-animation">Generating... Please wai
 controlsArea.innerHTML = '';
 
 try {
-    const user = firebase.auth().currentUser;
-    const headers = { 'Content-Type': 'application/json' };
-    if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
-
-    const response = await fetch('/generate-study-plan-ai', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ details })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Could not create study plan.');
-    await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
-} catch (error) {
-    contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
-} finally {
-    button.disabled = false;
-    button.textContent = 'Create My Plan';
+const user = firebase.auth().currentUser;
+const headers = { 'Content-Type': 'application/json' };
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+
+const response = await fetch('/generate-study-plan-ai', {
+method: 'POST',
+headers: headers,
+body: JSON.stringify({ details })
+});
+const data = await response.json();
+if (!response.ok) throw new Error(data.error || 'Could not create study plan.');
+await renderPaginatedContent('study-plan-paginated-content', 'study-plan-pagination-controls', data.plan);
+} catch (error) {
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+contentArea.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
+} finally {
+button.disabled = false;
+button.textContent = 'Create My Plan';
+}
 
 });
 
@@ -598,15 +504,14 @@ const button = this;
 const topic = document.getElementById('flashcard-topic-input').value.trim();
 const container = document.getElementById('flashcard-response-container');
 
-Generated code
 if (topic === '') {
-    alert('Please enter a topic for flashcards.');
-    return;
+alert('Please enter a topic for flashcards.');
+return;
 }
 
 let count = document.querySelector('input[name="flashcard-count"]:checked').value;
 if (count === 'custom') {
-    count = document.getElementById('flashcard-custom-count').value;
+count = document.getElementById('flashcard-custom-count').value;
 }
 
 button.disabled = true;
@@ -615,33 +520,29 @@ container.style.display = 'block';
 container.innerHTML = '<div class="loading-animation">Generating Flashcards...</div>';
 
 try {
-    const user = firebase.auth().currentUser;
-    const headers = { 'Content-Type': 'application/json' };
-    if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
-
-    const response = await fetch('/generate-flashcards-ai', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ topic, count })
-    });
-
-    const cards = await response.json();
-    if (!response.ok) throw new Error(cards.error || 'Could not create flashcards.');
-    await displayFlashcards(cards);
-} catch (error) {
-    container.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
-} finally {
-    button.disabled = false;
-    button.textContent = 'Create Flashcards';
+const user = firebase.auth().currentUser;
+const headers = { 'Content-Type': 'application/json' };
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+
+const response = await fetch('/generate-flashcards-ai', {
+method: 'POST',
+headers: headers,
+body: JSON.stringify({ topic, count })
+});
+
+const cards = await response.json();
+if (!response.ok) throw new Error(cards.error || 'Could not create flashcards.');
+await displayFlashcards(cards);
+} catch (error) {
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+container.innerHTML = `<p style="color: var(--color-red);">Error: ${error.message}</p>`;
+} finally {
+button.disabled = false;
+button.textContent = 'Create Flashcards';
+}
 
 });
 
@@ -652,20 +553,14 @@ const topicInput = document.getElementById('essay-topic-input');
 const container = document.getElementById('essay-writer-response-container');
 const responseDiv = document.getElementById('essay-writer-response');
 
-Generated code
 handleApiRequest(button, container, responseDiv, '/write-essay-ai', () => {
-    const topic = topicInput.value.trim();
-    if (topic === '') {
-        alert('Please enter a topic.');
-        return null;
-    }
-    return { topic };
+const topic = topicInput.value.trim();
+if (topic === '') {
+alert('Please enter a topic.');
+return null;
+}
+return { topic };
 });
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -676,20 +571,14 @@ const topicInput = document.getElementById('presentation-topic-input');
 const container = document.getElementById('presentation-maker-response-container');
 const responseDiv = document.getElementById('presentation-maker-response');
 
-Generated code
 handleApiRequest(button, container, responseDiv, '/create-presentation-ai', () => {
-    const topic = topicInput.value.trim();
-    if (topic === '') {
-        alert('Please enter a topic.');
-        return null;
-    }
-    return { topic };
+const topic = topicInput.value.trim();
+if (topic === '') {
+alert('Please enter a topic.');
+return null;
+}
+return { topic };
 });
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -700,20 +589,14 @@ const conceptInput = document.getElementById('concept-input');
 const container = document.getElementById('concept-output-container');
 const responseDiv = document.getElementById('explainer-response');
 
-Generated code
 handleApiRequest(button, container, responseDiv, '/explain-concept-ai', () => {
-    const topic = conceptInput.value.trim();
-    if (topic === '') {
-        alert('Please enter a concept.');
-        return null;
-    }
-    return { topic };
+const topic = conceptInput.value.trim();
+if (topic === '') {
+alert('Please enter a concept.');
+return null;
+}
+return { topic };
 });
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -723,35 +606,31 @@ const quizContainer = document.getElementById('quiz-container');
 quizContainer.innerHTML = '';
 window.correctAnswers = questions.map(q => q.correct_answer);
 
-Generated code
 for (const [index, q] of questions.entries()) {
-    const questionElement = document.createElement('div');
-    questionElement.className = 'mcq-question-block';
-    
-    const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-    let optionsHTML = shuffledOptions.map(option =>
-        `<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span></span></label>`
-    ).join('');
+const questionElement = document.createElement('div');
+questionElement.className = 'mcq-question-block';
 
-    const questionTextDiv = document.createElement('div');
-    await renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
-    
-    questionElement.innerHTML = `
+const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+let optionsHTML = shuffledOptions.map(option =>
+`<label class="mcq-option"><input type="radio" name="question-${index}" value="${option}"> <span></span></label>`
+).join('');
+
+const questionTextDiv = document.createElement('div');
+await renderEnhancedAIContent(questionTextDiv, `<strong>Q${index + 1}:</strong> ${q.question}`);
+
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+questionElement.innerHTML = `
         ${questionTextDiv.innerHTML}
         <div class="options-container" id="options-${index}">${optionsHTML}</div>
     `;
-    quizContainer.appendChild(questionElement);
-    
-    const optionLabels = questionElement.querySelectorAll('.mcq-option span');
-    for(let i = 0; i < optionLabels.length; i++) {
-        await renderEnhancedAIContent(optionLabels[i], shuffledOptions[i]);
-    }
+quizContainer.appendChild(questionElement);
+
+const optionLabels = questionElement.querySelectorAll('.mcq-option span');
+for(let i = 0; i < optionLabels.length; i++) {
+await renderEnhancedAIContent(optionLabels[i], shuffledOptions[i]);
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+}
 
 }
 
@@ -759,48 +638,43 @@ document.getElementById('submit-quiz-btn').addEventListener('click', function() 
 let score = 0;
 const userAnswersForAnalysis = [];
 
-Generated code
 window.correctAnswers.forEach((correctAnswer, i) => {
-    const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
-    const questionData = window.currentQuizQuestions[i];
-    
-    let userAnswer = selectedRadio ? selectedRadio.value : "Not Answered";
-    let isCorrect = (userAnswer === correctAnswer);
+const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
+const questionData = window.currentQuizQuestions[i];
 
-    userAnswersForAnalysis.push({
-        question: questionData.question,
-        userAnswer: userAnswer,
-        isCorrect: isCorrect,
-        conceptTag: questionData.conceptTag || "General"
-    });
+let userAnswer = selectedRadio ? selectedRadio.value : "Not Answered";
+let isCorrect = (userAnswer === correctAnswer);
 
-    const optionsContainer = document.getElementById(`options-${i}`);
-    if (optionsContainer) {
-        optionsContainer.querySelectorAll('label').forEach(label => {
-            label.style.pointerEvents = 'none';
-            const inputValue = label.querySelector('input').value;
-            if (inputValue === correctAnswer) {
-                label.classList.add('correct');
-            }
-            if (selectedRadio && selectedRadio.value === inputValue && !isCorrect) {
-                 label.classList.add('incorrect');
-            }
-        });
-    }
-
-    if (isCorrect) score++;
+userAnswersForAnalysis.push({
+question: questionData.question,
+userAnswer: userAnswer,
+isCorrect: isCorrect,
+conceptTag: questionData.conceptTag || "General"
 });
 
+const optionsContainer = document.getElementById(`options-${i}`);
+if (optionsContainer) {
+optionsContainer.querySelectorAll('label').forEach(label => {
+label.style.pointerEvents = 'none';
+const inputValue = label.querySelector('input').value;
+if (inputValue === correctAnswer) {
+label.classList.add('correct');
+}
+if (selectedRadio && selectedRadio.value === inputValue && !isCorrect) {
+label.classList.add('incorrect');
+}
+});
+}
+
+if (isCorrect) score++;
+});
+
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
 document.getElementById('quiz-result').innerHTML = `<h3>Your Score: ${score} / ${window.correctAnswers.length}</h3>`;
 this.style.display = 'none';
 document.getElementById('post-quiz-options').style.display = 'block';
 
 getQuizAnalysis(userAnswersForAnalysis);
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
 
@@ -809,32 +683,27 @@ const analysisDiv = document.getElementById('quiz-analysis-report');
 analysisDiv.style.display = 'block';
 analysisDiv.innerHTML = '<div class="loading-animation">Analyzing your performance...</div>';
 
-Generated code
 try {
-    const user = firebase.auth().currentUser;
-    const headers = { 'Content-Type': 'application/json' };
-    if (user) {
-        const idToken = await user.getIdToken(true);
-        headers['Authorization'] = 'Bearer ' + idToken;
-    }
-
-    const response = await fetch('/analyze-quiz-results', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ answers })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Could not get analysis.');
-
-    await renderEnhancedAIContent(analysisDiv, data.analysis);
-} catch (error) {
-    analysisDiv.innerHTML = `<p style="color: var(--color-red);">Could not get analysis: ${error.message}</p>`;
+const user = firebase.auth().currentUser;
+const headers = { 'Content-Type': 'application/json' };
+if (user) {
+const idToken = await user.getIdToken(true);
+headers['Authorization'] = 'Bearer ' + idToken;
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+
+const response = await fetch('/analyze-quiz-results', {
+method: 'POST',
+headers: headers,
+body: JSON.stringify({ answers })
+});
+const data = await response.json();
+if (!response.ok) throw new Error(data.error || 'Could not get analysis.');
+
+await renderEnhancedAIContent(analysisDiv, data.analysis);
+} catch (error) {
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+analysisDiv.innerHTML = `<p style="color: var(--color-red);">Could not get analysis: ${error.message}</p>`;
+}
 
 }
 
@@ -850,34 +719,24 @@ container.innerHTML = '';
 const grid = document.createElement('div');
 grid.className = 'flashcard-grid';
 
-Generated code
 for (const cardData of cards) {
-    const cardEl = document.createElement('div');
-    cardEl.className = 'flashcard';
-    const frontDiv = document.createElement('div');
-    frontDiv.className = 'card-front';
-    const backDiv = document.createElement('div');
-    backDiv.className = 'card-back';
-    
-    await renderEnhancedAIContent(frontDiv, cardData.front);
-    await renderEnhancedAIContent(backDiv, cardData.back);
+const cardEl = document.createElement('div');
+cardEl.className = 'flashcard';
+const frontDiv = document.createElement('div');
+frontDiv.className = 'card-front';
+const backDiv = document.createElement('div');
+backDiv.className = 'card-back';
 
-    cardEl.innerHTML = `<div class="flashcard-inner">${frontDiv.outerHTML}${backDiv.outerHTML}</div>`;
-    cardEl.addEventListener('click', () => cardEl.classList.toggle('flipped'));
-    grid.appendChild(cardEl);
+await renderEnhancedAIContent(frontDiv, cardData.front);
+await renderEnhancedAIContent(backDiv, cardData.back);
+
+// ✅✅✅ बदला हुआ हिस्सा: यहाँ template literal ke backticks theek kiye hain ✅✅✅
+cardEl.innerHTML = `<div class="flashcard-inner">${frontDiv.outerHTML}${backDiv.outerHTML}</div>`;
+cardEl.addEventListener('click', () => cardEl.classList.toggle('flipped'));
+grid.appendChild(cardEl);
 }
 container.appendChild(grid);
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 }
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
 
 });
