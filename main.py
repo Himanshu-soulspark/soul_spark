@@ -29,14 +29,11 @@ file = __file__
 
 
 # ✅✅✅ नया बदलाव: मालिक की पहचान के लिए ईमेल ✅✅✅
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 ADMIN_EMAIL = "himanshu@conceptra.ai"
 
 # --- SECTION 2: बाहरी सेवाओं (External Services) को शुरू करना ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 # --- Firebase Admin SDK Initialization ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 # यह सर्वर को आपके Firestore डेटाबेस से सुरक्षित रूप से कनेक्ट करने की अनुमति देता है।
 
 try:
@@ -51,7 +48,6 @@ except Exception as e:
     db = None
 
 # --- Flask App Initialization ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 app = Flask(name)
 
@@ -59,7 +55,6 @@ app = Flask(name)
 CORS(app)
 
 # --- Razorpay Client Initialization ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 # यह आपके पेमेंट गेटवे को शुरू करता है।
 
 try:
@@ -85,7 +80,6 @@ except Exception as e:
     razorpay_client = None
 
 # --- Google Gemini AI Model Configuration ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 try:
     # यह आपकी Google API Key को Environment Variable से पढ़ता है।
@@ -110,7 +104,6 @@ except Exception as e:
     model = None
 
 # --- SECTION 3: हेल्पर फंक्शन्स (Helper Functions) ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 # ये छोटे फंक्शन हैं जो बार-बार इस्तेमाल होते हैं।
 
 def get_response_text(response):
@@ -167,7 +160,6 @@ def verify_user():
         return None
 
 # ✅✅✅ नया बदलाव: मालिक की जाँच करने और टोकन मैनेज करने के लिए नया फंक्शन ✅✅✅
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 def check_user_privileges(uid, cost_in_tokens):
     """
     यह फंक्शन पहले यूजर की पहचान करता है।
@@ -198,7 +190,6 @@ def check_user_privileges(uid, cost_in_tokens):
     return True, None, None
 
 # --- सभी AI Prompts के लिए कॉमन फॉर्मेटिंग निर्देश ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 FORMATTING_INSTRUCTIONS = """
 VERY IMPORTANT FORMATTING RULES:
@@ -217,7 +208,6 @@ Use --- on a new line to separate large sections or pages where applicable.
 """
 
 # --- SECTION 4: APP ROUTES (API Endpoints) ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 @app.route('/')
 def home():
@@ -225,7 +215,6 @@ def home():
     return render_template('index.html')
 
 # --- Payment Routes ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 # इनमें कोई बदलाव नहीं है क्योंकि ये पहले से सही काम कर रहे थे।
 
 @app.route('/create-order', methods=['POST'])
@@ -285,14 +274,12 @@ def razorpay_webhook():
     return 'OK', 200
 
 # --- Feature Routes ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 # 1. Ask a Doubt
 
 @app.route('/ask-ai-image', methods=['POST'])
 def ask_ai_image_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=2500)
     if not is_authorized:
         return error_json, status_code
@@ -318,7 +305,6 @@ def ask_ai_image_route():
 def generate_notes_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=2000)
     if not is_authorized:
         return error_json, status_code
@@ -328,7 +314,7 @@ def generate_notes_route():
     data = request.get_json()
     topic = data.get('topic')
     note_type = data.get('noteType', 'long')
-    if not topic: return jsonify({'error': 'कृपया एक विषय प्रदान करें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया एक विषय प्रदान करें।'}), 400
 
     if note_type == 'short':
         prompt = f'ROLE: Expert teacher. TASK: Generate a brief summary and key bullet points for "{topic}".\n{FORMATTING_INSTRUCTIONS}'
@@ -344,7 +330,6 @@ def generate_notes_route():
 def generate_mcq_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
     if not is_authorized:
         return error_json, status_code
@@ -354,7 +339,7 @@ def generate_mcq_route():
     data = request.get_json()
     topic = data.get('topic')
     count = min(int(data.get('count', 5)), 50)
-    if not topic: return jsonify({'error': 'कृपया एक विषय प्रदान करें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया एक विषय प्रदान करें।'}), 400
 
     prompt = f'Generate {count} MCQs on "{topic}". The language of questions and options must match the topic language. Difficulty mix: 40% easy, 40% medium, 20% hard. Output must be a valid JSON array of objects with keys: "question", "options" (array of 4 strings), "correct_answer", and "conceptTag". No extra text or markdown.'
 
@@ -366,15 +351,12 @@ def generate_mcq_route():
         return jsonify({'error': 'AI से MCQ जेनरेट करते वक़्त गड़बड़ हो गयी।'}), 500
 
 # ... इसी तरह आपके बाकी सभी फंक्शन यहाँ आएंगे ...
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
-# मैंने आपकी मूल फ़ाइल से सभी रूट्स को यहाँ शामिल कर लिया है।
 # 4. Solved Examples
 
 @app.route('/get-solved-notes-ai', methods=['POST'])
 def get_solved_notes_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1800)
     if not is_authorized:
         return error_json, status_code
@@ -384,7 +366,7 @@ def get_solved_notes_route():
     data = request.get_json()
     topic = data.get('topic')
     count = min(int(data.get('count', 3)), 50)
-    if not topic: return jsonify({'error': 'कृपया एक विषय प्रदान करें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया एक विषय प्रदान करें।'}), 400
 
     prompt = f"ROLE: Expert teacher. TASK: Provide {count} detailed, step-by-step solved problems for: \"{topic}\".\n{FORMATTING_INSTRUCTIONS}"
     response = model.generate_content(prompt)
@@ -396,7 +378,6 @@ def get_solved_notes_route():
 def get_career_advice_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=800)
     if not is_authorized:
         return error_json, status_code
@@ -405,7 +386,7 @@ def get_career_advice_route():
 
     data = request.get_json()
     interests = data.get('interests')
-    if not interests: return jsonify({'error': 'कृपया अपनी रुचियां बताएं।'}), 400
+    if not interests: return jsonify({'error': ' कृपया अपनी रुचियां बताएं।'}), 400
 
     prompt = f'ROLE: Expert AI Career Counselor. TASK: Based on user interests "{interests}", provide a detailed career roadmap.\n{FORMATTING_INSTRUCTIONS}'
     response = model.generate_content(prompt)
@@ -417,7 +398,6 @@ def get_career_advice_route():
 def generate_study_plan_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
     if not is_authorized:
         return error_json, status_code
@@ -426,7 +406,7 @@ def generate_study_plan_route():
 
     data = request.get_json()
     details = data.get('details')
-    if not details: return jsonify({'error': 'कृपया प्लान के लिए विवरण दें।'}), 400
+    if not details: return jsonify({'error': ' कृपया प्लान के लिए विवरण दें।'}), 400
 
     prompt = f'ROLE: Expert study planner. TASK: Create a 7-day study plan based on: "{details}". Use Hinglish for the plan.\n{FORMATTING_INSTRUCTIONS}'
     response = model.generate_content(prompt)
@@ -438,7 +418,6 @@ def generate_study_plan_route():
 def generate_flashcards_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1000)
     if not is_authorized:
         return error_json, status_code
@@ -448,7 +427,7 @@ def generate_flashcards_route():
     data = request.get_json()
     topic = data.get('topic')
     count = min(int(data.get('count', 8)), 50)
-    if not topic: return jsonify({'error': 'कृपया एक विषय प्रदान करें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया एक विषय प्रदान करें।'}), 400
 
     prompt = f'Generate {count} flashcards for "{topic}". The language must match the topic language. Response must be ONLY a valid JSON array. Each object must have "front" and "back" keys. No extra text or markdown.'
 
@@ -465,7 +444,6 @@ def generate_flashcards_route():
 def write_essay_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1500)
     if not is_authorized:
         return error_json, status_code
@@ -474,7 +452,7 @@ def write_essay_route():
 
     data = request.get_json()
     topic = data.get('topic')
-    if not topic: return jsonify({'error': 'कृपया निबंध के लिए एक विषय दें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया निबंध के लिए एक विषय दें।'}), 400
 
     prompt = f'ROLE: Expert Essay Writer. TASK: Write a well-structured essay on "{topic}".\n{FORMATTING_INSTRUCTIONS}'
     response = model.generate_content(prompt)
@@ -486,7 +464,6 @@ def write_essay_route():
 def create_presentation_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=1200)
     if not is_authorized:
         return error_json, status_code
@@ -495,7 +472,7 @@ def create_presentation_route():
 
     data = request.get_json()
     topic = data.get('topic')
-    if not topic: return jsonify({'error': 'कृपया प्रेजेंटेशन के लिए एक विषय दें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया प्रेजेंटेशन के लिए एक विषय दें।'}), 400
 
     prompt = f'ROLE: AI Presentation Maker. TASK: Create a presentation outline on "{topic}" with a title slide and 5 content slides. Use standard markdown.\n{FORMATTING_INSTRUCTIONS}'
     response = model.generate_content(prompt)
@@ -507,7 +484,6 @@ def create_presentation_route():
 def explain_concept_route():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=800)
     if not is_authorized:
         return error_json, status_code
@@ -516,7 +492,7 @@ def explain_concept_route():
 
     data = request.get_json()
     topic = data.get('topic')
-    if not topic: return jsonify({'error': 'कृपया समझाने के लिए एक कॉन्सेप्ट दें।'}), 400
+    if not topic: return jsonify({'error': ' कृपया समझाने के लिए एक कॉन्सेप्ट दें।'}), 400
 
     prompt = f'ROLE: Friendly teacher. TASK: Explain "{topic}" simply, like I am 15 years old. Use Hinglish.\n{FORMATTING_INSTRUCTIONS}'
     response = model.generate_content(prompt)
@@ -528,7 +504,6 @@ def explain_concept_route():
 def analyze_quiz_results():
     uid = verify_user()
     # ✅✅✅ नया बदलाव: यहाँ मालिक और टोकन की जाँच हो रही है ✅✅✅
-    # Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
     is_authorized, error_json, status_code = check_user_privileges(uid, cost_in_tokens=500)
     if not is_authorized:
         return error_json, status_code
@@ -557,7 +532,6 @@ INSTRUCTIONS:
 """ # <-- यह ट्रिपल-कोट स्ट्रिंग ठीक से बंद हो रही है।
 
 # --- SECTION 5: Main Execution Block ---
-# Python Syntax Error Fix: इस लाइन को कमेंट किया गया है।
 
 if __name__ == '__main__':
     # यह सुनिश्चित करता है कि सर्वर सही पोर्ट पर चले, खासकर Render जैसे प्लेटफॉर्म पर।
