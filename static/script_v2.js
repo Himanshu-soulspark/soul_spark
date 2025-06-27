@@ -21,18 +21,22 @@ firebase.initializeApp(firebaseConfig);
 window.addEventListener('load', () => {
 const welcomeScreen = document.getElementById('welcome-screen');
 const appContainer = document.querySelector('.app-container');
-setTimeout(() => {
+setTimeout(() => { // Outer timeout for welcome duration
 if (welcomeScreen) welcomeScreen.style.opacity = '0';
-setTimeout(() => {
+setTimeout(() => { // Inner timeout for fade-out
 if (welcomeScreen) welcomeScreen.style.display = 'none';
 if (appContainer) {
-appContainer.style.display = 'block'; // Yeh sunishchit karta hai ki app container dikhe
-// App container ko fade in karne ke liye joda gaya
-setTimeout(() => appContainer.style.opacity = '1', 50);
+appContainer.style.display = 'block'; // Make container visible
+setTimeout(() => { // Timeout for fade-in
+appContainer.style.opacity = '1';
+// ✅✅✅ यहीं पर कमी थी! welcome screen के बाद home screen को active करना है। ✅✅✅
+navigateTo('home-screen');
+}, 50); // Short delay for opacity transition
 }
-}, 500); // 0.5 second baad welcome screen poori tarah se hat jaayegi
-}, 3500); // 3.5 second tak welcome screen dikhegi
+}, 500); // Duration of opacity transition
+}, 3500); // Total welcome screen display time
 });
+
 
 // --- NAVIGATION LOGIC ---
 // Yeh function bhi bilkul sahi hai aur screen badalne ka kaam karta hai.
@@ -91,7 +95,7 @@ if (i < text.length) {
 if (text.charAt(i) === '<') {
 const closingTagIndex = text.indexOf('>', i);
 if (closingTagIndex !== -1) {
-element.innerHTML += text.substring(i, closingTagTagIndex + 1);
+element.innerHTML += text.substring(i, closingTagIndex + 1);
 i = closingTagIndex;
 }
 } else {
@@ -289,7 +293,7 @@ throw new Error(data.error || 'Server error occurred.');
 
 const fullText = data.answer;
 
-// ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़फेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
+// ✅✅✅ बदला हुआ हिस्सा: टाइपराइटर इफ़ेक्ट को यहाँ से भी हटा दिया गया है। ✅✅✅
 await renderEnhancedAIContent(responseDiv, fullText);
 
 } catch (error) {
