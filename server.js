@@ -4,14 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// ES Modules में __dirname को सेट करने के लिए
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// --- Render Secret File से API की लोड करें ---
 let apiKey;
 try {
     const secretFilePath = '/etc/secrets/dareplay_secrets.json';
@@ -28,12 +26,10 @@ try {
 
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-// --- मुख्य वेब पेज (index.html) को सर्व करें ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- API एंडपॉइंट: डेयर जनरेट करने के लिए ---
 app.get('/api/generate-dares', async (req, res) => {
     if (!genAI) {
         return res.status(500).json({ error: "AI Service is not configured on the server." });
@@ -47,7 +43,6 @@ app.get('/api/generate-dares', async (req, res) => {
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         ];
 
-        // *** अंतिम बदलाव: सबसे नए मॉडल का उपयोग ***
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest", safetySettings });
         
         const prompt = `Generate 5 creative dares for a social media app in Hinglish. The dares must be safe and must not encourage self-harm, violence, illegal activities, or bullying. Provide the output ONLY as a valid JSON array of 5 strings.
@@ -65,8 +60,7 @@ app.get('/api/generate-dares', async (req, res) => {
              throw new Error("AI response was blocked or empty due to safety filters.");
         }
 
-        let text = response.text();
-        text = text.replace(/```json/g, '').replace(/```g, '').trim();
+        let text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const dares = JSON.parse(text);
 
         if (!Array.isArray(dares) || dares.length !== 5) {
