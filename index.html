@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DarePlay - AI Powered Dares</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--primary-color:#FF4848;--secondary-color:#FF8A00;--background-color:#121212;--surface-color:#1E1E1E;--text-color:#FFFFFF;--text-secondary-color:#A9A9A9;--success-color:#4CAF50}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Poppins',sans-serif;background-color:var(--background-color);color:var(--text-color);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        .app-container{max-width:450px;margin:0 auto;background-color:var(--background-color);min-height:100vh;display:flex;flex-direction:column;position:relative;padding-bottom:70px}
+        .app-header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background-color:var(--surface-color);border-bottom:1px solid #333}
+        .app-header h1{font-size:1.5em;font-weight:700;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .header-icons span{font-size:1.5rem;margin-left:15px;cursor:pointer}
+        .content{flex-grow:1;overflow-y:auto;padding:20px}
+        .page{display:none;animation:fadeIn .5s}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.page.active{display:block}
+        .btn{display:block;width:100%;padding:15px;border-radius:8px;border:none;font-size:1.1em;font-weight:600;cursor:pointer;text-align:center;transition:transform .2s, background .3s}.btn:active{transform:scale(.98)}
+        .btn-primary{background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));color:var(--text-color)}
+        .btn:disabled{background:var(--text-secondary-color);cursor:not-allowed}
+        
+        /* Home Page - Dare Card */
+        .dare-post{background-color:var(--surface-color);border-radius:12px;margin-bottom:20px;overflow:hidden;border:1px solid #282828}
+        .dare-post-header{display:flex;align-items:center;padding:10px 15px}
+        .dare-post-header img{width:40px;height:40px;border-radius:50%;margin-right:10px;border:2px solid var(--secondary-color)}
+        .dare-post-header .user-info{font-weight:600}
+        .dare-post-header .user-info span{display:block;font-size:.8em;color:var(--text-secondary-color)}
+        
+        /* Custom Video Player */
+        .custom-video-player{position:relative;background-color:#000;width:100%;padding-top:56.25%;overflow:hidden}
+        .custom-video-player iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+        .video-nav{display:flex;justify-content:space-between;align-items:center;padding:10px;background-color:#1a1a1a}
+        .video-nav button{background:none;border:none;color:var(--text-color);font-size:2rem;cursor:pointer;padding:0 15px}
+        .dare-text-display{text-align:center;font-size:1.1em;font-weight:600;padding:15px;min-height:60px}
+        .dare-post-actions{display:flex;justify-content:space-around;padding:15px;border-top:1px solid #282828}
+        .action-button{display:flex;align-items:center;background:none;border:none;color:var(--text-secondary-color);font-size:1em;cursor:pointer}
+        .action-button span{margin-left:5px}
+
+        /* Create Page - Mystery Box */
+        #create-content{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 200px)}
+        .mystery-box{font-size:6rem;cursor:pointer;animation:shake .5s infinite alternate}
+        @keyframes shake{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+        #generated-dares{margin-top:20px;width:100%}
+        .dare-option{background-color:var(--surface-color);border:1px solid #333;border-radius:8px;padding:15px;margin-bottom:10px;cursor:pointer;transition:border-color .3s}
+        .dare-option.selected{border-color:var(--primary-color)}
+        .dare-option strong{color:var(--secondary-color)}
+        #youtube-link-section{width:100%;margin-top:20px}
+        #youtube-link-section input{width:100%;background-color:var(--surface-color);border:1px solid #333;border-radius:8px;padding:12px;color:var(--text-color);font-size:1em;margin-bottom:15px}
+
+        /* Loading Spinner */
+        .loader{border:4px solid var(--surface-color);border-top:4px solid var(--primary-color);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:20px auto}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+        /* Leaderboard & Profile (Simplified) */
+        .leaderboard-item, .profile-header{text-align:center;padding:15px;background-color:var(--surface-color);border-radius:8px;margin-bottom:10px}
+        
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:450px;margin:0 auto;background-color:var(--surface-color);display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #333}
+        .nav-item{display:flex;flex-direction:column;align-items:center;color:var(--text-secondary-color);cursor:pointer;border:none;background:none}.nav-item.active{color:var(--primary-color)}.nav-item .icon{font-size:1.6em}.nav-item .label{font-size:.7em}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>DarePlay</h1>
+            <div class="header-icons"><span>🔔</span><span>💬</span></div>
+        </header>
+
+        <main class="content">
+            <section id="home" class="page active">
+                <div id="dare-feed"><p style="text-align: center; color: var(--text-secondary-color);">Loading Dares...</p></div>
+            </section>
+
+            <section id="create" class="page">
+                <div id="create-content">
+                    <div id="mystery-box-container">
+                        <div class="mystery-box">🎁</div>
+                        <p style="color: var(--text-secondary-color); margin-top: 10px;">Click the button below to generate your dares!</p>
+                    </div>
+                    <div id="loader" class="loader" style="display: none;"></div>
+                    <div id="generated-dares" style="display: none;"></div>
+                    <div id="youtube-link-section" style="display: none;">
+                        <input type="text" id="youtube-link" placeholder="Paste your YouTube video link here">
+                        <button id="publish-dare-btn" class="btn btn-primary" onclick="publishDare()">🚀 Publish Dares</button>
+                    </div>
+                    <button id="generate-dares-btn" class="btn btn-primary" style="margin-top: 20px;" onclick="generateDares()">✨ Generate Dares</button>
+                </div>
+            </section>
+
+            <section id="leaderboard" class="page">
+                <h2>🏆 Leaderboard</h2>
+                <div id="leaderboard-list"><p>Leaderboard is coming soon!</p></div>
+            </section>
+
+            <section id="profile" class="page">
+                <div class="profile-header">
+                    <h2>Your_Username</h2>
+                    <p>Dares Completed: <span id="user-dares-completed">0</span></p>
+                </div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="showPage('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+            <button class="nav-item" onclick="showPage('create')"><span class="icon">➕</span><span class="label">Create</span></button>
+            <button class="nav-item" onclick="showPage('leaderboard')"><span class="icon">🏆</span><span class="label">Leaderboard</span></button>
+            <button class="nav-item" onclick="showPage('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyDuvWTMJL5edNG6cheez5pmwI2KlLCwtjw",
+          authDomain: "shubhzone-4a6b0.firebaseapp.com",
+          projectId: "shubhzone-4a6b0",
+          storageBucket: "shubhzone-4a6b0.appspot.com",
+          messagingSenderId: "439309269785",
+          appId: "1:439309269785:web:08a1256812648daafea388"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let generatedDaresList = [];
+        let selectedDareIndex = 0;
+
+        window.showPage = function(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
+        }
+
+        window.generateDares = async function() {
+            const generateBtn = document.getElementById('generate-dares-btn');
+            const loader = document.getElementById('loader');
+            
+            generateBtn.disabled = true;
+            generateBtn.innerText = "Generating...";
+            loader.style.display = 'block';
+            document.getElementById('mystery-box-container').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-dares'); 
+                if (!response.ok) throw new Error(`AI server error: ${response.statusText}`);
+                const data = await response.json();
+                generatedDaresList = data.dares;
+                displayGeneratedDares();
+            } catch (error) {
+                console.error("Failed to generate dares:", error);
+                alert("Sorry, dares generate nahi ho paye. Please try again.");
+                resetCreatePage();
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+        
+        function displayGeneratedDares() {
+            const container = document.getElementById('generated-dares');
+            container.innerHTML = '';
+            generatedDaresList.forEach((dare, index) => {
+                const dareType = index === 0 ? "Easy" : index === 1 ? "Helpful" : "Hard";
+                container.innerHTML += `<div class="dare-option" id="dare-option-${index}" onclick="selectDare(${index})"><strong>${dareType}:</strong> ${dare}</div>`;
+            });
+            container.style.display = 'block';
+            document.getElementById('youtube-link-section').style.display = 'block';
+            document.getElementById('generate-dares-btn').style.display = 'none';
+            selectDare(0);
+        }
+
+        window.selectDare = function(index) {
+            selectedDareIndex = index;
+            document.querySelectorAll('.dare-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`dare-option-${index}`).classList.add('selected');
+        }
+
+        function resetCreatePage() {
+            const generateBtn = document.getElementById('generate-dares-btn');
+            generateBtn.disabled = false;
+            generateBtn.innerText = "✨ Generate Dares";
+            generateBtn.style.display = 'block';
+            document.getElementById('mystery-box-container').style.display = 'block';
+            document.getElementById('generated-dares').style.display = 'none';
+            document.getElementById('youtube-link-section').style.display = 'none';
+            generatedDaresList = [];
+        }
+
+        window.publishDare = async function() {
+            const youtubeLink = document.getElementById('youtube-link').value.trim();
+            if (generatedDaresList.length !== 5 || !youtubeLink) return alert("Please generate dares and provide a YouTube link.");
+            
+            const videoId = extractYouTubeID(youtubeLink);
+            if (!videoId) return alert("Invalid YouTube link. Please provide a valid one.");
+
+            const publishBtn = document.getElementById('publish-dare-btn');
+            publishBtn.disabled = true;
+            publishBtn.innerText = "Publishing...";
+
+            try {
+                await addDoc(collection(db, "darePosts"), {
+                    author: "Shubhzone",
+                    location: "India",
+                    dares: generatedDaresList,
+                    videoId: videoId,
+                    completedDareIndex: selectedDareIndex,
+                    timestamp: serverTimestamp()
+                });
+                alert("Your dares are live!");
+                resetCreatePage();
+                showPage('home');
+            } catch (error) {
+                console.error("Error publishing dare:", error);
+                alert("Failed to publish. Please try again.");
+            } finally {
+                publishBtn.disabled = false;
+                publishBtn.innerText = "🚀 Publish Dares";
+            }
+        }
+
+        function loadDareFeed() {
+            const feed = document.getElementById('dare-feed');
+            const q = query(collection(db, "darePosts"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    feed.innerHTML = '<p>No dares yet. Be the first to create one!</p>';
+                    return;
+                }
+                feed.innerHTML = '';
+                snapshot.forEach(doc => feed.innerHTML += createDarePostHTML(doc.id, doc.data()));
+            });
+        }
+        
+        function createDarePostHTML(id, post) {
+            window[`post_dares_${id}`] = post.dares;
+            return `
+            <div class="dare-post" id="${id}">
+                <div class="dare-post-header">
+                    <img src="https://i.pravatar.cc/150?u=${post.author}" alt="User">
+                    <div class="user-info">${post.author}<span>${post.location}</span></div>
+                </div>
+                <div class="custom-video-player"><iframe id="video-frame-${id}" src="https://www.youtube.com/embed/${post.videoId}?autoplay=0&controls=0&rel=0&loop=1&playlist=${post.videoId}" frameborder="0" allowfullscreen></iframe></div>
+                <div class="dare-text-display" id="dare-text-${id}">${post.dares[post.completedDareIndex]}</div>
+                <div class="video-nav">
+                    <button onclick="navigateDare('${id}', -1)">◀</button>
+                    <span id="dare-nav-index-${id}">${post.completedDareIndex + 1} / 5</span>
+                    <button onclick="navigateDare('${id}', 1)">▶</button>
+                </div>
+                <div class="dare-post-actions">
+                    <button class="action-button">❤️<span>0</span></button>
+                    <button class="action-button">💬<span>0</span></button>
+                    <button class="action-button">🔗<span>Share</span></button>
+                </div>
+            </div>`;
+        }
+
+        window.navigateDare = function(postId, direction) {
+            const dareTextElem = document.getElementById(`dare-text-${postId}`);
+            const navIndexElem = document.getElementById(`dare-nav-index-${postId}`);
+            const postDares = window[`post_dares_${postId}`];
+            let currentIndex = parseInt(navIndexElem.innerText.split(' / ')[0]) - 1;
+            let newIndex = (currentIndex + direction + 5) % 5;
+            dareTextElem.innerText = postDares[newIndex];
+            navIndexElem.innerText = `${newIndex + 1} / 5`;
+        }
+
+        function extractYouTubeID(url) {
+            if (!url) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length == 11) ? match[2] : null;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDareFeed();
+            showPage('home');
+        });
+    </script>
+</body>
+</html>
