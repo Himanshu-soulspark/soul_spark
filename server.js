@@ -1,5 +1,5 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,7 +14,6 @@ const port = process.env.PORT || 3001;
 // --- Render Secret File से API की लोड करें ---
 let apiKey;
 try {
-    // Render इस पाथ पर सीक्रेट फ़ाइल उपलब्ध कराता है
     const secretFilePath = '/etc/secrets/dareplay_secrets.json';
     if (fs.existsSync(secretFilePath)) {
         const secretFile = fs.readFileSync(secretFilePath, 'utf8');
@@ -25,7 +24,6 @@ try {
     }
 } catch (err) {
     console.error("Could not read or parse secret file:", err);
-    process.exit(1); // अगर सीक्रेट फ़ाइल है लेकिन पढ़ नहीं पा रहे तो सर्वर बंद कर दें
 }
 
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
@@ -42,7 +40,18 @@ app.get('/api/generate-dares', async (req, res) => {
     }
     
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+        // *** यहाँ बदलाव किया गया है ***
+        // 1. सुरक्षा सेटिंग्स को परिभाषित करें
+        const safetySettings = [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+        ];
+
+        // 2. AI मॉडल को इन सेटिंग्स के साथ इनिशियलाइज़ करें
+        const model = genAI.getGenerativeModel({ model: "gemini-pro", safetySettings });
+        
         const prompt = `Generate 5 creative dares for a social media app in Hinglish. The dares must be safe and must not encourage self-harm, violence, illegal activities, or bullying. Provide the output ONLY as a valid JSON array of 5 strings.
         The structure must be:
         1. One very easy and simple dare.
@@ -53,9 +62,17 @@ app.get('/api/generate-dares', async (req, res) => {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+
+        // **त्रुटि को रोकने के लिए और बेहतर तरीका**
+        if (!response || !response.text) {
+             throw new Error("AI response was blocked or empty.");
+        }
+
+        let text = response.text();
         
-        // AI से मिले टेक्स्ट को सीधे JSON में बदलें
+        // 3. AI के जवाब से अतिरिक्त टेक्स्ट और मार्कडाउन हटाएँ
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
         const dares = JSON.parse(text);
 
         if (!Array.isArray(dares) || dares.length !== 5) {
@@ -65,8 +82,8 @@ app.get('/api/generate-dares', async (req, res) => {
         res.json({ dares });
 
     } catch (error) {
-        console.error("AI Generation Error:", error);
-        res.status(500).json({ error: "Failed to generate dares from AI." });
+        console.error("AI Generation Error:", error.message);
+        res.status(500).json({ error: `Failed to generate dares from AI. Details: ${error.message}` });
     }
 });
 
