@@ -1,7 +1,7 @@
 {
   "name": "dareplay-app",
-  "version": "1.0.0",
-  "description": "AI Powered Dare Game",
+  "version": "2.0.0",
+  "description": "AI Powered Dare Game with Payments",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.12.0",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "razorpay": "^2.9.4",
+    "crypto": "^1.0.1"
   }
 }
