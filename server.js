@@ -1,8 +1,12 @@
-const express = require('express');
-const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
-const fs = require('fs');
-const path = require('path');
-const Razorpay = require('razorpay');
+import express from 'express';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES Modules में __dirname को सेट करने के लिए
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -24,36 +28,10 @@ try {
 
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-// --- Razorpay Instance बनाएं ---
-// यह सुनिश्चित करें कि आपने Render के Environment में RAZORPAY_KEY_ID और RAZORPAY_KEY_SECRET सेट किया है
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
 // --- मुख्य वेब पेज (index.html) को सर्व करें ---
-// __dirname अब सीधे काम करेगा
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// --- API एंडपॉइंट: Razorpay ऑर्डर बनाने के लिए ---
-app.get('/api/create-order', async (req, res) => {
-    const options = {
-        amount: 10 * 100, // 10 रुपये
-        currency: "INR",
-        receipt: `receipt_order_${new Date().getTime()}`,
-    };
-
-    try {
-        const order = await razorpay.orders.create(options);
-        res.json(order);
-    } catch (error) {
-        console.error("Razorpay Order Creation Error:", error);
-        res.status(500).json({ error: "Could not create payment order." });
-    }
-});
-
 
 // --- API एंडपॉइंट: डेयर जनरेट करने के लिए ---
 app.get('/api/generate-dares', async (req, res) => {
@@ -71,6 +49,7 @@ app.get('/api/generate-dares', async (req, res) => {
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest", safetySettings });
         
+        // --- मास्टर प्रॉम्प्ट 3.0: जोखिम, डर और रोमांच के लिए ---
         const prompt = `Create a 5-step "Psychological Adventure" for a dare app in Hinglish. The dares must feel risky and thrilling but be absolutely SAFE. They must NOT involve suicide, self-harm, harm to others, illegal acts, bullying, or violating anyone's privacy. The goal is to create a memorable experience that pushes boundaries. Provide the output ONLY as a valid JSON array of 5 unique strings.
 
         Use the following thrilling and diverse categories:
