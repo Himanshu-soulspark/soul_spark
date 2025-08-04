@@ -1,0 +1,16 @@
+{
+  "name": "dareplay-app",
+  "version": "1.0.0",
+  "description": "AI Powered Dare Game",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.7.1",
+    "express": "^4.19.2"
+  }
+}

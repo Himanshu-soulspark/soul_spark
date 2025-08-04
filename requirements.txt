@@ -1,8 +1,0 @@
-Flask
-google-generativeai
-Pillow
-firebase-admin
-Flask-CORS
-razorpay
-setuptools
-gunicorn
