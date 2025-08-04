@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DarePlay 2.0 - The Challenge Series</title>
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -66,7 +68,7 @@
                         <div class="dare-submission-container"></div>
                         <button id="publish-proofs-btn" class="btn btn-primary" onclick="publishProofs()">🚀 Submit All Proofs</button>
                     </div>
-                    <button id="generate-dares-btn" class="btn btn-primary" style="margin-top: 20px;" onclick="generateDares()">✨ Generate My Challenge</button>
+                    <button id="generate-dares-btn" class="btn btn-primary" style="margin-top: 20px;" onclick="startChallengeGeneration()">✨ Generate My Challenge (₹10)</button>
                 </div>
             </section>
             <section id="leaderboard" class="page"><h2>🏆 Leaderboard</h2></section>
@@ -104,7 +106,65 @@
             document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
         };
 
-        window.generateDares = async () => {
+        // नया फंक्शन: पेमेंट फ्लो शुरू करने के लिए
+        window.startChallengeGeneration = async () => {
+            const btn = document.getElementById('generate-dares-btn');
+            const loader = document.getElementById('loader');
+            btn.disabled = true;
+            btn.innerText = "Initializing Payment...";
+            loader.style.display = 'block';
+
+            try {
+                // स्टेप 1: सर्वर से ऑर्डर बनाएं
+                const orderResponse = await fetch('/api/create-order');
+                if (!orderResponse.ok) throw new Error('Could not create payment order.');
+                const order = await orderResponse.json();
+
+                // स्टेप 2: Razorpay Checkout खोलें
+                const options = {
+                    key: "rzp_live_8GMIKSVTnCdWul", // आपकी लाइव Key ID
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: "DarePlay",
+                    description: "Challenge Generation Fee",
+                    order_id: order.id,
+                    handler: function (response) {
+                        // पेमेंट सफल होने पर डेयर जनरेट करें
+                        generateDares();
+                    },
+                    prefill: {
+                        name: "DarePlay User",
+                        email: "dareplay.user@example.com",
+                        contact: "9999999999"
+                    },
+                    notes: {
+                        address: "DarePlay App Transaction"
+                    },
+                    theme: {
+                        color: "#FF4848"
+                    },
+                    "modal": {
+                        "ondismiss": function(){
+                            // पेमेंट कैंसिल होने पर UI रीसेट करें
+                            alert("Payment cancelled. Try again to get your challenge!");
+                            resetCreatePage();
+                        }
+                    }
+                };
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
+
+            } catch (error) {
+                console.error("Payment initiation failed:", error);
+                alert("Payment initiation failed. Please try again.");
+                resetCreatePage();
+            } finally {
+                loader.style.display = 'none';
+            }
+        };
+
+
+        async function generateDares() {
             const btn = document.getElementById('generate-dares-btn');
             const loader = document.getElementById('loader');
             btn.disabled = true;
@@ -145,12 +205,9 @@
             const inputs = document.querySelectorAll('.youtube-link-input');
             const videoLinks = Array.from(inputs).map(input => input.value.trim());
 
-            // Anti-Cheating 1: Check for empty links
             if (videoLinks.some(link => link === '')) {
                 return alert("Please provide proof for all 5 steps.");
             }
-
-            // Anti-Cheating 2: Check for duplicate links
             if (new Set(videoLinks).size !== videoLinks.length) {
                 return alert("Please use a different video for each step. Cheating is not allowed!");
             }
@@ -183,11 +240,13 @@
         };
         
         function resetCreatePage() {
-            document.getElementById('generate-dares-btn').style.display = 'block';
-            document.getElementById('generate-dares-btn').disabled = false;
-            document.getElementById('generate-dares-btn').innerText = "✨ Generate My Challenge";
+            const btn = document.getElementById('generate-dares-btn');
+            btn.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = "✨ Generate My Challenge (₹10)";
             document.getElementById('mystery-box-container').style.display = 'block';
             document.getElementById('dare-submission-area').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
             generatedDaresList = [];
         }
 
@@ -201,7 +260,7 @@
         }
         
         function createDarePostHTML(id, post) {
-            window[`post_data_${id}`] = post; // Store all post data
+            window[`post_data_${id}`] = post;
             const firstVideoId = post.videoIds[0];
             const firstDareText = post.dares[0];
 
@@ -244,7 +303,11 @@
             return (match && match[2].length == 11) ? match[2] : null;
         }
 
-        document.addEventListener('DOMContentLoaded', () => loadDareFeed());
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDareFeed();
+            // Create page को रीसेट करें ताकि वह सही दिखे
+            resetCreatePage();
+        });
     </script>
 </body>
 </html>
