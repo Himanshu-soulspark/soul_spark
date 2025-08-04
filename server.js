@@ -4,14 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// ES Modules में __dirname को सेट करने के लिए
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// --- Render Secret File से API की लोड करें ---
 let apiKey;
 try {
     const secretFilePath = '/etc/secrets/dareplay_secrets.json';
@@ -28,12 +26,10 @@ try {
 
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-// --- मुख्य वेब पेज (index.html) को सर्व करें ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- API एंडपॉइंट: डेयर जनरेट करने के लिए ---
 app.get('/api/generate-dares', async (req, res) => {
     if (!genAI) {
         return res.status(500).json({ error: "AI Service is not configured on the server." });
@@ -41,25 +37,21 @@ app.get('/api/generate-dares', async (req, res) => {
     
     try {
         const safetySettings = [
-            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         ];
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest", safetySettings });
         
-        // --- मास्टर प्रॉम्प्ट 3.0: जोखिम, डर और रोमांच के लिए ---
-        const prompt = `Create a 5-step "Psychological Adventure" for a dare app in Hinglish. The dares must feel risky and thrilling but be absolutely SAFE. They must NOT involve suicide, self-harm, harm to others, illegal acts, bullying, or violating anyone's privacy. The goal is to create a memorable experience that pushes boundaries. Provide the output ONLY as a valid JSON array of 5 unique strings.
-
-        Use the following thrilling and diverse categories:
-        1.  **Social Fear Challenge:** A public act that is harmless but requires courage. (Example: "Kisi busy mall ke food court mein, table par khade hokar 30 second tak apna favourite gaana gao.")
-        2.  **Emotional Risk Challenge:** A dare involving a close friend or partner that is playful and strengthens the bond. (Example: "Apni girlfriend/boyfriend ko ek handwritten love letter likho aur use unke saamne padh kar sunao, aur unka reaction record karo.")
-        3.  **Night Exploration Challenge:** A dare to explore a place at night, with extreme emphasis on safety. (Example: "Raat mein apne sheher ke sabse famous aur SAFE jagah par jao jaha log aate jaate ho, aur waha 10 minute tak bas shaanti se baith kar aas paas ki awazo ko suno. Anubhav share karo.")
-        4.  **Fear Confrontation Challenge:** A dare to directly confront a common personal fear. (Example: "Agar tumhe ऊंचाई se dar lagta hai, toh kisi building ke sabse upar wali safe balcony/terrace par jao aur 5 minute tak neeche dekho. Apne dar par kaabu paane ki koshish karo.")
-        5.  **Master Social Challenge:** A large-scale, positive social interaction that seems very hard. (Example: "Ek din ke liye 'Digital Detox' karo (no social media, no messaging apps) aur us din kam se kam 5 anjaan logo se (jaise shopkeepers, strangers in a park) 2 minute se jyada baat karo unki life ke baare mein.")
-
-        Do not include any other text or markdown like \`\`\`json. Just the raw JSON array. Make the dares unique and creative every time.`;
+        const prompt = `Generate 5 creative dares for a social media app in Hinglish. The dares must be safe and must not encourage self-harm, violence, illegal activities, or bullying. Provide the output ONLY as a valid JSON array of 5 strings.
+        The structure must be:
+        1. One very easy and simple dare.
+        2. One dare about helping someone (a person, animal, or community).
+        3. Three very hard, challenging, but safe dares.
+        Do not include any other text or markdown like \`\`\`json. Just the raw JSON array.
+        Example: ["Pani puri eating challenge karo", "Ek street dog ko khana khilao", "Crowded market mein flash mob organize karo", "Apne 10 dosto ke sath ek social cause ke liye tree plantation drive karo", "Ek din ke liye bina smartphone ke raho"]`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -68,21 +60,21 @@ app.get('/api/generate-dares', async (req, res) => {
              throw new Error("AI response was blocked or empty due to safety filters.");
         }
 
-        let text = response.text().replace(/```json/g, '').replace(/```g, '').trim();
+        let text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         const dares = JSON.parse(text);
 
         if (!Array.isArray(dares) || dares.length !== 5) {
-            throw new Error("AI did not return dares in the correct JSON format.");
+            throw new Error("AI did not return 5 dares in the correct JSON format.");
         }
 
         res.json({ dares });
 
     } catch (error) {
         console.error("AI Generation Error:", error.message);
-        res.status(500).json({ error: `AI Error: ${error.message}` });
+        res.status(500).json({ error: `Failed to generate dares from AI. Details: ${error.message}` });
     }
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
