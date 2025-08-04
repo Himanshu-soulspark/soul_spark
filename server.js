@@ -47,9 +47,8 @@ app.get('/api/generate-dares', async (req, res) => {
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         ];
 
-        // *** यहाँ बदलाव किया गया है ***
-        // AI मॉडल का नाम 'gemini-pro' से बदलकर 'gemini-1.0-pro' कर दिया गया है
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro", safetySettings });
+        // *** अंतिम बदलाव: सबसे नए मॉडल का उपयोग ***
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest", safetySettings });
         
         const prompt = `Generate 5 creative dares for a social media app in Hinglish. The dares must be safe and must not encourage self-harm, violence, illegal activities, or bullying. Provide the output ONLY as a valid JSON array of 5 strings.
         The structure must be:
@@ -67,7 +66,7 @@ app.get('/api/generate-dares', async (req, res) => {
         }
 
         let text = response.text();
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        text = text.replace(/```json/g, '').replace(/```g, '').trim();
         const dares = JSON.parse(text);
 
         if (!Array.isArray(dares) || dares.length !== 5) {
