@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "AI Powered Dare Game",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
