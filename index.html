@@ -20,15 +20,11 @@
         .btn{display:block;width:100%;padding:15px;border-radius:8px;border:none;font-size:1.1em;font-weight:600;cursor:pointer;text-align:center;transition:transform .2s, background .3s}.btn:active{transform:scale(.98)}
         .btn-primary{background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));color:var(--text-color)}
         .btn:disabled{background:var(--text-secondary-color);cursor:not-allowed}
-        
-        /* Home Page - Dare Card */
         .dare-post{background-color:var(--surface-color);border-radius:12px;margin-bottom:20px;overflow:hidden;border:1px solid #282828}
         .dare-post-header{display:flex;align-items:center;padding:10px 15px}
         .dare-post-header img{width:40px;height:40px;border-radius:50%;margin-right:10px;border:2px solid var(--secondary-color)}
         .dare-post-header .user-info{font-weight:600}
         .dare-post-header .user-info span{display:block;font-size:.8em;color:var(--text-secondary-color)}
-        
-        /* Custom Video Player */
         .custom-video-player{position:relative;background-color:#000;width:100%;padding-top:56.25%;overflow:hidden}
         .custom-video-player iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
         .video-nav{display:flex;justify-content:space-between;align-items:center;padding:10px;background-color:#1a1a1a}
@@ -37,8 +33,6 @@
         .dare-post-actions{display:flex;justify-content:space-around;padding:15px;border-top:1px solid #282828}
         .action-button{display:flex;align-items:center;background:none;border:none;color:var(--text-secondary-color);font-size:1em;cursor:pointer}
         .action-button span{margin-left:5px}
-
-        /* Create Page - Mystery Box */
         #create-content{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 200px)}
         .mystery-box{font-size:6rem;cursor:pointer;animation:shake .5s infinite alternate}
         @keyframes shake{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
@@ -48,14 +42,9 @@
         .dare-option strong{color:var(--secondary-color)}
         #youtube-link-section{width:100%;margin-top:20px}
         #youtube-link-section input{width:100%;background-color:var(--surface-color);border:1px solid #333;border-radius:8px;padding:12px;color:var(--text-color);font-size:1em;margin-bottom:15px}
-
-        /* Loading Spinner */
         .loader{border:4px solid var(--surface-color);border-top:4px solid var(--primary-color);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:20px auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-
-        /* Leaderboard & Profile (Simplified) */
         .leaderboard-item, .profile-header{text-align:center;padding:15px;background-color:var(--surface-color);border-radius:8px;margin-bottom:10px}
-        
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:450px;margin:0 auto;background-color:var(--surface-color);display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #333}
         .nav-item{display:flex;flex-direction:column;align-items:center;color:var(--text-secondary-color);cursor:pointer;border:none;background:none}.nav-item.active{color:var(--primary-color)}.nav-item .icon{font-size:1.6em}.nav-item .label{font-size:.7em}
     </style>
