@@ -40,8 +40,6 @@ app.get('/api/generate-dares', async (req, res) => {
     }
     
     try {
-        // *** यहाँ बदलाव किया गया है ***
-        // 1. सुरक्षा सेटिंग्स को परिभाषित करें
         const safetySettings = [
             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
             { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -49,8 +47,9 @@ app.get('/api/generate-dares', async (req, res) => {
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         ];
 
-        // 2. AI मॉडल को इन सेटिंग्स के साथ इनिशियलाइज़ करें
-        const model = genAI.getGenerativeModel({ model: "gemini-pro", safetySettings });
+        // *** यहाँ बदलाव किया गया है ***
+        // AI मॉडल का नाम 'gemini-pro' से बदलकर 'gemini-1.0-pro' कर दिया गया है
+        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro", safetySettings });
         
         const prompt = `Generate 5 creative dares for a social media app in Hinglish. The dares must be safe and must not encourage self-harm, violence, illegal activities, or bullying. Provide the output ONLY as a valid JSON array of 5 strings.
         The structure must be:
@@ -63,16 +62,12 @@ app.get('/api/generate-dares', async (req, res) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
 
-        // **त्रुटि को रोकने के लिए और बेहतर तरीका**
         if (!response || !response.text) {
-             throw new Error("AI response was blocked or empty.");
+             throw new Error("AI response was blocked or empty due to safety filters.");
         }
 
         let text = response.text();
-        
-        // 3. AI के जवाब से अतिरिक्त टेक्स्ट और मार्कडाउन हटाएँ
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        
         const dares = JSON.parse(text);
 
         if (!Array.isArray(dares) || dares.length !== 5) {
