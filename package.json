@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js"
   },
-  "author": "",
+  "author": "Your Name",
   "license": "ISC",
   "engines": {
     "node": ">=18.0.0"
