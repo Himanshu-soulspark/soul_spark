@@ -1,1 +1,19 @@
 
+{
+  "name": "soul-spark",
+  "version": "1.0.0",
+  "description": "A community designed for genuine connections.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2" 
+    // आपको यहाँ उन सभी पैकेज को जोड़ना होगा जिनकी आपके प्रोजेक्ट को आवश्यकता है।
+    // उदाहरण के लिए, यदि आप एक्सप्रेस का उपयोग कर रहे हैं, तो इसे जोड़ें।
+    // यदि आप कोई और पैकेज उपयोग कर रहे हैं, जैसे mongoose, cors, आदि, उन्हें भी यहाँ जोड़ें।
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
