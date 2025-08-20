@@ -1124,7 +1124,7 @@
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
     // Your web app's Firebase configuration
-    // This config is from your first file
+    // This config is for your 'shubhmed-9f05d' project
     const firebaseConfig = {
       apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
       authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -1424,7 +1424,7 @@
 
     
     // =================================================================================
-    // ===== START: NEW PROFILE, WALLET, AND AUTH LOGIC =====
+    // ===== START: PROFILE, WALLET, AND AUTH LOGIC =====
     // =================================================================================
 
     // --- Auth State Change Listener ---
@@ -1531,8 +1531,10 @@
         const amount = 100; // Amount in paise (e.g., 100 paise = ₹1)
 
         try {
-            // Call your Render backend to create an order
-            const response = await fetch('https://shubhmed.onrender.com/create-payment', {
+            // =========================================================================
+            // ===== START: बदला हुआ सर्वर लिंक (पेमेंट बनाने के लिए) =====
+            // =========================================================================
+            const response = await fetch('https://shubhmed-vt0d.onrender.com/create-payment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1542,24 +1544,28 @@
                     token: idToken
                 })
             });
+            // =========================================================================
+            // ===== END: बदला हुआ सर्वर लिंक =====
+            // =========================================================================
 
             const order = await response.json();
             if (!response.ok) {
                 throw new Error(order.error || 'Failed to create payment order.');
             }
 
-            // Razorpay options
             const options = {
-                key: order.key_id, // Your Razorpay Key ID from server
+                key: order.key_id, 
                 amount: order.amount,
                 currency: "INR",
                 name: "Shubhmed",
                 description: "Add Coins to Wallet",
                 order_id: order.id,
                 handler: async function (response) {
-                    // This function is called after payment is successful
-                    // Now, verify the payment on your backend
-                    const verificationResponse = await fetch('https://shubhmed.onrender.com/verify-payment', {
+                    
+                    // =========================================================================
+                    // ===== START: बदला हुआ सर्वर लिंक (पेमेंट वेरिफाई करने के लिए) =====
+                    // =========================================================================
+                    const verificationResponse = await fetch('https://shubhmed-vt0d.onrender.com/verify-payment', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({
@@ -1569,14 +1575,16 @@
                              token: idToken
                          })
                     });
+                    // =========================================================================
+                    // ===== END: बदला हुआ सर्वर लिंक =====
+                    // =========================================================================
                     
                     const result = await verificationResponse.json();
                     
                     if(result.status === 'success') {
                         alert('Payment successful! Coins have been added to your wallet.');
-                        // Manually update the coin balance on the screen
                         const currentBalance = parseInt(document.getElementById('wallet-coin-balance-display').textContent);
-                        updateCoinDisplays(currentBalance + 5); // Assuming 1 Rupee adds 5 coins
+                        updateCoinDisplays(currentBalance + 5); 
                     } else {
                         alert('Payment verification failed. Please contact support.');
                     }
@@ -1604,7 +1612,6 @@
         signOut(auth).then(() => {
             localStorage.removeItem('profileImage');
             alert('Logged out successfully!');
-            // Reload the page to trigger anonymous sign-in again
             window.location.reload();
         }).catch((error) => {
             console.error("Logout failed:", error);
@@ -1612,11 +1619,11 @@
     }
 
     // =================================================================================
-    // ===== END: NEW PROFILE, WALLET, AND AUTH LOGIC =====
+    // ===== END: PROFILE, WALLET, AND AUTH LOGIC =====
     // =================================================================================
 
 
-    // --- Global Functions (Keep existing ones as requested) ---
+    // --- Global Functions ---
     window.showFuturePlan = function() {
         alert('Future plan');
     }
@@ -1627,11 +1634,10 @@
         initializeWelcomeSequence();
         loadProfileImage();
 
-        // Attach event listeners for tracker buttons
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
-                if(button.classList.contains('water-tracker-link')) return; // Let the link work normally
-                event.preventDefault(); // Prevent default action for buttons
+                if(button.classList.contains('water-tracker-link')) return; 
+                event.preventDefault(); 
 
                 const targetPage = button.getAttribute('data-target-page');
                 if (targetPage === 'disease-prediction') {
@@ -1644,13 +1650,11 @@
             });
         });
         
-        // Attach listeners for new profile and wallet buttons
         document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
         document.getElementById('wallet-btn').addEventListener('click', openWallet);
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('add-coins-btn').addEventListener('click', initiateAddCoins);
 
-        // Make sure the back button functions are globally accessible
         window.goBackToTracker = goBackToTracker;
         window.showSideMenu = showSideMenu;
         window.hideSideMenu = hideSideMenu;
