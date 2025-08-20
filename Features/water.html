@@ -65,7 +65,7 @@
         model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
 
         /* --- Forms --- */
-        .form-container { display: flex; flex-direction: column; gap: 20px; padding: 20px 0; }
+        .form-container { display: flex; flex-direction: column; gap: 15px; padding: 20px 0; }
         .form-container h2 { text-align: center; color: var(--secondary-color); margin-bottom: 20px; font-weight: 600; font-size: 1.8em; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { margin-bottom: 8px; font-size: 1em; color: var(--secondary-color); font-weight: 500; }
@@ -74,9 +74,40 @@
             background-color: var(--bg-color); color: var(--text-color); font-size: 1em;
         }
         .ai-answer-box {
-            margin-top: 20px; padding: 15px; border-radius: 10px; background-color: var(--bg-color);
+            margin-top: 10px; padding: 15px; border-radius: 10px; background-color: var(--bg-color);
             border: 1px solid var(--border-color); min-height: 100px; white-space: pre-wrap;
             color: var(--text-light);
+            line-height: 1.6;
+        }
+        
+        /* New AI Result Action Box Style */
+        .ai-result-actions {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .ai-result-actions h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+        .result-details {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .result-box {
+            color: #333;
+        }
+        .result-box span {
+            display: block;
+            font-weight: 700;
+            font-size: 1.5em;
+            color: var(--secondary-color);
         }
         
         /* --- Page 5: Home --- */
@@ -159,17 +190,57 @@
     </div>
 
     <div id="page-ai-setup" class="page">
-        <header class="header"><button class="back-button" onclick="navigateTo('page-setup-choice')">&#8592;</button><span>AI Setup</span><div style="width:30px"></div></header>
+        <header class="header"><button class="back-button" onclick="navigateTo('page-setup-choice')">&#8592;</button><span>AI Setup (Cost: 2 Coins)</span><div style="width:30px"></div></header>
         <div class="form-container">
+            
+            <form id="ai-details-form">
+                <div class="form-group"><label for="ai-name">Name</label><input type="text" id="ai-name" placeholder="e.g., Himanshu"></div>
+                <div class="form-group"><label for="ai-weight">Weight (kg)</label><input type="number" id="ai-weight" placeholder="e.g., 70"></div>
+                <div class="form-group"><label for="ai-height">Height (cm)</label><input type="number" id="ai-height" placeholder="e.g., 175"></div>
+                <div class="form-group"><label for="ai-age">Age</label><input type="number" id="ai-age" placeholder="e.g., 25"></div>
+                <div class="form-group">
+                    <label for="ai-gender">Gender</label>
+                    <select id="ai-gender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ai-work">Daily Activity / Work</label>
+                    <select id="ai-work">
+                        <option value="Low">Low (Office work, little exercise)</option>
+                        <option value="Medium">Medium (Walking, light physical work)</option>
+                        <option value="High">High (Sports, heavy physical labor)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ai-weather">Current Weather</label>
+                    <select id="ai-weather">
+                        <option value="Summer">Summer / Hot</option>
+                        <option value="Cold">Winter / Cold</option>
+                        <option value="Rainy">Rainy / Humid</option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="ai-temp">Temperature (°C) (Optional)</label><input type="number" id="ai-temp" placeholder="e.g., 35"></div>
+            </form>
+
+            <button id="ai-submit-btn" class="main-button">Get AI Recommendation</button>
+
             <div class="form-group">
-                <label for="ai-question">Ask a question to AI (Cost: 2 Coins)</label>
-                <textarea id="ai-question" rows="4" placeholder="Type your question here..."></textarea>
-            </div>
-            <button id="ai-submit-btn" class="main-button">Submit</button>
-            <div class="form-group">
-                <label for="ai-answer">Answer</label>
+                <label for="ai-answer">AI Recommendation</label>
                 <div id="ai-answer" class="ai-answer-box">The AI's response will appear here...</div>
             </div>
+            
+            <div id="ai-result-actions" class="ai-result-actions">
+                <h3>Your Personalized Plan</h3>
+                <div class="result-details">
+                    <div class="result-box">Bottles (500ml)<span id="ai-bottle-count">0</span></div>
+                    <div class="result-box">Interval<span id="ai-time-interval">0h</span></div>
+                </div>
+                <button id="set-ai-timer-btn" class="main-button">Set Timer & Start</button>
+            </div>
+
         </div>
     </div>
 
@@ -239,7 +310,7 @@
         <div class="nav-item" data-page="page-analytics"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-5h2v5zm4 0h-2v-3h2v3zm4 0h-2v-7h2v7z"/></svg><span>Analytics</span></div>
     </nav>
     
-    <audio id="alarm-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABodHRwOi8vd3d3Lm1lb25nLmNvbS9hcGkvbXVzaWMvbGlzdGVuLzE3MTc0ODQAAAAAAAAAAAAAAD/80DEAAAAA0gAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVahEAAAApAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzAAAAPHAECAIAAAB4AAAF0gAAAAA//80DEQAAAAAAAAAANIAAAAYVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-axb"></audio>
+    <audio id="alarm-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABodHRwOi8vd3d3Lm1lb25nLmNvbS9hcGkvbXVzaWMvbGlzdGVuLzE3MTc0ODQAAAAAAAAAAAAAAD/80DEAAAAA0gAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVahEAAAApAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzAAAAPHAECAIAAAB4AAAF0gAAAAA//80DEQAAAAAAAAAANIAAAAYVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-axb"></audio>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 
     <!-- Firebase SDKs -->
@@ -247,11 +318,9 @@
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        
         // Your web app's Firebase configuration
-        // ### यह कॉन्फ़िगरेशन shubhmed-9f05d प्रोजेक्ट का है ###
         const firebaseConfig = {
             apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
             authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -267,20 +336,21 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const analytics = getAnalytics(app);
-
 
         // --- Global State ---
-        let totalWater = 0, consumedWater = 0, glassSize = 250;
+        let totalWater = 0, consumedWater = 0, glassSize = 500; // Default glass size
         let alarmInterval, countdownSeconds = 0, isSetupComplete = false;
+        
+        // --- AI Result State ---
+        let aiCalculatedTotalMl = 0;
+        let aiCalculatedIntervalHours = 0;
         
         // --- DOM Elements ---
         const pages = document.querySelectorAll('.page');
         const navItems = document.querySelectorAll('.nav-item');
         const alarmSound = document.getElementById('alarm-sound');
         const navBar = document.querySelector('.nav-bar');
-        const homeBtnFromSetup = document.getElementById('go-home-from-setup-btn');
-
+        
         const shopItems = [
             { img: 'bottel1.webp', price: '₹299', link: 'https://amzn.to/45Mdtm9' },
             { img: 'Screenshot.jpg', price: 'As Your wish', link: 'https://amzn.to/3HxCI3q' },
@@ -308,25 +378,28 @@
             window.scrollTo(0, 0);
 
             if (pageId === 'page-analytics') loadHistory();
-            if (pageId === 'page-setup-choice') {
-                homeBtnFromSetup.classList.toggle('inactive', !isSetupComplete);
-            }
         }
         
         // --- YouTube Player ---
         var player;
         window.onYouTubeIframeAPIReady = function() {
-            player = new YT.Player('video-player', {
-                videoId: 'bIrCZ0HUDTU',
-                playerVars: { 'autoplay': 1, 'controls': 0, 'showinfo': 0, 'rel': 0, 'loop': 1, 'playlist': 'bIrCZ0HUDTU', 'mute': 0, 'modestbranding': 1, 'hl': 'hi' },
-                events: { 'onReady': e => e.target.playVideo() }
-            });
+            if (document.getElementById('video-player')) {
+                player = new YT.Player('video-player', {
+                    videoId: 'bIrCZ0HUDTU',
+                    playerVars: { 'autoplay': 1, 'controls': 0, 'showinfo': 0, 'rel': 0, 'loop': 1, 'playlist': 'bIrCZ0HUDTU', 'mute': 0, 'modestbranding': 1, 'hl': 'hi' },
+                    events: { 'onReady': e => e.target.playVideo() }
+                });
+            }
         }
         
         // --- Main App Logic ---
         function setupHomePage(total, glass, durationHours) {
             totalWater = total; glassSize = glass; consumedWater = 0; isSetupComplete = true;
-            document.getElementById('go-home-inactive-btn').classList.remove('inactive');
+            const goHomeBtn = document.getElementById('go-home-inactive-btn');
+            if(goHomeBtn) goHomeBtn.classList.remove('inactive');
+            const goHomeBtnFromSetup = document.getElementById('go-home-from-setup-btn');
+            if(goHomeBtnFromSetup) goHomeBtnFromSetup.classList.remove('inactive');
+            
             updateDisplay();
             saveTodayState();
             if (durationHours > 0) startAlarm(durationHours * 3600);
@@ -375,6 +448,7 @@
         // --- Analytics & History ---
         function updateAnalyticsChart(percentage) {
             const progressCircle = document.getElementById('analytics-progress');
+            if (!progressCircle) return;
             const circumference = 502.65;
             const offset = circumference - (percentage / 100) * circumference;
             progressCircle.style.strokeDashoffset = offset;
@@ -398,6 +472,7 @@
         function loadHistory() {
             const history = getHistory();
             const listEl = document.getElementById('history-list');
+            if(!listEl) return;
             listEl.innerHTML = '';
             if (history.length === 0) {
                 listEl.innerHTML = '<li>No history yet.</li>'; return;
@@ -412,7 +487,7 @@
         
         function populateShop() {
             const container = document.querySelector('.shop-container');
-            if (!container) return; // Add a check in case this page doesn't have the shop
+            if (!container) return;
             container.innerHTML = '';
             shopItems.forEach(item => {
                 const card = document.createElement('div');
@@ -425,13 +500,22 @@
         
         // --- AI FUNCTION ---
         async function handleAiSubmit() {
-            const questionInput = document.getElementById('ai-question');
             const answerBox = document.getElementById('ai-answer');
             const submitBtn = document.getElementById('ai-submit-btn');
-            const question = questionInput.value;
+            const resultActionsBox = document.getElementById('ai-result-actions');
+            
+            // 1. Gather data from the new form
+            const name = document.getElementById('ai-name').value;
+            const weight = document.getElementById('ai-weight').value;
+            const height = document.getElementById('ai-height').value;
+            const age = document.getElementById('ai-age').value;
+            const gender = document.getElementById('ai-gender').value;
+            const work = document.getElementById('ai-work').value;
+            const weather = document.getElementById('ai-weather').value;
+            const temp = document.getElementById('ai-temp').value;
 
-            if (!question.trim()) {
-                alert("Please enter a question.");
+            if (!name || !weight || !height || !age) {
+                alert("Please fill in all required fields (Name, Weight, Height, Age).");
                 return;
             }
 
@@ -442,28 +526,36 @@
             }
             
             submitBtn.disabled = true;
-            answerBox.textContent = "Asking the AI, please wait...";
+            answerBox.textContent = "AI is calculating your personalized plan, please wait...";
+            resultActionsBox.style.display = 'none';
+
+            // 2. Construct a detailed prompt for the AI
+            let prompt = `You are a health assistant. Based on the following user data, calculate their daily water intake requirement.
+            - Name: ${name}
+            - Weight: ${weight} kg
+            - Height: ${height} cm
+            - Age: ${age}
+            - Gender: ${gender}
+            - Daily Activity Level: ${work}
+            - Current Weather: ${weather}
+            - Temperature: ${temp ? temp + '°C' : 'Not provided'}
+
+            Provide a concise, friendly recommendation for the user. Then, provide the final calculation in a specific format on a new line: "DATA:total_ml|bottle_count|interval_hours".
+            
+            Example:
+            Hello ${name}, based on your details, you should drink about 3 liters of water today. Stay hydrated!
+            DATA:3000|6|2.5
+            
+            The bottle count should be based on a 500ml bottle. The interval should be in hours. Be realistic.`;
 
             try {
                 const idToken = await user.getIdToken();
-
-                // =========================================================================
-                // ===== START: बदला हुआ सर्वर लिंक =====
-                // =========================================================================
-                const response = await fetch('https://shubhmed-vt0d.onrender.com/ask-ai', {
+                
+                const response = await fetch('/ask-ai', { // Use relative path
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        question: question,
-                        token: idToken 
-                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: prompt, token: idToken }),
                 });
-                // =========================================================================
-                // ===== END: बदला हुआ सर्वर लिंक =====
-                // =========================================================================
-
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -471,8 +563,28 @@
                 }
 
                 const result = await response.json();
-                
-                answerBox.textContent = result.answer;
+                const aiFullText = result.answer;
+                answerBox.textContent = aiFullText; // Display the full friendly text
+
+                // 3. Parse the specific data from the AI response
+                const dataLine = aiFullText.split('\n').find(line => line.startsWith('DATA:'));
+                if (dataLine) {
+                    const dataParts = dataLine.replace('DATA:', '').trim().split('|');
+                    if (dataParts.length === 3) {
+                        aiCalculatedTotalMl = parseInt(dataParts[0], 10);
+                        const bottleCount = dataParts[1];
+                        aiCalculatedIntervalHours = parseFloat(dataParts[2]);
+
+                        // 4. Display the actionable results
+                        document.getElementById('ai-bottle-count').textContent = bottleCount;
+                        document.getElementById('ai-time-interval').textContent = `${aiCalculatedIntervalHours}h`;
+                        resultActionsBox.style.display = 'block';
+                    } else {
+                        answerBox.textContent += "\n\n[Couldn't parse the automated data. Please set manually.]";
+                    }
+                } else {
+                    answerBox.textContent += "\n\n[Couldn't find automated data in AI response. Please set manually.]";
+                }
 
             } catch (error) {
                 console.error("Error asking AI:", error);
@@ -482,7 +594,6 @@
             }
         }
 
-
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
@@ -490,7 +601,7 @@
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    console.log("User is signed in anonymously:", user.uid);
+                    console.log("User is signed in:", user.uid);
                 } else {
                     signInAnonymously(auth).catch((error) => {
                         console.error("Anonymous sign-in failed:", error);
@@ -498,36 +609,53 @@
                 }
             });
             
-            document.getElementById('get-started-btn').addEventListener('click', () => navigateTo('page-setup-choice'));
+            // General page navigation buttons
+            const getStartedBtn = document.getElementById('get-started-btn');
+            if(getStartedBtn) getStartedBtn.addEventListener('click', () => navigateTo('page-setup-choice'));
+            
             navItems.forEach(item => item.addEventListener('click', () => navigateTo(item.dataset.page)));
 
-            document.getElementById('self-set-btn').addEventListener('click', () => {
+            const selfSetBtn = document.getElementById('self-set-btn');
+            if(selfSetBtn) selfSetBtn.addEventListener('click', () => {
                 const bottleMl = parseInt(document.getElementById('self-bottle-ml').value) || 0;
                 const bottleCount = parseInt(document.getElementById('self-bottle-count').value) || 0;
                 const duration = parseFloat(document.getElementById('self-duration').value) || 0;
                 if (bottleMl <= 0 || bottleCount <= 0) return alert("Please enter valid numbers.");
                 setupHomePage(bottleMl * bottleCount, bottleMl, duration);
             });
-
-            document.getElementById('go-home-inactive-btn').addEventListener('click', () => { if (isSetupComplete) navigateTo('page-home'); });
-            homeBtnFromSetup.addEventListener('click', () => { if (isSetupComplete) navigateTo('page-home'); });
-
-            document.getElementById('add-water-btn').addEventListener('click', () => {
+            
+            // Home page buttons
+            const addWaterBtn = document.getElementById('add-water-btn');
+            if(addWaterBtn) addWaterBtn.addEventListener('click', () => {
                 if (consumedWater < totalWater) {
                     consumedWater = Math.min(totalWater, consumedWater + glassSize);
                     updateDisplay();
                     saveTodayState();
                 }
             });
-
-            document.getElementById('clear-history-btn').addEventListener('click', () => {
+            
+            // Analytics page button
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+            if(clearHistoryBtn) clearHistoryBtn.addEventListener('click', () => {
                 if (confirm('Are you sure you want to clear all history?')) {
                     localStorage.removeItem('waterTrackerHistory');
                     loadHistory();
                 }
             });
             
-            document.getElementById('ai-submit-btn').addEventListener('click', handleAiSubmit);
+            // AI Page buttons
+            const aiSubmitBtn = document.getElementById('ai-submit-btn');
+            if(aiSubmitBtn) aiSubmitBtn.addEventListener('click', handleAiSubmit);
+
+            const setAiTimerBtn = document.getElementById('set-ai-timer-btn');
+            if(setAiTimerBtn) setAiTimerBtn.addEventListener('click', () => {
+                if (aiCalculatedTotalMl > 0 && aiCalculatedIntervalHours > 0) {
+                    // Use a standard 500ml bottle size for the AI setup
+                    setupHomePage(aiCalculatedTotalMl, 500, aiCalculatedIntervalHours);
+                } else {
+                    alert("No valid AI plan to set. Please get a recommendation first.");
+                }
+            });
         });
     </script>
 </body>
