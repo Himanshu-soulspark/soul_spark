@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,6 +16,8 @@
         }
     }
 </script>
+<!-- Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
     /* Basic body styling */
@@ -273,6 +274,11 @@
     }
     #profile-page #header > div:first-child { /* Targets the "Welcome & Home" div */
         margin: 0 auto; /* Centers the title */
+    }
+    /* Specific styling for the wallet page header elements */
+    #wallet-page #header .menu-icon,
+    #wallet-page #header .search-container {
+        display: none;
     }
 
     .main-content { padding: 15px; overflow-y: auto; flex-grow: 1; padding-bottom: 85px; /* Space for bottom nav */ }
@@ -585,6 +591,127 @@
     .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
     .profile-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #004d66, 0 8px 15px rgba(0,0,0,0.3); }
 
+    /* Edit Profile Form */
+    #edit-profile-page {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        min-height: 100vh;
+        box-sizing: border-box;
+        align-items: center;
+        padding: 20px;
+    }
+    .profile-form-group {
+        width: 100%;
+        max-width: 400px;
+        margin-bottom: 15px;
+    }
+    .profile-form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+    .profile-form-group input {
+        width: calc(100% - 20px);
+        padding: 12px 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        box-sizing: border-box;
+    }
+    .profile-form-group input:focus {
+        border-color: #008CBA;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 140, 186, 0.3);
+    }
+    .save-profile-btn {
+        width: 90%;
+        max-width: 400px;
+        padding: 18px 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #fff;
+        background: linear-gradient(145deg, #4CAF50, #2E7D32);
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.3);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        transition: all 0.2s ease-in-out;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .save-profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35); }
+    .save-profile-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3); }
+
+
+    /* Wallet Page Styles */
+    #wallet-page {
+        align-items: center;
+        padding-top: 20px;
+    }
+    .wallet-card {
+        width: 90%;
+        max-width: 300px;
+        aspect-ratio: 1 / 1;
+        background: linear-gradient(145deg, #ffdd00, #ffc400); /* Gold gradient */
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.7);
+        border: 2px solid rgba(255,215,0,0.8);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    .wallet-card::before {
+        content: '';
+        position: absolute;
+        width: 120%;
+        height: 120%;
+        background: radial-gradient(circle at top left, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        top: -10%;
+        left: -10%;
+        transform: rotate(45deg);
+    }
+    .wallet-card svg {
+        width: 80px;
+        height: 80px;
+        fill: #444; /* Darker color for icon on gold */
+        margin-bottom: 15px;
+        filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.3));
+    }
+    .wallet-card .coin-value {
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 800;
+        font-size: 4em;
+        color: #333;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    }
+    .buy-coin-button {
+        width: 90%;
+        max-width: 400px;
+        padding: 18px 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #fff;
+        background: linear-gradient(145deg, #28a745, #1d7b30); /* Green for buying */
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        box-shadow: 0 8px 0 #125e22, 0 12px 20px rgba(0,0,0,0.3);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        transition: all 0.2s ease-in-out;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .buy-coin-button:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #125e22, 0 15px 25px rgba(0,0,0,0.35); }
+    .buy-coin-button:active { transform: translateY(3px); box-shadow: 0 4px 0 #125e22, 0 8px 15px rgba(0,0,0,0.3); }
+
 
     /* Bottom Navigation Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: #fff; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50; }
@@ -631,7 +758,7 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="header-coin-balance">100</span>
         </div>
     </header>
 
@@ -686,7 +813,7 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="care-coin-balance">100</span>
         </div>
     </header>
     <div class="main-content">
@@ -746,7 +873,7 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="tracker-coin-balance">100</span>
         </div>
     </header>
     <div class="main-content">
@@ -754,52 +881,52 @@
             <!-- Card 1 -->
             <div class="tracker-card-item">
                 <img src="image/water intake tracker .jpg" alt="Water Intake Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Water Intake Tracker</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Water Intake Tracker">Water Intake Tracker</button>
             </div>
             <!-- Card 2 -->
             <div class="tracker-card-item">
                 <img src="image/child.jpg" alt="Child Growth Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Child Growth Tracker</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Child Growth Tracker">Child Growth Tracker</button>
             </div>
             <!-- Card 3 -->
             <div class="tracker-card-item">
                 <img src="image/copd.jpg" alt="COPD Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan">COPD Tracker</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="COPD Tracker">COPD Tracker</button>
             </div>
             <!-- Card 4 -->
             <div class="tracker-card-item">
                 <img src="image/sleep.jpg" alt="Sleep Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Sleep Tracker</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Sleep Tracker">Sleep Tracker</button>
             </div>
             <!-- Card 5 -->
             <div class="tracker-card-item">
                 <img src="image/prenatal fitness .jpg" alt="Prenatal Fitness">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Prenatal Fitness</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Prenatal Fitness">Prenatal Fitness</button>
             </div>
             <!-- Card 6 -->
             <div class="tracker-card-item">
                 <img src="image/brain.jpg" alt="Brain Training">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Brain Training</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Brain Training">Brain Training</button>
             </div>
             <!-- Card 7 -->
             <div class="tracker-card-item">
                 <img src="image/gut analysers.jpg" alt="Gut Analyser">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Gut Analyser</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Gut Analyser">Gut Analyser</button>
             </div>
             <!-- Card 8 -->
             <div class="tracker-card-item">
                 <img src="image/meditation.jpg" alt="Meditation">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Meditation</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Meditation">Meditation</button>
             </div>
             <!-- Card 9 -->
             <div class="tracker-card-item">
                 <img src="image/elder health tracker.jpg" alt="Elder Health Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Elder Health Tracker</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Elder Health Tracker">Elder Health Tracker</button>
             </div>
             <!-- Card 10 -->
             <div class="tracker-card-item">
                 <img src="image/family health hub.jpg" alt="Family Health Hub">
-                <button class="tracker-btn" data-target-page="showFuturePlan">Family Health Hub</button>
+                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Family Health Hub">Family Health Hub</button>
             </div>
             <!-- Card 11 -->
             <div class="tracker-card-item">
@@ -826,16 +953,16 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="prediction-coin-balance">100</span>
         </div>
     </header>
     <div class="main-content prediction-info-buttons">
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Heart Attack Prediction</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Stroke Risk Prediction</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Chronic Disease Prediction</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Cancer Screening</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Diabetes Prediction</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Allergy Prediction</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Heart Attack Prediction</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Stroke Risk Prediction</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Chronic Disease Prediction</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Cancer Screening</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Diabetes Prediction</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Allergy Prediction</button>
     </div>
 </div>
 
@@ -850,15 +977,15 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="info-coin-balance">100</span>
         </div>
     </header>
     <div class="main-content prediction-info-buttons">
-        <button class="prediction-info-btn" onclick="showFuturePlan()">CPR Learning</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Rare Disease Learning</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Emergency Medical Info</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">First Aid Guide</button>
-        <button class="prediction-info-btn" onclick="showFuturePlan()">Longevity Health Span</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">CPR Learning</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Rare Disease Learning</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Emergency Medical Info</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">First Aid Guide</button>
+        <button class="prediction-info-btn" onclick="consumeCoinAndShowFuturePlan()">Longevity Health Span</button>
     </div>
 </div>
 
@@ -876,7 +1003,7 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="consultant-coin-balance">100</span>
         </div>
     </header>
     <div class="main-content">
@@ -900,7 +1027,7 @@
                 <circle cx="12" cy="12" r="10" fill="currentColor"/>
                 <circle cx="12" cy="12" r="4" fill="white"/>
             </svg>
-            <span>100</span>
+            <span id="profile-coin-balance">100</span>
         </div>
         <!-- Title for the profile page header -->
         <div style="font-weight: bold; font-size: 1.2em; color: #333;">Welcome & Home</div>
@@ -913,10 +1040,69 @@
         </div>
 
         <div class="profile-buttons">
-            <button class="profile-btn" onclick="showFuturePlan()">Edit Profile</button>
-            <button class="profile-btn" onclick="showFuturePlan()">Wallet</button>
+            <button class="profile-btn" onclick="showEditProfile()">Edit Profile</button>
+            <button class="profile-btn" onclick="showWalletPage()">Wallet</button>
             <button class="profile-btn" onclick="logOut()">Log Out</button>
         </div>
+    </div>
+</div>
+
+<!-- EDIT PROFILE PAGE -->
+<div id="edit-profile-page" class="page">
+    <header id="header">
+        <div class="back-icon" onclick="goBackToProfile()">&#8592; Back</div>
+        <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Edit Profile</div>
+        <div class="coin-display">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                <circle cx="12" cy="12" r="4" fill="white"/>
+            </svg>
+            <span id="edit-profile-coin-balance">100</span>
+        </div>
+    </header>
+    <div class="main-content" style="display: flex; flex-direction: column; align-items: center; padding-top: 20px;">
+        <div class="profile-form-group">
+            <label for="profile-name">Name:</label>
+            <input type="text" id="profile-name" placeholder="Enter your name">
+        </div>
+        <div class="profile-form-group">
+            <label for="profile-mobile">Mobile No.:</label>
+            <input type="tel" id="profile-mobile" placeholder="Enter your mobile number">
+        </div>
+        <div class="profile-form-group">
+            <label for="profile-address">Address:</label>
+            <input type="text" id="profile-address" placeholder="Enter your address">
+        </div>
+        <div class="profile-form-group">
+            <label for="profile-email">Email ID:</label>
+            <input type="email" id="profile-email" placeholder="Enter your email ID" readonly> <!-- Email usually read-only if from auth -->
+        </div>
+        <button class="save-profile-btn" onclick="saveUserProfile()">Save Profile</button>
+    </div>
+</div>
+
+<!-- WALLET PAGE -->
+<div id="wallet-page" class="page">
+    <header id="header" style="background-color: transparent; box-shadow: none; border-bottom: none;">
+        <div class="back-icon" onclick="goBackToProfile()">&#8592; Back</div>
+        <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Wallet</div>
+        <div class="coin-display">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                <circle cx="12" cy="12" r="4" fill="white"/>
+            </svg>
+            <span id="wallet-coin-balance">100</span>
+        </div>
+    </header>
+    <div class="main-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;">
+        <div class="wallet-card">
+            <svg viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,7C10.61,7 9.5,8.12 9.5,9.5C9.5,10.88 10.61,12 12,12C13.39,12 14.5,10.88 14.5,9.5C14.5,8.12 13.39,7 12,7M7.5,16.5C7.5,14.67 9.83,13 12,13C14.17,13 16.5,14.67 16.5,16.5V17H7.5V16.5Z"></path>
+            </svg>
+            <span class="coin-value" id="wallet-card-coin-value">100</span>
+        </div>
+        <button class="buy-coin-button" onclick="buyCoins(5, 100)">Buy 5 Coins for ₹1</button>
+        <!-- Add more "buy" options if needed -->
     </div>
 </div>
 
@@ -945,6 +1131,33 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2PG5JvDko2UmQDlY9gN5lBgga2vQy-Ws",
+      authDomain: "conceptra-c1000.firebaseapp.com",
+      databaseURL: "https://conceptra-c1000-default-rtdb.firebaseio.com",
+      projectId: "conceptra-c1000",
+      storageBucket: "conceptra-c1000.firebasestorage.app",
+      messagingSenderId: "298402987968",
+      appId: "1:298402987968:web:c0d0d7d6c08cdfa6bc5225",
+      measurementId: "G-QRQYEVSJJ6"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUserId = null;
+    let currentCoinBalance = 0;
+
     // --- Element References ---
     const splashScreen = document.getElementById('splash-screen');
     const dashboardSelectionScreen = document.getElementById('dashboard-selection-screen');
@@ -955,6 +1168,8 @@
     const diseaseInfoPage = document.getElementById('disease-info-page'); 
     const consultantPage = document.getElementById('consultant-page'); 
     const profilePage = document.getElementById('profile-page'); 
+    const editProfilePage = document.getElementById('edit-profile-page'); // New Edit Profile Page
+    const walletPage = document.getElementById('wallet-page'); // New Wallet Page
     const sideMenu = document.getElementById('side-menu'); 
     const loader = document.getElementById('buffer-loader');
     const startButton = document.getElementById('start-button');
@@ -971,6 +1186,139 @@
     const profilePictureImg = document.getElementById('profile-picture');
     const profilePicturePlaceholder = document.getElementById('profile-image-placeholder');
 
+    // Profile Edit Form Elements
+    const profileNameInput = document.getElementById('profile-name');
+    const profileMobileInput = document.getElementById('profile-mobile');
+    const profileAddressInput = document.getElementById('profile-address');
+    const profileEmailInput = document.getElementById('profile-email');
+
+    // Coin Balance Display Elements
+    const headerCoinBalance = document.getElementById('header-coin-balance');
+    const careCoinBalance = document.getElementById('care-coin-balance');
+    const trackerCoinBalance = document.getElementById('tracker-coin-balance');
+    const predictionCoinBalance = document.getElementById('prediction-coin-balance');
+    const infoCoinBalance = document.getElementById('info-coin-balance');
+    const consultantCoinBalance = document.getElementById('consultant-coin-balance');
+    const profileCoinBalance = document.getElementById('profile-coin-balance');
+    const editProfileCoinBalance = document.getElementById('edit-profile-coin-balance');
+    const walletCoinBalance = document.getElementById('wallet-coin-balance');
+    const walletCardCoinValue = document.getElementById('wallet-card-coin-value');
+
+
+    // --- Firebase Authentication and Data Loading ---
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            console.log("User signed in:", currentUserId);
+            // Load user data and coins after successful authentication
+            loadUserData();
+            loadCoinBalance();
+        } else {
+            console.log("No user signed in. Signing in anonymously...");
+            // Sign in anonymously if no user is found
+            signInAnonymously(auth)
+                .then(() => {
+                    // User will be available in the next onAuthStateChanged call
+                })
+                .catch((error) => {
+                    console.error("Anonymous sign-in failed:", error);
+                    alert("Failed to connect to our services. Please try again.");
+                });
+        }
+    });
+
+    function loadUserData() {
+        if (!currentUserId) return;
+        const userProfileRef = ref(db, 'users/' + currentUserId + '/profile');
+        onValue(userProfileRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                profileNameInput.value = data.name || '';
+                profileMobileInput.value = data.mobile || '';
+                profileAddressInput.value = data.address || '';
+                profileEmailInput.value = data.email || auth.currentUser.email || ''; // Use Firebase Auth email if available
+            } else {
+                // Initialize profile with current user email if available
+                profileEmailInput.value = auth.currentUser.email || '';
+            }
+        }, {
+            onlyOnce: false // Listen for real-time updates
+        });
+    }
+
+    function loadCoinBalance() {
+        if (!currentUserId) return;
+        const userCoinsRef = ref(db, 'users/' + currentUserId + '/coins');
+        onValue(userCoinsRef, (snapshot) => {
+            const coins = snapshot.val();
+            if (coins === null || isNaN(coins)) {
+                // Initialize coins if they don't exist or are invalid
+                currentCoinBalance = 100; // Default starting coins
+                set(userCoinsRef, currentCoinBalance)
+                    .then(() => {
+                        console.log("Coin balance initialized to 100.");
+                        updateCoinDisplays();
+                    })
+                    .catch((error) => {
+                        console.error("Failed to set initial coin balance:", error);
+                    });
+            } else {
+                currentCoinBalance = coins;
+                updateCoinDisplays();
+            }
+        }, {
+            onlyOnce: false // Listen for real-time updates
+        });
+    }
+
+    function updateCoinDisplays() {
+        if (headerCoinBalance) headerCoinBalance.textContent = currentCoinBalance;
+        if (careCoinBalance) careCoinBalance.textContent = currentCoinBalance;
+        if (trackerCoinBalance) trackerCoinBalance.textContent = currentCoinBalance;
+        if (predictionCoinBalance) predictionCoinBalance.textContent = currentCoinBalance;
+        if (infoCoinBalance) infoCoinBalance.textContent = currentCoinBalance;
+        if (consultantCoinBalance) consultantCoinBalance.textContent = currentCoinBalance;
+        if (profileCoinBalance) profileCoinBalance.textContent = currentCoinBalance;
+        if (editProfileCoinBalance) editProfileCoinBalance.textContent = currentCoinBalance;
+        if (walletCoinBalance) walletCoinBalance.textContent = currentCoinBalance;
+        if (walletCardCoinValue) walletCardCoinValue.textContent = currentCoinBalance;
+    }
+
+    /**
+     * Attempts to consume a coin.
+     * @returns {boolean} True if a coin was successfully consumed, false otherwise.
+     */
+    window.consumeCoin = async function(cost = 1) {
+        if (!currentUserId) {
+            alert("User not logged in. Cannot consume coin.");
+            return false;
+        }
+
+        if (currentCoinBalance >= cost) {
+            try {
+                const userCoinsRef = ref(db, 'users/' + currentUserId + '/coins');
+                await update(userCoinsRef, { value: currentCoinBalance - cost });
+                console.log(`Consumed ${cost} coin(s). Remaining: ${currentCoinBalance - cost}`);
+                // currentCoinBalance is updated by onValue listener
+                return true;
+            } catch (error) {
+                console.error("Failed to consume coin:", error);
+                alert("Failed to consume coin. Please try again.");
+                return false;
+            }
+        } else {
+            alert("Not enough coins! Please buy more coins to use this feature.");
+            return false;
+        }
+    };
+
+    window.consumeCoinAndShowFuturePlan = async function() {
+        const consumed = await consumeCoin(1); // Assuming 1 coin per AI function use
+        if (consumed) {
+            showFuturePlan();
+        }
+    };
+
     // --- Page Navigation Logic ---
     function switchPage(pageToShow) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -980,6 +1328,7 @@
             if (sideMenu && sideMenu.classList.contains('open')) {
                 hideSideMenu();
             }
+            updateCoinDisplays(); // Update coin display on page switch
         }
     }
 
@@ -1103,7 +1452,7 @@
     }
     
     // --- Side Menu Logic ---
-    function showSideMenu() {
+    window.showSideMenu = function() {
         if (sideMenu) {
             sideMenu.classList.add('open');
             const overlay = document.createElement('div');
@@ -1114,7 +1463,7 @@
         }
     }
 
-    function hideSideMenu() {
+    window.hideSideMenu = function() {
         if (sideMenu) {
             sideMenu.classList.remove('open');
             const overlay = document.getElementById('menu-overlay');
@@ -1124,10 +1473,15 @@
         }
     }
 
-    // --- Back Button Function for Prediction/Info Pages ---
-    function goBackToTracker() {
+    // --- Back Button Function for Prediction/Info/Edit Profile/Wallet Pages ---
+    window.goBackToTracker = function() {
         switchPage(trackerPage);
         updateActiveNav(navTracker);
+    }
+
+    window.goBackToProfile = function() {
+        switchPage(profilePage);
+        updateActiveNav(navProfile);
     }
 
     // --- Draggable Medical Assistant Button ---
@@ -1220,28 +1574,174 @@
         });
     }
 
-    // --- Placeholder functions for profile buttons ---
-    window.editProfile = function() {
-        alert('Edit Profile functionality (Future plan)');
-    }
+    // --- Profile Page Functions ---
+    window.showEditProfile = function() {
+        if (!currentUserId) {
+            alert("User not logged in. Please wait for authentication.");
+            return;
+        }
+        loadUserData(); // Load current profile data into form
+        switchPage(editProfilePage);
+    };
 
-    window.showWallet = function() {
-        alert('Wallet functionality (Future plan)');
-    }
+    window.saveUserProfile = async function() {
+        if (!currentUserId) {
+            alert("User not logged in. Cannot save profile.");
+            return;
+        }
 
-    window.logOut = function() {
-        // Clear profile image from local storage on logout
-        localStorage.removeItem('profileImage');
-        alert('Logged out!');
-        // Optionally redirect to login or splash screen
-        switchPage(splashScreen);
-        // Reset nav active state if returning to splash
-        updateActiveNav(null); 
-    }
+        const name = profileNameInput.value.trim();
+        const mobile = profileMobileInput.value.trim();
+        const address = profileAddressInput.value.trim();
+        const email = profileEmailInput.value.trim(); // Email might be read-only, but include for completeness
+
+        if (!name || !mobile || !address || !email) {
+            alert("Please fill in all profile fields.");
+            return;
+        }
+
+        try {
+            const userProfileRef = ref(db, 'users/' + currentUserId + '/profile');
+            await set(userProfileRef, {
+                name: name,
+                mobile: mobile,
+                address: address,
+                email: email
+            });
+            alert("Profile saved successfully!");
+            goBackToProfile(); // Go back to profile display
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("Failed to save profile: " + error.message);
+        }
+    };
+
+    // --- Wallet Page Functions ---
+    window.showWalletPage = function() {
+        if (!currentUserId) {
+            alert("User not logged in. Please wait for authentication.");
+            return;
+        }
+        loadCoinBalance(); // Ensure latest balance is loaded
+        switchPage(walletPage);
+    };
+
+    window.buyCoins = async function(coinsToAdd, amountInPaise) {
+        if (!currentUserId) {
+            alert("User not logged in. Cannot process payment.");
+            return;
+        }
+
+        // IMPORTANT: In a production app, the order creation MUST happen on your backend.
+        // This is a simplified client-side example for demonstration.
+        // For secure Razorpay integration, your 'server.js' should handle:
+        // 1. Creating a Razorpay order: POST to /create-razorpay-order which returns an order_id.
+        // 2. Verifying the payment signature after success: POST to /verify-razorpay-payment.
+        // The RAZORPAY_KEY_SECRET MUST NEVER BE EXPOSED ON THE CLIENT-SIDE.
+
+        // Placeholder for Razorpay Key ID (replace with your actual public Key ID)
+        // This should ideally be fetched from your server or a public config.
+        const razorpayKeyId = 'rzp_test_e7N2tXN0e0eJ6i'; // Replace with your actual Key ID for testing/development
+
+        try {
+            // Step 1: Create an order on your backend (simulated for demonstration)
+            // Replace this with an actual fetch to your server.js endpoint
+            const orderResponse = await fetch('/create-razorpay-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ amount: amountInPaise, currency: 'INR', userId: currentUserId }),
+            });
+            const orderData = await orderResponse.json();
+
+            if (!orderResponse.ok || !orderData.order_id) {
+                alert('Failed to create Razorpay order: ' + (orderData.message || 'Unknown error'));
+                return;
+            }
+
+            const options = {
+                key: razorpayKeyId, // Your Key ID
+                amount: amountInPaise, // Amount is in currency subunits.
+                currency: "INR",
+                name: "Shubhmed",
+                description: `Purchase ${coinsToAdd} Coins`,
+                order_id: orderData.order_id, // This is the order ID created on your backend
+                handler: async function (response) {
+                    // Step 2: Verify payment signature on your backend
+                    // Replace this with an actual fetch to your server.js endpoint
+                    const verifyResponse = await fetch('/verify-razorpay-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            userId: currentUserId,
+                            coinsToAdd: coinsToAdd // Pass coins to add to backend for atomic update
+                        }),
+                    });
+                    const verifyData = await verifyResponse.json();
+
+                    if (verifyResponse.ok && verifyData.success) {
+                        alert(`Payment successful! You received ${coinsToAdd} coins.`);
+                        // Coin balance will be updated by Firebase listener from loadCoinBalance()
+                        // if your backend successfully updates it after verification.
+                    } else {
+                        alert('Payment verification failed: ' + (verifyData.message || 'Unknown error'));
+                    }
+                },
+                prefill: {
+                    name: profileNameInput.value || "",
+                    email: profileEmailInput.value || "",
+                    contact: profileMobileInput.value || ""
+                },
+                theme: {
+                    color: "#008CBA"
+                }
+            };
+            const rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response){
+                alert('Payment Failed: ' + response.error.description);
+                console.error('Razorpay Payment Failed:', response.error);
+            });
+            rzp1.open();
+
+        } catch (error) {
+            console.error("Error during coin purchase:", error);
+            alert("Could not initiate payment. Please try again later.");
+        }
+    };
+
 
     // --- Global Functions (Keep existing ones as requested) ---
     window.showFuturePlan = function() {
         alert('Future plan');
+    }
+
+    window.logOut = async function() {
+        // Clear profile image from local storage on logout
+        localStorage.removeItem('profileImage');
+        profilePictureImg.src = ''; // Clear image from display
+        profilePictureImg.style.display = 'none';
+        profilePicturePlaceholder.style.display = 'block';
+
+        try {
+            await auth.signOut();
+            alert('Logged out successfully!');
+            // Optionally redirect to login or splash screen
+            switchPage(splashScreen);
+            // Reset nav active state if returning to splash
+            updateActiveNav(null); 
+            currentUserId = null; // Clear user ID
+            currentCoinBalance = 0; // Reset coin balance
+            updateCoinDisplays(); // Update displays to 0 or default
+        } catch (error) {
+            console.error("Error logging out:", error);
+            alert("Failed to log out: " + error.message);
+        }
     }
 
     // --- Initialization ---
@@ -1252,22 +1752,36 @@
 
         // Attach event listeners for tracker buttons
         document.querySelectorAll('.tracker-btn').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const targetPage = button.getAttribute('data-target-page');
+                const featureCost = parseInt(button.getAttribute('data-feature-cost') || '0', 10);
+                const featureName = button.getAttribute('data-feature-name') || 'this feature';
+
+                if (featureCost > 0) {
+                    const confirmUse = confirm(`Using "${featureName}" costs ${featureCost} coin(s). Do you want to proceed?`);
+                    if (!confirmUse) {
+                        return; // User cancelled
+                    }
+
+                    const consumed = await consumeCoin(featureCost);
+                    if (!consumed) {
+                        return; // Not enough coins or error
+                    }
+                }
+                
+                // Proceed only if coins were not required or successfully consumed
                 if (targetPage === 'disease-prediction') {
                     switchPage(diseasePredictionPage);
                 } else if (targetPage === 'disease-info') {
                     switchPage(diseaseInfoPage);
-                } else {
+                } else if (targetPage.startsWith('showFuturePlan')) {
                     showFuturePlan(); // Default for other buttons if no specific page
                 }
             });
         });
 
-        // Make sure the back button functions are globally accessible
-        window.goBackToTracker = goBackToTracker;
-        window.showSideMenu = showSideMenu;
-        window.hideSideMenu = hideSideMenu;
+        // Initial coin display update in case Firebase takes time
+        updateCoinDisplays();
     });
 
 </script>
