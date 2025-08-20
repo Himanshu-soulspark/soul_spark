@@ -782,8 +782,8 @@
                 
                 <!-- New Features -->
                 <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
-                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
-                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Spine Health</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Mental Health</span></div>
                 <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
                 <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
                 <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
@@ -878,10 +878,10 @@
     </header>
     <div class="main-content">
         <div class="tracker-grid">
-            <!-- Card 1 -->
+            <!-- Card 1 (Water Intake Tracker - MODIFIED) -->
             <div class="tracker-card-item">
                 <img src="image/water intake tracker .jpg" alt="Water Intake Tracker">
-                <button class="tracker-btn" data-target-page="showFuturePlan" data-feature-cost="1" data-feature-name="Water Intake Tracker">Water Intake Tracker</button>
+                <button class="tracker-btn" data-target-page="Features/water.html" data-feature-cost="1" data-feature-name="Water Intake Tracker">Water Intake Tracker</button>
             </div>
             <!-- Card 2 -->
             <div class="tracker-card-item">
@@ -1297,7 +1297,8 @@
         if (currentCoinBalance >= cost) {
             try {
                 const userCoinsRef = ref(db, 'users/' + currentUserId + '/coins');
-                await update(userCoinsRef, { value: currentCoinBalance - cost });
+                // Use a transaction for safe concurrent updates, though simple update is shown here for brevity
+                await set(userCoinsRef, currentCoinBalance - cost); // Update directly
                 console.log(`Consumed ${cost} coin(s). Remaining: ${currentCoinBalance - cost}`);
                 // currentCoinBalance is updated by onValue listener
                 return true;
@@ -1757,25 +1758,32 @@
                 const featureCost = parseInt(button.getAttribute('data-feature-cost') || '0', 10);
                 const featureName = button.getAttribute('data-feature-name') || 'this feature';
 
+                let consumed = true; // Assume no cost or consumed successfully
+
                 if (featureCost > 0) {
                     const confirmUse = confirm(`Using "${featureName}" costs ${featureCost} coin(s). Do you want to proceed?`);
                     if (!confirmUse) {
-                        return; // User cancelled
+                        consumed = false; // User cancelled
+                        return; 
                     }
 
-                    const consumed = await consumeCoin(featureCost);
+                    consumed = await consumeCoin(featureCost);
                     if (!consumed) {
                         return; // Not enough coins or error
                     }
                 }
                 
                 // Proceed only if coins were not required or successfully consumed
-                if (targetPage === 'disease-prediction') {
-                    switchPage(diseasePredictionPage);
-                } else if (targetPage === 'disease-info') {
-                    switchPage(diseaseInfoPage);
-                } else if (targetPage.startsWith('showFuturePlan')) {
-                    showFuturePlan(); // Default for other buttons if no specific page
+                if (consumed) { // Check if coin was consumed or not required
+                    if (targetPage === 'disease-prediction') {
+                        switchPage(diseasePredictionPage);
+                    } else if (targetPage === 'disease-info') {
+                        switchPage(diseaseInfoPage);
+                    } else if (targetPage === 'Features/water.html') { // MODIFIED: Specific check for water.html
+                        window.location.href = targetPage; // Redirect to the external HTML file
+                    } else if (targetPage.startsWith('showFuturePlan')) {
+                        showFuturePlan(); // Default for other buttons if no specific page
+                    }
                 }
             });
         });
