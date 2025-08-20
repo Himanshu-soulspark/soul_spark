@@ -1,1 +1,529 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Tracker</title>
+    <style>
+        /* --- Basic Setup & Polished Light Theme --- */
+        :root {
+            --primary-color: #00bcd4; --secondary-color: #0097a7; --accent-color: #4dd0e1;
+            --text-color: #333; --text-light: #666; --bg-color: #f4f7f6;
+            --card-bg: #ffffff; --border-color: #e8e8e8; --success-color: #28a745;
+        }
 
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body { background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
+
+        .page { display: none; padding: 15px; padding-bottom: 15px; /* Default padding */ animation: fadeIn 0.5s ease-in-out; }
+        .page.active { display: block; }
+        .page.with-nav { padding-bottom: 85px; /* Padding for pages with nav bar */ }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Header --- */
+        .header {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            padding: 15px 20px; text-align: center; font-size: 1.4em; font-weight: 600;
+            position: sticky; top: 0; z-index: 100; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 1px solid var(--border-color);
+        }
+        .back-button {
+            font-size: 1.5em; cursor: pointer; background: none; border: none;
+            color: var(--text-color); width: 30px; text-align: left;
+        }
+
+        /* --- General Components --- */
+        .card {
+            background-color: var(--card-bg); border-radius: 18px; padding: 20px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.07); border: 1px solid var(--border-color);
+        }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .card-1-1 { aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; text-align: center; font-size: 1.05em; line-height: 1.5; color: var(--text-light); }
+        .card-16-9 { aspect-ratio: 16 / 9; width: 100%; margin: 20px 0; position: relative; overflow: hidden; }
+
+        .main-button, .secondary-button {
+            display: block; width: 100%; padding: 18px; border: none; border-radius: 14px;
+            font-size: 1.1em; font-weight: 600; cursor: pointer; text-align: center; margin: 10px 0;
+            transition: all 0.2s ease;
+        }
+        .main-button { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; box-shadow: 0 5px 15px rgba(0, 188, 212, 0.3); }
+        .main-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 188, 212, 0.4); }
+        
+        .secondary-button { background-color: #e9ecef; color: var(--text-color); }
+        .secondary-button.inactive {
+            background-color: #e0e0e0; color: #a0a0a0; cursor: not-allowed;
+            box-shadow: none; transform: none;
+        }
+        
+        /* --- Page 1: Welcome --- */
+        #video-player { width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: 0; }
+        #ads-card { margin: 20px auto; display: flex; justify-content: center; align-items: center; }
+        model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+
+        /* --- Forms --- */
+        .form-container { display: flex; flex-direction: column; gap: 20px; padding: 20px 0; }
+        .form-container h2 { text-align: center; color: var(--secondary-color); margin-bottom: 20px; font-weight: 600; font-size: 1.8em; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 8px; font-size: 1em; color: var(--secondary-color); font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);
+            background-color: var(--bg-color); color: var(--text-color); font-size: 1em;
+        }
+        .ai-answer-box {
+            margin-top: 20px; padding: 15px; border-radius: 10px; background-color: var(--bg-color);
+            border: 1px solid var(--border-color); min-height: 100px; white-space: pre-wrap;
+            color: var(--text-light);
+        }
+        
+        /* --- Page 5: Home --- */
+        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin: 20px 0; }
+        .stat-box { background: var(--card-bg); border-radius: 15px; padding: 15px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .stat-box .value { font-size: 1.5em; font-weight: 700; color: var(--secondary-color); }
+        .stat-box .label { font-size: 0.7em; text-transform: uppercase; color: var(--text-light); font-weight: 500; }
+        
+        /* -- Improved Bottle -- */
+        .bottle-container { margin: 30px auto; width: 150px; height: 300px; position: relative; }
+        #bottle-svg { width: 100%; height: 100%; }
+        #bottle-water-fill { fill: var(--accent-color); transform-origin: bottom; transform: scaleY(0); transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        #add-water-btn {
+            width: 75px; height: 75px; border-radius: 50%; font-size: 2.2em; margin: 0 auto;
+            display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;
+            border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 188, 212, 0.4);
+        }
+
+        /* --- Shop Section --- */
+        .shop-container { display: flex; overflow-x: auto; gap: 15px; padding: 15px 5px; scrollbar-width: none; }
+        .shop-container::-webkit-scrollbar { display: none; }
+        .shop-card { flex: 0 0 60%; max-width: 220px; aspect-ratio: 1 / 1; position: relative; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .shop-card img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; cursor: pointer; background-color: white; }
+        .shop-card-details { background: rgba(0,0,0,0.5); padding: 12px; z-index: 2; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .shop-card .price { font-size: 1.1em; font-weight: bold; }
+        .shop-card .buy-btn { padding: 8px 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* --- Analytics Page --- */
+        .analytics-container { text-align: center; }
+        .chart-container { position: relative; width: 200px; height: 200px; margin: 20px auto; }
+        .chart-container svg { transform: rotate(-90deg); }
+        .chart-bg { fill: none; stroke: var(--border-color); stroke-width: 20; }
+        .chart-progress { fill: none; stroke: var(--success-color); stroke-width: 20; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease-out; }
+        .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2em; font-weight: 700; color: var(--secondary-color); }
+        .history-list { list-style: none; margin-top: 30px; text-align: left; }
+        .history-item { background: var(--card-bg); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        
+        /* --- Timer Page --- */
+        .timer-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; }
+        #countdown-display { font-size: 4em; font-weight: 700; color: var(--secondary-color); }
+        
+        /* --- Bottom Nav Bar --- */
+        .nav-bar {
+            display: none; /* Hidden by default */
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: var(--card-bg);
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.08); justify-content: space-around;
+            align-items: center; z-index: 100; border-top: 1px solid var(--border-color);
+        }
+        .nav-bar.visible {
+            display: flex; /* Made visible via JS */
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #aaa; cursor: pointer; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 28px; height: 28px; }
+        .nav-item span { font-size: 0.75em; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Pages Container -->
+    <div id="page-welcome" class="page active">
+        <header class="header"><button class="back-button" style="visibility: hidden;">&#8592;</button><span>Water Tracker</span><div style="width:30px"></div></header>
+        <div class="grid-container">
+            <div class="card card-1-1"><span>Why is it important to drink water at the right time and right place?</span></div>
+            <div class="card card-1-1"><model-viewer src="ikea_glass.glb" camera-controls auto-rotate shadow-intensity="1"></model-viewer></div>
+        </div>
+        <div class="card card-16-9"><div id="video-player"></div></div>
+        <button id="get-started-btn" class="main-button">Get Started</button>
+        <div id="ads-card"><script type="text/javascript">atOptions = {'key' : 'dc5a07d0f0595bbbad51a3b4e6a2a1a0','format' : 'iframe','height' : 90,'width' : 728,'params' : {}};</script><script type="text/javascript" src="//cleavebullydevaluation.com/dc5a07d0f0595bbbad51a3b4e6a2a1a0/invoke.js"></script></div>
+    </div>
+
+    <div id="page-setup-choice" class="page">
+        <header class="header"><button class="back-button" onclick="navigateTo('page-welcome')">&#8592;</button><span>Setup</span><div style="width:30px"></div></header>
+        <div class="form-container" style="justify-content: center; height: 80vh; gap: 25px;">
+             <button onclick="navigateTo('page-ai-setup')" class="main-button">AI Water Timer Set</button>
+             <button onclick="navigateTo('page-self-setup')" class="main-button">Self Water Timer Set</button>
+             <button id="go-home-from-setup-btn" class="secondary-button inactive">Go to Home</button>
+        </div>
+    </div>
+
+    <div id="page-ai-setup" class="page">
+        <header class="header"><button class="back-button" onclick="navigateTo('page-setup-choice')">&#8592;</button><span>AI Setup</span><div style="width:30px"></div></header>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="ai-question">Ask a question to AI (Cost: 2 Coins)</label>
+                <textarea id="ai-question" rows="4" placeholder="Type your question here..."></textarea>
+            </div>
+            <button id="ai-submit-btn" class="main-button">Submit</button>
+            <div class="form-group">
+                <label for="ai-answer">Answer</label>
+                <div id="ai-answer" class="ai-answer-box">The AI's response will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-self-setup" class="page">
+        <header class="header"><button class="back-button" onclick="navigateTo('page-setup-choice')">&#8592;</button><span>Self Setup</span><div style="width:30px"></div></header>
+        <div class="form-container">
+            <div class="form-group"><label for="self-bottle-ml">Bottle/Glass Size (ml)</label><input type="number" id="self-bottle-ml" placeholder="e.g., 500"></div>
+            <div class="form-group"><label for="self-bottle-count">Glasses/Bottles per day</label><input type="number" id="self-bottle-count" placeholder="e.g., 5"></div>
+            <div class="form-group"><label for="self-duration">Remind me every (hours)</label><input type="number" id="self-duration" placeholder="e.g., 2"></div>
+            <button id="self-set-btn" class="main-button">Set Timer</button>
+            <button id="go-home-inactive-btn" class="secondary-button inactive">Go to Home</button>
+        </div>
+    </div>
+    
+    <div id="page-home" class="page with-nav">
+        <div class="stats-container">
+            <div class="stat-box"><div id="total-water" class="value">0</div><div class="label">Total</div></div>
+            <div class="stat-box"><div id="consumed-water" class="value">0</div><div class="label">Consumed</div></div>
+            <div class="stat-box"><div id="remaining-water" class="value">0</div><div class="label">Remaining</div></div>
+        </div>
+        <div class="bottle-container">
+            <svg id="bottle-svg" viewBox="0 0 100 200" preserveAspectRatio="xMidYMax meet">
+                <defs><clipPath id="bottle-clip"><path d="M30,195 C20,195 20,185 20,175 L20,60 C20,50 15,45 15,35 L15,20 C15,5 25,0 40,0 L60,0 C75,0 85,5 85,20 L85,35 C85,45 80,50 80,60 L80,175 C80,185 80,195 70,195 Z" /></clipPath></defs>
+                <rect x="0" y="0" width="100" height="200" fill="#E0E0E0" clip-path="url(#bottle-clip)"/><rect id="bottle-water-fill" x="0" y="0" width="100" height="200" clip-path="url(#bottle-clip)"/>
+            </svg>
+        </div>
+        <button id="add-water-btn">+</button>
+        <h3 style="margin: 25px 0 10px; font-weight: 600;">Shop Bottles</h3>
+        <div class="shop-container"> 
+             <!-- Shop Cards will be dynamically added here by JS to keep HTML cleaner -->
+        </div>
+    </div>
+
+    <div id="page-alarm" class="page with-nav">
+        <header class="header"><span>Alarm</span></header>
+        <div class="timer-container">
+            <h2>Next Reminder In</h2>
+            <div id="countdown-display">00:00:00</div>
+        </div>
+    </div>
+
+    <div id="page-analytics" class="page with-nav">
+        <header class="header"><span>Analytics</span></header>
+        <div class="analytics-container card">
+            <h3>Today's Progress</h3>
+            <div class="chart-container">
+                <svg width="200" height="200" viewBox="0 0 200 200">
+                    <circle class="chart-bg" cx="100" cy="100" r="80"></circle>
+                    <circle id="analytics-progress" class="chart-progress" cx="100" cy="100" r="80" stroke-dasharray="502.65" stroke-dashoffset="502.65"></circle>
+                </svg>
+                <div id="chart-percentage" class="chart-text">0%</div>
+            </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>History</h3>
+                <button id="clear-history-btn" style="background:none; border:none; color:var(--secondary-color); cursor:pointer;">Clear</button>
+            </div>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+    </div>
+
+    <!-- Universal Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-item active" data-page="page-home"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></div>
+        <div class="nav-item" data-page="page-alarm"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm4.25 12.15L11 12.5V7h1.5v4.65l4.5 2.1-.75 1.4z"/></svg><span>Alarm</span></div>
+        <div class="nav-item" data-page="page-analytics"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-5h2v5zm4 0h-2v-3h2v3zm4 0h-2v-7h2v7z"/></svg><span>Analytics</span></div>
+    </nav>
+    
+    <audio id="alarm-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABodHRwOi8vd3d3Lm1lb25nLmNvbS9hcGkvbXVzaWMvbGlzdGVuLzE3MTc0ODQAAAAAAAAAAAAAAD/80DEAAAAA0gAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-VVVVVVVVVVahEAAAApAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzAAAAPHAECAIAAAB4AAAF0gAAAAA//80DEQAAAAAAAAAANIAAAAYVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV-axb"></audio>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2PG5JvDko2UmQDlY9gN5lBgga2vQy-Ws",
+            authDomain: "conceptra-c1000.firebaseapp.com",
+            databaseURL: "https://conceptra-c1000-default-rtdb.firebaseio.com",
+            projectId: "conceptra-c1000",
+            storageBucket: "conceptra-c1000.firebasestorage.app",
+            messagingSenderId: "298402987968",
+            appId: "1:298402987968:web:c0d0d7d6c08cdfa6bc5225",
+            measurementId: "G-QRQYEVSJJ6"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const functions = getFunctions(app);
+        const analytics = getAnalytics(app);
+
+        // --- Global State ---
+        let totalWater = 0, consumedWater = 0, glassSize = 250;
+        let alarmInterval, countdownSeconds = 0, isSetupComplete = false;
+        
+        // --- DOM Elements ---
+        const pages = document.querySelectorAll('.page');
+        const navItems = document.querySelectorAll('.nav-item');
+        const alarmSound = document.getElementById('alarm-sound');
+        const navBar = document.querySelector('.nav-bar');
+        const homeBtnFromSetup = document.getElementById('go-home-from-setup-btn');
+
+        const shopItems = [
+            { img: 'bottel1.webp', price: '₹299', link: 'https://amzn.to/45Mdtm9' },
+            { img: 'Screenshot.jpg', price: 'As Your wish', link: 'https://amzn.to/3HxCI3q' },
+            { img: 'Screenshot_2.jpg', price: 'As your wish', link: 'https://amzn.to/4mP0CGz' },
+            { img: 'Screenshot_3.jpg', price: 'As your wish', link: 'https://amzn.to/4mpSxbH' },
+            { img: 'bottel 2.jpg', price: '₹110', link: 'https://amzn.to/3VfBpJr' }
+        ];
+
+        // --- Navigation ---
+        window.navigateTo = function(pageId) {
+            pages.forEach(p => p.classList.remove('active'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) targetPage.classList.add('active');
+
+            const pagesWithNav = ['page-home', 'page-alarm', 'page-analytics'];
+            if (pagesWithNav.includes(pageId)) {
+                navBar.classList.add('visible');
+            } else {
+                navBar.classList.remove('visible');
+            }
+
+            navItems.forEach(item => {
+                item.classList.toggle('active', item.dataset.page === pageId);
+            });
+            window.scrollTo(0, 0);
+
+            if (pageId === 'page-analytics') loadHistory();
+            if (pageId === 'page-setup-choice') {
+                homeBtnFromSetup.classList.toggle('inactive', !isSetupComplete);
+            }
+        }
+        
+        // --- YouTube Player ---
+        var player;
+        window.onYouTubeIframeAPIReady = function() {
+            player = new YT.Player('video-player', {
+                videoId: 'bIrCZ0HUDTU',
+                playerVars: { 'autoplay': 1, 'controls': 0, 'showinfo': 0, 'rel': 0, 'loop': 1, 'playlist': 'bIrCZ0HUDTU', 'mute': 0, 'modestbranding': 1, 'hl': 'hi' },
+                events: { 'onReady': e => e.target.playVideo() }
+            });
+        }
+        
+        // --- Main App Logic ---
+        function setupHomePage(total, glass, durationHours) {
+            totalWater = total; glassSize = glass; consumedWater = 0; isSetupComplete = true;
+            document.getElementById('go-home-inactive-btn').classList.remove('inactive');
+            updateDisplay();
+            saveTodayState();
+            if (durationHours > 0) startAlarm(durationHours * 3600);
+            navigateTo('page-home');
+        }
+
+        function updateDisplay() {
+            const remaining = Math.max(0, totalWater - consumedWater);
+            document.getElementById('total-water').textContent = `${totalWater}ml`;
+            document.getElementById('consumed-water').textContent = `${consumedWater}ml`;
+            document.getElementById('remaining-water').textContent = `${remaining}ml`;
+            
+            const percentage = totalWater > 0 ? (consumedWater / totalWater) * 100 : 0;
+            document.getElementById('bottle-water-fill').style.transform = `scaleY(${percentage / 100})`;
+
+            updateAnalyticsChart(percentage);
+
+            if (consumedWater >= totalWater && totalWater > 0) {
+                setTimeout(() => alert('Congratulations! You reached your daily goal.'), 500);
+            }
+        }
+
+        // --- Alarm Logic ---
+        function startAlarm(seconds) {
+            clearInterval(alarmInterval);
+            countdownSeconds = seconds;
+            updateCountdownDisplay();
+            alarmInterval = setInterval(() => {
+                countdownSeconds--;
+                updateCountdownDisplay();
+                if (countdownSeconds <= 0) {
+                    alarmSound.play();
+                    clearInterval(alarmInterval);
+                    setTimeout(() => startAlarm(seconds), 1000); // Restart timer
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const h = Math.floor(countdownSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((countdownSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (countdownSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('countdown-display').textContent = `${h}:${m}:${s}`;
+        }
+        
+        // --- Analytics & History ---
+        function updateAnalyticsChart(percentage) {
+            const progressCircle = document.getElementById('analytics-progress');
+            const circumference = 502.65;
+            const offset = circumference - (percentage / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            document.getElementById('chart-percentage').textContent = `${Math.round(percentage)}%`;
+        }
+        
+        function getHistory() { return JSON.parse(localStorage.getItem('waterTrackerHistory')) || []; }
+
+        function saveTodayState() {
+            const today = new Date().toISOString().split('T')[0];
+            let history = getHistory();
+            let todayEntry = history.find(entry => entry.date === today);
+            if (todayEntry) {
+                todayEntry.consumed = consumedWater; todayEntry.total = totalWater;
+            } else {
+                history.push({ date: today, consumed: consumedWater, total: totalWater });
+            }
+            localStorage.setItem('waterTrackerHistory', JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const history = getHistory();
+            const listEl = document.getElementById('history-list');
+            listEl.innerHTML = '';
+            if (history.length === 0) {
+                listEl.innerHTML = '<li>No history yet.</li>'; return;
+            }
+            history.reverse().forEach(entry => {
+                const percentage = entry.total > 0 ? Math.round((entry.consumed / entry.total) * 100) : 0;
+                const item = document.createElement('li'); item.className = 'history-item';
+                item.innerHTML = `<span>${new Date(entry.date).toDateString()}</span><span style="font-weight:600; color: ${percentage >= 100 ? 'var(--success-color)' : 'var(--text-color)'};">${entry.consumed} / ${entry.total} ml (${percentage}%)</span>`;
+                listEl.appendChild(item);
+            });
+        }
+        
+        function populateShop() {
+            const container = document.querySelector('.shop-container');
+            container.innerHTML = '';
+            shopItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'shop-card';
+                card.innerHTML = `<img src="${item.img}" alt="Bottle"><div class="shop-card-details"><span class="price">${item.price}</span><button class="buy-btn" onclick="window.open('${item.link}', '_blank')">Buy</button></div>`;
+                container.appendChild(card);
+            });
+        }
+
+        // --- Firebase AI & Coin Logic ---
+        async function handleAiSubmit() {
+            const questionInput = document.getElementById('ai-question');
+            const answerBox = document.getElementById('ai-answer');
+            const submitBtn = document.getElementById('ai-submit-btn');
+            const question = questionInput.value;
+
+            if (!question.trim()) {
+                alert("Please enter a question.");
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to ask the AI. Please wait a moment and try again.");
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            answerBox.textContent = "Checking your coin balance...";
+
+            // Firestore में index.html वाले कलेक्शन से सिक्के कटेंगे
+            // मान लेते हैं कि collection का नाम 'users' है और document ID user का uid है।
+            const userRef = doc(db, "users", user.uid);
+            
+            try {
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists() && userDoc.data().coins >= 2) {
+                    answerBox.textContent = "Asking the AI, please wait...";
+                    
+                    // Firebase Function को कॉल करें
+                    const askAI = httpsCallable(functions, 'askAI');
+                    const result = await askAI({ question: question });
+
+                    // AI का जवाब दिखाएँ
+                    answerBox.textContent = result.data.answer;
+
+                    // सिक्के काटें (यह काम अब Cloud Function में होगा ताकि यह सुरक्षित रहे)
+                    // await updateDoc(userRef, {
+                    //     coins: increment(-2)
+                    // });
+
+                } else {
+                    answerBox.textContent = "You don't have enough coins (minimum 2 required).";
+                    alert("You don't have enough coins (minimum 2 required).");
+                }
+            } catch (error) {
+                console.error("Error asking AI:", error);
+                answerBox.textContent = `An error occurred: ${error.message}`;
+                alert(`An error occurred: ${error.message}`);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
+            populateShop();
+
+            // Firebase Auth State
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log("User is signed in anonymously:", user.uid);
+                } else {
+                    signInAnonymously(auth).catch((error) => {
+                        console.error("Anonymous sign-in failed:", error);
+                    });
+                }
+            });
+            
+            document.getElementById('get-started-btn').addEventListener('click', () => navigateTo('page-setup-choice'));
+            navItems.forEach(item => item.addEventListener('click', () => navigateTo(item.dataset.page)));
+
+            document.getElementById('self-set-btn').addEventListener('click', () => {
+                const bottleMl = parseInt(document.getElementById('self-bottle-ml').value) || 0;
+                const bottleCount = parseInt(document.getElementById('self-bottle-count').value) || 0;
+                const duration = parseFloat(document.getElementById('self-duration').value) || 0;
+                if (bottleMl <= 0 || bottleCount <= 0) return alert("Please enter valid numbers.");
+                setupHomePage(bottleMl * bottleCount, bottleMl, duration);
+            });
+
+            document.getElementById('go-home-inactive-btn').addEventListener('click', () => { if (isSetupComplete) navigateTo('page-home'); });
+            homeBtnFromSetup.addEventListener('click', () => { if (isSetupComplete) navigateTo('page-home'); });
+
+            document.getElementById('add-water-btn').addEventListener('click', () => {
+                if (consumedWater < totalWater) {
+                    consumedWater = Math.min(totalWater, consumedWater + glassSize);
+                    updateDisplay();
+                    saveTodayState();
+                }
+            });
+
+            document.getElementById('clear-history-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all history?')) {
+                    localStorage.removeItem('waterTrackerHistory');
+                    loadHistory();
+                }
+            });
+            
+            // AI Submit Button
+            document.getElementById('ai-submit-btn').addEventListener('click', handleAiSubmit);
+        });
+    </script>
+</body>
+</html>
