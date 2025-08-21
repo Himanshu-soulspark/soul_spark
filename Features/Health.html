@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Habit Builder</title>
+    <style>
+        :root {
+            --primary-color: #00BCD4; /* Cyan Blue */
+            --secondary-color: #0097A7;
+            --light-bg: #E0F7FA;
+            --text-color: #333;
+            --white-color: #ffffff;
+            --green-color: #4CAF50;
+            --grey-color: #f0f0f0;
+            --red-color: #F44336;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-weight: 300;
+        }
+
+        .habit-list {
+            margin-top: 20px;
+        }
+
+        .habit-item {
+            background-color: var(--white-color);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease;
+        }
+        
+        .habit-item.completed {
+            background-color: #f1f8e9; /* Light green */
+        }
+
+        .habit-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .habit-icon {
+            font-size: 1.8em;
+        }
+        
+        .habit-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .habit-name {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .habit-streak {
+            font-size: 0.9em;
+            color: #FF9800; /* Orange for streak */
+            font-weight: bold;
+        }
+
+        .habit-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .complete-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .habit-item.completed .complete-btn {
+            background-color: var(--green-color);
+            border-color: var(--green-color);
+            color: var(--white-color);
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #757575;
+        }
+
+        .add-habit-form {
+            background-color: var(--white-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-habit-form input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .add-habit-form button {
+            padding: 12px 20px;
+            background-color: var(--secondary-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Common Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            -webkit-animation-name: fadeIn;
+            animation-name: fadeIn;
+            -webkit-animation-duration: 0.3s;
+            animation-duration: 0.3s;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            -webkit-animation-name: slideIn;
+            animation-name: slideIn;
+            -webkit-animation-duration: 0.3s;
+            animation-duration: 0.3s;
+        }
+        
+        @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+        @keyframes slideIn { from {top: -100px; opacity: 0} to {top: 0; opacity: 1} }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.4em;
+        }
+        
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* Progress Calendar Styles */
+        #calendar-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-day.header {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .calendar-day.clickable {
+            cursor: pointer;
+        }
+        
+        .calendar-day.clickable:hover {
+            background-color: #B2EBF2; /* Lighter Cyan */
+        }
+        
+        .calendar-day.completed { background-color: var(--green-color); color: white; }
+        .calendar-day.missed { background-color: var(--red-color); color: white; }
+        .calendar-day.future { background-color: var(--grey-color); color: #999; }
+        .calendar-day.empty { background: transparent; }
+        
+        /* Day Detail Modal Styles */
+        #day-habit-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .day-habit-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 5px;
+            border-bottom: 1px solid var(--grey-color);
+        }
+        
+        .day-habit-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .status-circle.completed { background-color: var(--green-color); }
+        .status-circle.missed { background-color: var(--red-color); }
+        
+        .day-habit-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        
+        .toggle-past-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--secondary-color);
+            background-color: var(--white-color);
+            color: var(--secondary-color);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Health Habit Builder</h1>
+        <p id="current-date">Aapki sehat, aapke haath</p>
+    </header>
+
+    <div class="container">
+        <div id="habit-list" class="habit-list">
+            <!-- Habit items will be dynamically inserted here by JavaScript -->
+        </div>
+
+        <form id="add-habit-form" class="add-habit-form">
+            <input type="text" id="new-habit-name" placeholder="Nayi aadat add karein..." required>
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progress-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-habit-name">Progress</h2>
+                <span class="close-btn" id="close-progress-modal">&times;</span>
+            </div>
+            <p>Pichhle 35 din ka calendar view. Din par click karke details dekhein.</p>
+            <div id="calendar-view"></div>
+        </div>
+    </div>
+    
+    <!-- Day Detail Modal (NEW) -->
+    <div id="day-detail-modal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h2 id="day-detail-title">Din ka विवरण</h2>
+                <span class="close-btn" id="close-day-detail-modal">&times;</span>
+            </div>
+            <ul id="day-habit-list">
+                <!-- Day-specific habit status will be inserted here -->
+            </ul>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const habitList = document.getElementById('habit-list');
+            const addHabitForm = document.getElementById('add-habit-form');
+            const newHabitInput = document.getElementById('new-habit-name');
+            const dateDisplay = document.getElementById('current-date');
+            
+            const progressModal = document.getElementById('progress-modal');
+            const modalHabitName = document.getElementById('modal-habit-name');
+            const calendarView = document.getElementById('calendar-view');
+            const closeProgressModalBtn = document.getElementById('close-progress-modal');
+            
+            const dayDetailModal = document.getElementById('day-detail-modal');
+            const dayDetailTitle = document.getElementById('day-detail-title');
+            const dayHabitList = document.getElementById('day-habit-list');
+            const closeDayDetailModalBtn = document.getElementById('close-day-detail-modal');
+
+            let habits = [];
+            let currentProgressHabitId = null;
+
+            // --- Utility Functions ---
+            const getTodayDateString = () => {
+                const today = new Date();
+                return today.toISOString().split('T')[0];
+            };
+            
+            const getYesterdayDateString = () => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                return yesterday.toISOString().split('T')[0];
+            };
+
+            dateDisplay.textContent = new Date().toLocaleDateString('hi-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            // --- Data Persistence ---
+            const saveHabits = () => {
+                localStorage.setItem('habits', JSON.stringify(habits));
+            };
+
+            const loadHabits = () => {
+                const storedHabits = localStorage.getItem('habits');
+                if (storedHabits) {
+                    habits = JSON.parse(storedHabits);
+                } else {
+                    habits = [
+                        { id: 1, name: '8 गिलास पानी पिएं', icon: '🚰', streak: 0, lastCompleted: null, history: [] },
+                        { id: 2, name: '7-8 घंटे सोएं', icon: '💤', streak: 0, lastCompleted: null, history: [] },
+                        { id: 3, name: '10,000 कदम चलें', icon: '🏃‍♂️', streak: 0, lastCompleted: null, history: [] },
+                        { id: 4, name: 'रोज़ फल खाएं', icon: '🥗', streak: 0, lastCompleted: null, history: [] },
+                    ];
+                }
+            };
+
+            // --- Core Rendering and Logic ---
+            const renderHabits = () => {
+                habitList.innerHTML = '';
+                if (habits.length === 0) {
+                    habitList.innerHTML = `<p style="text-align:center; color:#777;">Koi aadat nahi hai. Shuru karne ke liye ek add karein!</p>`;
+                }
+                
+                habits.forEach(habit => {
+                    const today = getTodayDateString();
+                    const isCompletedToday = habit.lastCompleted === today;
+
+                    const habitItem = document.createElement('div');
+                    habitItem.className = `habit-item ${isCompletedToday ? 'completed' : ''}`;
+                    habitItem.dataset.id = habit.id;
+
+                    habitItem.innerHTML = `
+                        <div class="habit-info">
+                            <span class="habit-icon">${habit.icon || '🎯'}</span>
+                            <div class="habit-details">
+                                <span class="habit-name">${habit.name}</span>
+                                <span class="habit-streak">🔥 ${habit.streak} Din Streak</span>
+                            </div>
+                        </div>
+                        <div class="habit-actions">
+                             <button class="action-btn reminder-btn" title="Reminder Set Karein">🔔</button>
+                             <button class="action-btn progress-btn" title="Progress Dekhein">📊</button>
+                             <button class="action-btn delete-btn" title="Delete Karein">🗑️</button>
+                             <button class="complete-btn">${isCompletedToday ? '✔' : ''}</button>
+                        </div>
+                    `;
+                    habitList.appendChild(habitItem);
+                });
+            };
+
+            const addHabit = (name) => {
+                const newHabit = {
+                    id: Date.now(), name, icon: '🎯', streak: 0, lastCompleted: null, history: []
+                };
+                habits.push(newHabit);
+                saveAndRender();
+            };
+
+            const toggleComplete = (id) => {
+                const habit = habits.find(h => h.id == id);
+                if (!habit) return;
+
+                const today = getTodayDateString();
+                const yesterday = getYesterdayDateString();
+
+                if (habit.lastCompleted === today) {
+                    habit.lastCompleted = habit.history.length > 1 ? habit.history[habit.history.length - 2] : null;
+                    habit.streak = habit.streak > 0 ? habit.streak - 1 : 0;
+                    habit.history = habit.history.filter(date => date !== today);
+                } else {
+                    if (habit.lastCompleted === yesterday) {
+                        habit.streak++;
+                    } else {
+                        habit.streak = 1;
+                    }
+                    habit.lastCompleted = today;
+                    if (!habit.history.includes(today)) {
+                       habit.history.push(today);
+                    }
+                }
+                saveAndRender();
+            };
+
+            const deleteHabit = (id) => {
+                if (confirm('Kya aap is aadat ko delete karna chahte hain?')) {
+                    habits = habits.filter(h => h.id != id);
+                    saveAndRender();
+                }
+            };
+            
+            const setReminder = (id) => {
+                const habit = habits.find(h => h.id == id);
+                if (!habit) return;
+                const time = prompt(`"${habit.name}" ke liye reminder ka time set karein (24-hour format, jaise 14:30):`);
+                if (!time || !/^\d{2}:\d{2}$/.test(time)) { alert('Galat format. Please HH:MM format ka istemal karein.'); return; }
+                const [hours, minutes] = time.split(':');
+                const now = new Date();
+                const reminderTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+                if (reminderTime < now) { reminderTime.setDate(reminderTime.getDate() + 1); }
+                const timeToReminder = reminderTime.getTime() - now.getTime();
+                setTimeout(() => showNotification(`Reminder: "${habit.name}" poori karne ka samay!`), timeToReminder);
+                alert(`Reminder set! Aapko ${time} baje notification milega.`);
+            };
+            
+            const showNotification = (body) => {
+                 if (!('Notification' in window)) { alert(body); }
+                 else if (Notification.permission === 'granted') { new Notification('Health Habit Builder', { body }); }
+                 else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(p => { if (p === 'granted') new Notification('Health Habit Builder', { body }); });
+                 }
+            };
+
+            const showProgress = (id) => {
+                currentProgressHabitId = id;
+                const habit = habits.find(h => h.id == id);
+                if (!habit) return;
+                
+                modalHabitName.textContent = `"${habit.name}" Progress`;
+                calendarView.innerHTML = '';
+                
+                const headers = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                headers.forEach(h => {
+                    const headerEl = document.createElement('div');
+                    headerEl.className = 'calendar-day header';
+                    headerEl.textContent = h;
+                    calendarView.appendChild(headerEl);
+                });
+
+                const today = new Date();
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - 34);
+                startDate.setDate(startDate.getDate() - startDate.getDay());
+
+                for (let i = 0; i < 35; i++) {
+                    const day = new Date(startDate);
+                    day.setDate(startDate.getDate() + i);
+                    const dayString = day.toISOString().split('T')[0];
+                    
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    dayEl.textContent = day.getDate();
+                    dayEl.dataset.date = dayString;
+                    
+                    if (day > today) {
+                        dayEl.classList.add('future');
+                    } else {
+                        dayEl.classList.add('clickable');
+                        if (habit.history.includes(dayString)) {
+                            dayEl.classList.add('completed');
+                        } else {
+                            dayEl.classList.add('missed');
+                        }
+                    }
+                    calendarView.appendChild(dayEl);
+                }
+                
+                progressModal.style.display = 'block';
+            };
+
+            const showDayDetails = (dateString) => {
+                const date = new Date(dateString + 'T00:00:00');
+                const formattedDate = date.toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                dayDetailTitle.textContent = `${formattedDate} ka Status`;
+                
+                dayHabitList.innerHTML = '';
+                
+                habits.forEach(habit => {
+                    const isCompleted = habit.history.includes(dateString);
+                    const li = document.createElement('li');
+                    li.className = 'day-habit-item';
+                    
+                    li.innerHTML = `
+                        <div class="day-habit-info">
+                            <div class="status-circle ${isCompleted ? 'completed' : 'missed'}"></div>
+                            <span>${habit.name}</span>
+                        </div>
+                        <button class="toggle-past-btn" data-id="${habit.id}" data-date="${dateString}">
+                            ${isCompleted ? 'Undo' : 'Poora karein'}
+                        </button>
+                    `;
+                    dayHabitList.appendChild(li);
+                });
+                
+                dayDetailModal.style.display = 'block';
+            };
+            
+            const togglePastCompletion = (habitId, dateString) => {
+                const habit = habits.find(h => h.id == habitId);
+                if (!habit) return;
+
+                const dateIndex = habit.history.indexOf(dateString);
+                if (dateIndex > -1) {
+                    habit.history.splice(dateIndex, 1);
+                } else {
+                    habit.history.push(dateString);
+                    habit.history.sort();
+                }
+                saveHabits();
+                
+                showDayDetails(dateString);
+                if (currentProgressHabitId) {
+                    showProgress(currentProgressHabitId);
+                }
+            };
+            
+
+            // --- Event Listeners ---
+            addHabitForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const habitName = newHabitInput.value.trim();
+                if (habitName) { addHabit(habitName); newHabitInput.value = ''; }
+            });
+
+            habitList.addEventListener('click', (e) => {
+                const habitItem = e.target.closest('.habit-item');
+                if (!habitItem) return;
+                const habitId = habitItem.dataset.id;
+                
+                if (e.target.closest('.complete-btn')) toggleComplete(habitId);
+                if (e.target.closest('.delete-btn')) deleteHabit(habitId);
+                if (e.target.closest('.reminder-btn')) setReminder(habitId);
+                if (e.target.closest('.progress-btn')) showProgress(habitId);
+            });
+            
+            calendarView.addEventListener('click', (e) => {
+                const dayEl = e.target.closest('.calendar-day.clickable');
+                if (dayEl && dayEl.dataset.date) {
+                    showDayDetails(dayEl.dataset.date);
+                }
+            });
+            
+            dayHabitList.addEventListener('click', (e) => {
+                const toggleBtn = e.target.closest('.toggle-past-btn');
+                if(toggleBtn) {
+                    const { id, date } = toggleBtn.dataset;
+                    togglePastCompletion(id, date);
+                }
+            });
+            
+            closeProgressModalBtn.onclick = () => progressModal.style.display = 'none';
+            closeDayDetailModalBtn.onclick = () => dayDetailModal.style.display = 'none';
+            window.onclick = (event) => {
+                if (event.target == progressModal) progressModal.style.display = 'none';
+                if (event.target == dayDetailModal) dayDetailModal.style.display = 'none';
+            }
+
+            // --- Initialization ---
+            function saveAndRender() {
+                saveHabits();
+                renderHabits();
+            }
+
+            loadHabits();
+            renderHabits();
+            
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+</body>
+</html>
