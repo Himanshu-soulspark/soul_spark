@@ -375,7 +375,7 @@
     .tracker-btn {
         width: calc(100% - 20px); /* Account for padding */
         padding: 12px 15px;
-        font-size: 0.95em;
+        font-size: 0.9em; /* MODIFIED: Slightly smaller font size to prevent overflow */
         font-weight: bold;
         color: #fff;
         background: linear-gradient(145deg, #0097c9, #007095);
@@ -572,7 +572,7 @@
     
     /* New styles for Profile Form */
     #profile-form {
-        display: flex;
+        display: none; /* MODIFIED: Initially hidden */
         flex-direction: column;
         gap: 15px;
         width: 90%;
@@ -700,26 +700,6 @@
         font-size: 1em;
         color: #666;
     }
-    /* Custom amount input style */
-    .custom-amount-group {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        gap: 8px;
-    }
-    .custom-amount-group label {
-        font-weight: 600;
-        color: #333;
-        font-size: 0.9em;
-    }
-    .custom-amount-group input {
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 1em;
-        width: 100%;
-        box-sizing: border-box;
-    }
     .add-coins-btn {
         width: 100%;
         padding: 18px;
@@ -805,16 +785,19 @@
     <div class="features-container-16-9">
         <div class="features-section">
             <div class="features-grid">
-                <!-- MODIFIED: All feature items now link to Features/Health.html -->
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
+                <!-- MODIFIED: Link to Health.html -->
                 <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg><span>Health Habit Builder</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
+                <!-- MODIFIED: Link to Diet.html -->
+                <div class="feature-item" onclick="window.location.href='Features/Diet.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
+                
+                <!-- New Features -->
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
+                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
             </div>
         </div>
     </div>
@@ -1081,10 +1064,16 @@
             </div>
         </form>
 
-        <div class="profile-buttons">
-            <button class="profile-btn" id="save-profile-btn">Save Profile</button>
+        <!-- MODIFIED: Wrapped buttons in containers to show/hide them -->
+        <div id="profile-main-buttons" class="profile-buttons">
+            <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
             <button class="profile-btn" id="wallet-btn">Wallet</button>
             <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
+        </div>
+        
+        <div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
+            <button class="profile-btn" id="save-profile-btn">Save Profile</button>
+            <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
         </div>
     </div>
 </div>
@@ -1113,11 +1102,6 @@
                 <div class="coin-balance" id="wallet-coin-balance-display">0</div>
                 <div class="coin-label">Available Coins</div>
             </div>
-            <!-- MODIFIED: Added custom amount input -->
-            <div class="custom-amount-group">
-                <label for="custom-amount-input">Enter Amount to Add (₹)</label>
-                <input type="number" id="custom-amount-input" placeholder="e.g., 10" min="1">
-            </div>
             <button class="add-coins-btn" id="add-coins-btn">Add Coins (₹1 = 5 Coins)</button>
         </div>
     </div>
@@ -1128,7 +1112,7 @@
     <div class="nav-item active" id="nav-home"><svg viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"></path></svg><span>Home</span></div>
     <div class="nav-item" id="nav-consultant"><svg viewBox="0 0 24 24"><path d="M20,6H16V2H8V6H4C2.9,6 2,6.9 2,8V19C2,20.1 2.9,21 4,21H20C21.1,21 22,20.1 22,19V8C22,6.9 21.1,6 20,6M10,4H14V6H10V4M20,19H4V8H20V19M12,10.5L14,12.5L12,14.5L10,12.5L12,10.5Z"></path></svg><span>Consultant</span></div>
     <div class="nav-item" id="nav-care"><svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,11.56 4.05,11.12 4.14,10.7C5.9,10.14 7.5,9 7.5,7C7.5,6.05 7.08,5.19 6.4,4.58C7.5,3.14 9.12,2.29 11,2.06C11.33,3.15 12.28,4 13.5,4C14.72,4 15.67,3.15 16,2.06C17.88,2.29 19.5,3.14 20.6,4.58C19.92,5.19 19.5,6.05 19.5,7C19.5,9 21.1,10.14 22.86,10.7C22.95,11.12 23,11.56 23,12C22.97,16.41 19.41,20 15,20H9Z"></path></svg><span>Care</span></div>
-    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H17H3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
+    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
     <div class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"></path></svg><span>Profile</span></div>
 </nav>
 
@@ -1526,6 +1510,8 @@
                 address: address
             });
             alert("Profile saved successfully!");
+            // MODIFIED: After saving, switch back to the main profile view
+            showMainProfileView(); 
         } catch (error) {
             console.error("Error saving profile: ", error);
             alert("Failed to save profile. Please try again.");
@@ -1548,31 +1534,20 @@
             alert("Please log in to add coins.");
             return;
         }
-
-        // MODIFIED: Read amount from custom input field
-        const customAmountInput = document.getElementById('custom-amount-input');
-        const amountINR = parseFloat(customAmountInput.value);
-
-        if (isNaN(amountINR) || amountINR <= 0) {
-            alert("Please enter a valid amount greater than 0.");
-            return;
-        }
         
         alert("Connecting to payment gateway...");
 
         const idToken = await user.getIdToken();
-        const amountInPaise = Math.round(amountINR * 100); // Amount in paise
+        const amount = 100; // Amount in paise (e.g., 100 paise = ₹1)
 
         try {
-            // This now needs a server-side endpoint to work correctly.
-            // The fetch path '/create-payment' assumes a server is running.
-            const response = await fetch('/create-payment', { 
+            const response = await fetch('/create-payment', { // No need for full URL anymore
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    amount: amountInPaise,
+                    amount: amount,
                     token: idToken
                 })
             });
@@ -1591,7 +1566,7 @@
                 order_id: order.id,
                 handler: async function (response) {
                     
-                    const verificationResponse = await fetch('/verify-payment', {
+                    const verificationResponse = await fetch('/verify-payment', { // No need for full URL
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({
@@ -1607,10 +1582,7 @@
                     if(result.status === 'success') {
                         alert('Payment successful! Coins have been added to your wallet.');
                         const currentBalance = parseInt(document.getElementById('wallet-coin-balance-display').textContent);
-                        // MODIFIED: Calculate coins based on the amount paid
-                        const coinsToAdd = amountINR * 5; 
-                        updateCoinDisplays(currentBalance + coinsToAdd);
-                        customAmountInput.value = ''; // Clear input field
+                        updateCoinDisplays(currentBalance + 5); 
                     } else {
                         alert('Payment verification failed. Please contact support.');
                     }
@@ -1629,7 +1601,7 @@
 
         } catch (error) {
             console.error("Payment Error: ", error);
-            alert("Error: " + error.message + "\nNote: Payment processing requires a backend server. This will not work on a local file.");
+            alert("Error: " + error.message);
         }
     }
 
@@ -1643,6 +1615,25 @@
             console.error("Logout failed:", error);
         });
     }
+
+    // --- START: NEW Profile Page View Functions ---
+    const profileForm = document.getElementById('profile-form');
+    const profileMainButtons = document.getElementById('profile-main-buttons');
+    const profileEditButtons = document.getElementById('profile-edit-buttons');
+
+    function showEditProfileView() {
+        profileMainButtons.style.display = 'none';
+        profileForm.style.display = 'flex';
+        profileEditButtons.style.display = 'flex';
+    }
+
+    function showMainProfileView() {
+        profileMainButtons.style.display = 'flex';
+        profileForm.style.display = 'none';
+        profileEditButtons.style.display = 'none';
+    }
+    // --- END: NEW Profile Page View Functions ---
+
 
     // =================================================================================
     // ===== END: PROFILE, WALLET, AND AUTH LOGIC =====
@@ -1676,7 +1667,11 @@
             });
         });
         
+        // MODIFIED: Re-wired profile button event listeners
+        document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
+        document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
         document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
+        
         document.getElementById('wallet-btn').addEventListener('click', openWallet);
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('add-coins-btn').addEventListener('click', initiateAddCoins);
