@@ -71,8 +71,6 @@ app.post('/get-food-interaction', async (req, res) => {
     const COIN_COST = 2;
     if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
 
-    // <<<<<<<<<<<<<<< यही एकमात्र ज़रूरी बदलाव है >>>>>>>>>>>>>>>>
-    // AI को बेहतर और विस्तृत निर्देश दिए गए हैं ताकि वह हिंदी में और कारण के साथ जवाब दे।
     const improvedPrompt = `
       You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
 
@@ -86,9 +84,8 @@ app.post('/get-food-interaction', async (req, res) => {
 
       For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
     `;
-    // <<<<<<<<<<<<<<< बदलाव यहाँ समाप्त होता है >>>>>>>>>>>>>>>>
 
-    const result = await aiModel.generateContent(improvedPrompt); // यहाँ सुधारे हुए प्रॉम्प्ट का उपयोग किया गया है
+    const result = await aiModel.generateContent(improvedPrompt);
     const aiAnswer = result.response.text();
 
     await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
@@ -100,7 +97,6 @@ app.post('/get-food-interaction', async (req, res) => {
 });
 
 // --- (मौजूदा) AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
-// यह फंक्शन वैसा का वैसा ही है क्योंकि यह आपके नए 'Diet Plans' फीचर के लिए काम करेगा।
 app.post('/ask-ai', async (req, res) => {
   try {
     const { question, token } = req.body;
@@ -229,6 +225,39 @@ app.get('/get-nutrition-info', async (req, res) => {
     }
     res.status(404).json({ error: 'Could not find nutritional information for this item.' });
 });
+
+// --- (नया और अत्यंत आवश्यक) बारकोड से भोजन की जानकारी देने वाला Endpoint ---
+app.get('/get-info-by-barcode', async (req, res) => {
+    const { upc } = req.query; // UPC (बारकोड नंबर) को query से प्राप्त करें
+    if (!upc) {
+        return res.status(400).json({ error: 'UPC (barcode) is required.' });
+    }
+    try {
+        // Nutritionix UPC लुकअप API को कॉल करें
+        const response = await axios.get(`https://trackapi.nutritionix.com/v2/search/item`, {
+            params: {
+                upc: upc
+            },
+            headers: {
+                'x-app-id': process.env.NUTRITIONIX_APP_ID,
+                'x-app-key': process.env.NUTRITIONIX_API_KEY
+            }
+        });
+
+        // अगर भोजन मिलता है, तो उसकी जानकारी वापस भेजें
+        if (response.data && response.data.foods && response.data.foods.length > 0) {
+            // हम इसे उसी फॉर्मेट में भेज रहे हैं जैसा /get-nutrition-info भेजता है,
+            // ताकि फ्रंटएंड में कोई बदलाव न करना पड़े।
+            res.json({ source: 'Nutritionix UPC', data: response.data.foods[0] });
+        } else {
+            res.status(404).json({ error: 'Could not find food item for this barcode.' });
+        }
+    } catch (error) {
+        console.error('Error fetching data from Nutritionix UPC lookup:', error);
+        res.status(500).json({ error: 'Failed to get data for barcode.' });
+    }
+});
+
 
 // --- (मौजूदा) Razorpay पेमेंट बनाने वाले Endpoints ---
 app.post('/create-payment', async (req, res) => {
