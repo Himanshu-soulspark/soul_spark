@@ -446,7 +446,7 @@
             }
             renderDiseaseList();
 
-            // --- My Plan Logic (मौजूदा) ---
+            // --- My Plan Logic (सुधारा हुआ प्रॉम्प्ट) ---
             const createMyPlanBtn = document.getElementById('create-my-plan-btn');
             const questionnaireModal = document.getElementById('questionnaire-modal');
             const closeModalBtn = document.getElementById('modal-close-btn');
@@ -462,7 +462,17 @@
                     const userDetails = Object.fromEntries(formData.entries());
                     userDetails.health_conditions = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-option.selected')).map(el => el.dataset.value).filter(val => ['diabetes', 'hypertension', 'thyroid', 'pcos'].includes(val));
                     userDetails.allergies = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-option.selected')).map(el => el.dataset.value).filter(val => ['gluten', 'dairy', 'nuts', 'seafood'].includes(val));
-                    const prompt = `Create a structured 7-day diet plan in Hindi for a user with these details: - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg, Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal} - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}. The output MUST be a valid JSON object ONLY. No extra text or markdown. The root object must have two keys: "metadata" and "weeklyPlan". 1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers. 2. "weeklyPlan": An array of 7 objects, one for each day from Sunday (index 0) to Saturday (index 6). Each day object must have "day" and "schedule". The "schedule" must be an array of meal objects. Each meal object needs: "time", "icon", "title", "instruction", and "type" ("meal"). Provide at least 4 meals per day: Breakfast, Lunch, Evening Snack, and Dinner.`;
+                    
+                    // <<<<<<<<<<<<<<< यही एकमात्र ज़रूरी बदलाव है >>>>>>>>>>>>>>>>
+                    const prompt = `Create a structured 7-day diet plan in Hindi for a user with these details: - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg, Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal} - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}.
+                    The output MUST be a valid JSON object ONLY.
+                    The root object must have "metadata" and "weeklyPlan" keys.
+                    1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers.
+                    2. "weeklyPlan": An array of 7 day-objects. Each day-object must have "day" and "schedule".
+                    The "schedule" must be an array of meal objects. Each meal object needs: "time", "icon", "title", and "instruction".
+                    VERY IMPORTANT: The "instruction" field MUST contain simple, machine-readable food items in English for the Nutritionix API, like "1 slice brown bread, 1 apple" or "1 bowl lentil soup, 1 cup rice, okra curry". Avoid vague Hindi terms like "थोड़ा सा" or "सब्जी". Use precise quantities and English names where possible inside the Hindi sentence.`;
+                    // <<<<<<<<<<<<<<< बदलाव यहाँ समाप्त होता है >>>>>>>>>>>>>>>>
+
                     const idToken = await currentUser.getIdToken();
                     const response = await fetch('/generate-diet-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, token: idToken }) });
                     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate plan.');
@@ -487,10 +497,10 @@
             function renderMyPlanUI(plan) {
                  if(!plan || !plan.metadata) return;
                  const nutritionContainer = document.querySelector('#my-plan-generated-state .nutrition-summary');
-                 nutritionContainer.innerHTML = `...`; // जैसा पहले था
+                 nutritionContainer.innerHTML = `<div class="nutrition-widget"><h4>कैलोरी</h4><p>${plan.metadata.calories} kcal</p></div> <div class="nutrition-widget"><h4>प्रोटीन</h4><p>${plan.metadata.protein} g</p></div> <div class="nutrition-widget"><h4>कार्ब्स</h4><p>${plan.metadata.carbs} g</p></div> <div class="nutrition-widget"><h4>फैट</h4><p>${plan.metadata.fat} g</p></div>`;
             }
 
-            // --- Alerts Screen Logic (थोड़ा बदला हुआ) ---
+            // --- Alerts Screen Logic (मौजूदा) ---
             const prevDayBtn = document.getElementById('prev-day-btn');
             const nextDayBtn = document.getElementById('next-day-btn');
             const todayBtn = document.getElementById('today-btn');
@@ -521,8 +531,6 @@
                         card.className = `alert-card`;
                         card.innerHTML = `<div class="alert-time">${alert.time}</div><div class="alert-timeline-marker"><div class="alert-icon">${alert.icon}</div></div><div class="alert-content"><h3>${alert.title}</h3><p>${alert.instruction}</p></div>`;
                         timelineView.appendChild(card);
-                        
-                        // --- नया बदलाव: भोजन पर क्लिक करके पोषक तत्व देखें ---
                         const alertContent = card.querySelector('.alert-content');
                         alertContent.addEventListener('click', () => {
                             fetchAndShowNutrition(alert.instruction);
@@ -530,13 +538,55 @@
                     });
                 }
             }
-            function formatAlertDate(date) { /* जैसा पहले था */ }
+            function formatAlertDate(date) {
+                const today = new Date(); today.setHours(0,0,0,0);
+                const compareDate = new Date(date); compareDate.setHours(0,0,0,0);
+                const diffDays = Math.ceil((compareDate - today) / (1000 * 60 * 60 * 24));
+                if (diffDays === 0) return `आज, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                if (diffDays === -1) return `कल, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                if (diffDays === 1) return `आने वाला कल, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                return date.toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+            }
             prevDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() - 1); renderAlerts(); });
             nextDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() + 1); renderAlerts(); });
             todayBtn.addEventListener('click', () => { currentAlertDate = new Date(); renderAlerts(); });
             
             // --- Learn Screen Logic (मौजूदा) ---
-            // ... जैसा पहले था ...
+            const aiGenerateLearnBtn = document.getElementById('ai-generate-learn-btn');
+            const learnSearchInput = document.getElementById('learn-search-input');
+            const aiArticleContainer = document.getElementById('ai-article-container');
+            const videoScroller = document.getElementById('video-scroller-container');
+            aiGenerateLearnBtn.addEventListener('click', async () => {
+                const topic = learnSearchInput.value.trim();
+                if (!topic) return alert('कृपया एक विषय लिखें।');
+                if (!currentUser) return alert('AI फीचर का उपयोग करने के लिए कृपया लॉग इन करें।');
+                aiGenerateLearnBtn.disabled = true;
+                aiGenerateLearnBtn.textContent = 'Generating...';
+                aiArticleContainer.innerHTML = "<p>जानकारी लोड हो रही है...</p>";
+                videoScroller.innerHTML = "<p>वीडियो खोजे जा रहे हैं...</p>";
+                try {
+                    const idToken = await currentUser.getIdToken();
+                    const articlePromise = fetch('/ask-ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: `Write a short, simple, and informative article in Hindi about "${topic}".`, token: idToken })
+                    }).then(res => res.json());
+                    const videoPromise = fetch(`/get-youtube-videos?query=${encodeURIComponent(topic)}`).then(res => res.json());
+                    const [articleResult, videoResult] = await Promise.all([articlePromise, videoPromise]);
+                    if (articleResult.answer) {
+                        aiArticleContainer.innerHTML = articleResult.answer.replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>').replace(/\n/g, '<br>');
+                    } else { throw new Error(articleResult.error || 'Could not fetch article.'); }
+                    if (videoResult && videoResult.length > 0) {
+                        videoScroller.innerHTML = videoResult.map(video => `<div class="video-container" style="flex: 0 0 100%; scroll-snap-align: start;"><iframe src="https://www.youtube.com/embed/${video.id.videoId}" title="${video.snippet.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`).join('');
+                    } else { videoScroller.innerHTML = "<p>इस विषय पर कोई वीडियो नहीं मिला।</p>"; }
+                } catch (error) {
+                    console.error("Error in Learn feature:", error);
+                    alert("Error: " + error.message);
+                } finally {
+                    aiGenerateLearnBtn.disabled = false;
+                    aiGenerateLearnBtn.textContent = 'AI Generate';
+                }
+            });
 
             // --- Nutrition & Scanner Logic (नया) ---
             const nutritionModal = document.getElementById('nutrition-modal');
@@ -556,7 +606,10 @@
                 nutritionModal.style.display = 'flex';
                 try {
                     const response = await fetch(`/get-nutrition-info?food=${encodeURIComponent(foodQuery)}`);
-                    if (!response.ok) throw new Error('Nutritionix/USDA API से जानकारी नहीं मिली।');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Nutritionix/USDA API से जानकारी नहीं मिली।');
+                    }
                     const result = await response.json();
                     
                     const foodData = result.data;
@@ -584,9 +637,7 @@
                         type: "LiveStream",
                         target: barcodeScannerView,
                         constraints: {
-                            width: 480,
-                            height: 320,
-                            facingMode: "environment" // rear camera
+                            facingMode: "environment"
                         },
                     },
                     decoder: {
@@ -595,6 +646,7 @@
                 }, function(err) {
                     if (err) {
                         console.log(err);
+                        alert('कैमरा शुरू करने में त्रुटि: ' + err);
                         return;
                     }
                     Quagga.start();
@@ -609,16 +661,44 @@
                 scannerModal.style.display = 'none';
             }
 
-            function handleBarcodeDetection(result) {
+            async function handleBarcodeDetection(result) {
                 const code = result.codeResult.code;
-                alert(`बारकोड मिला: ${code}\n\n(यह फीचर डेमो है। सर्वर पर UPC लुकअप फंक्शन जोड़ना होगा)`);
-                // यहाँ आप सर्वर को बारकोड भेजकर जानकारी प्राप्त कर सकते हैं।
-                // fetchAndShowNutritionByBarcode(code); 
-                stopScanner();
+                stopScanner(); // स्कैन होते ही स्कैनर रोक दें
+                
+                // बारकोड से मिली जानकारी को सीधे पोषक तत्व वाले modal में दिखाएँ
+                nutritionModalBody.innerHTML = `<p>बारकोड ${code} से जानकारी खोजी जा रही है...</p>`;
+                nutritionModal.style.display = 'flex';
+                try {
+                    const response = await fetch(`/get-info-by-barcode?upc=${code}`);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `बारकोड ${code} के लिए कोई जानकारी नहीं मिली।`);
+                    }
+                    const nutritionResult = await response.json();
+                    const foodData = nutritionResult.data;
+                    let html = `<h4>${foodData.food_name || 'N/A'}</h4>`;
+                    html += '<ul>';
+                    html += `<li>कैलोरी: ${foodData.nf_calories || 'N/A'} kcal</li>`;
+                    html += `<li>प्रोटीन: ${foodData.nf_protein || 'N/A'} g</li>`;
+                    html += `<li>कार्ब्स: ${foodData.nf_total_carbohydrate || 'N/A'} g</li>`;
+                    html += `<li>फैट: ${foodData.nf_total_fat || 'N/A'} g</li>`;
+                    html += '</ul>';
+                    nutritionModalBody.innerHTML = html;
+                } catch (error) {
+                    nutritionModalBody.innerHTML = `<p>${error.message}</p>`;
+                }
             }
 
             // --- Form Population & Initial Setup (मौजूदा) ---
-            function populateSelect(elementId, start, end) { /* जैसा पहले था */ }
+            function populateSelect(elementId, start, end) {
+                const select = document.getElementById(elementId);
+                if (!select) return;
+                for (let i = start; i <= end; i++) {
+                    const option = document.createElement('option');
+                    option.value = i; option.textContent = i;
+                    select.appendChild(option);
+                }
+            }
             populateSelect('age', 1, 100); populateSelect('height', 100, 220); populateSelect('weight', 20, 200);
             document.querySelectorAll('.multi-select-option').forEach(option => {
                 option.addEventListener('click', () => { option.classList.toggle('selected'); });
