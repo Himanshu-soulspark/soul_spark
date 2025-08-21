@@ -15,5 +15,6 @@
     "express": "^4.19.2",
     "firebase-admin": "^12.1.0",
     "razorpay": "^2.9.4"
+    npm install axios googleapis
   }
 }
