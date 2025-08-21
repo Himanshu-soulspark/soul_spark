@@ -6,7 +6,7 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Razorpay = require('razorpay');
-const path = require('path'); // <<<--- यह नई लाइन है
+const path = require('path');
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें
@@ -47,9 +47,8 @@ console.log("Razorpay initialized.");
 // 3. API Endpoints (आपके सर्वर के रास्ते)
 // =================================================================
 
-// --- AI से सवाल पूछने और सिक्के काटने वाला Endpoint ---
+// --- AI से दवा-भोजन इंटरेक्शन पूछने और सिक्के काटने वाला Endpoint ---
 app.post('/ask-ai', async (req, res) => {
-  // (यह कोड वैसा ही रहेगा, कोई बदलाव नहीं)
   try {
     const { question, token } = req.body;
     if (!token || !question) {
@@ -67,12 +66,26 @@ app.post('/ask-ai', async (req, res) => {
     if (userData.coins < COIN_COST) {
       return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
     }
-    const result = await aiModel.generateContent(question);
+
+    // MODIFIED: AI को JSON फॉर्मेट में जवाब देने के लिए कहा गया है ताकि जवाब हमेशा सही फॉर्मेट में आए
+    const promptForJson = `
+      Analyze food interactions for the medicine(s): ${question}.
+      Respond ONLY with a valid JSON object. Do not add any text, markdown, or comments before or after the JSON.
+      The JSON object must have three keys: "avoid", "limit", and "safe".
+      Each key's value must be an array of strings (food items).
+      For example: {"avoid": ["Alcohol", "Grapefruit Juice"], "limit": ["Caffeine"], "safe": ["Green vegetables", "Fruits"]}
+      If a category has no items, provide an empty array, for example: "limit": [].
+      The food items should be in simple, understandable terms.
+    `;
+
+    const result = await aiModel.generateContent(promptForJson);
     const response = await result.response;
     const aiAnswer = response.text();
+
     await userRef.update({
       coins: admin.firestore.FieldValue.increment(-COIN_COST)
     });
+    
     res.json({ answer: aiAnswer });
   } catch (error) {
     console.error("Error in /ask-ai endpoint:", error);
@@ -81,46 +94,32 @@ app.post('/ask-ai', async (req, res) => {
 });
 
 
-// --- नया AI डाइट प्लान बनाने और 1 सिक्का काटने वाला Endpoint ---
+// --- AI डाइट प्लान बनाने और 1 सिक्का काटने वाला Endpoint ---
 app.post('/generate-diet-plan', async (req, res) => {
   try {
-    // Diet.html से 'prompt' और 'token' आएगा
     const { prompt, token } = req.body;
     if (!token || !prompt) {
       return res.status(400).json({ error: "User token and prompt are required." });
     }
-
-    // यूजर को वेरिफाई करें
     const decodedToken = await admin.auth().verifyIdToken(token);
     const uid = decodedToken.uid;
-
-    // डेटाबेस से यूजर की जानकारी निकालें
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found." });
     }
-
-    // जांचें कि यूजर के पास सिक्के हैं या नहीं
     const userData = userDoc.data();
-    const COIN_COST = 1; // डाइट प्लान के लिए 1 सिक्का लगेगा
+    const COIN_COST = 1; 
     if (userData.coins < COIN_COST) {
       return res.status(403).json({ error: "You don't have enough coins (minimum 1 required for a diet plan)." });
     }
-
-    // AI से डाइट प्लान जेनरेट करवाएं
     const result = await aiModel.generateContent(prompt);
     const response = await result.response;
     const aiAnswer = response.text();
-
-    // यूजर के अकाउंट से 1 सिक्का काटें
     await userRef.update({
       coins: admin.firestore.FieldValue.increment(-COIN_COST)
     });
-
-    // AI का जवाब (डाइट प्लान) वापस भेजें
     res.json({ answer: aiAnswer });
-
   } catch (error) {
     console.error("Error in /generate-diet-plan endpoint:", error);
     res.status(500).json({ error: "An internal server error occurred while generating the diet plan." });
@@ -130,7 +129,6 @@ app.post('/generate-diet-plan', async (req, res) => {
 
 // --- Razorpay पेमेंट ऑर्डर बनाने वाला Endpoint ---
 app.post('/create-payment', async (req, res) => {
-  // (यह कोड वैसा ही रहेगा, कोई बदलाव नहीं)
   try {
     const { amount, token } = req.body;
     if (!token || !amount) {
@@ -157,7 +155,6 @@ app.post('/create-payment', async (req, res) => {
 
 // --- Razorpay पेमेंट को वेरिफाई करने वाला Endpoint ---
 app.post('/verify-payment', async (req, res) => {
-    // (यह कोड वैसा ही रहेगा, कोई बदलाव नहीं)
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, token } = req.body;
         const crypto = require('crypto');
@@ -188,7 +185,7 @@ app.post('/verify-payment', async (req, res) => {
 
 
 // =================================================================
-// 5. वेबसाइट की फाइलों को दिखाने के लिए कोड (यह नया सेक्शन है)
+// 5. वेबसाइट की फाइलों को दिखाने के लिए कोड
 // =================================================================
 // यह Render को बताता है कि आपकी वेबसाइट की फाइलें कहाँ रखी हैं।
 app.use(express.static(path.join(__dirname, '..')));
