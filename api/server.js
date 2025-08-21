@@ -81,6 +81,53 @@ app.post('/ask-ai', async (req, res) => {
 });
 
 
+// --- नया AI डाइट प्लान बनाने और 1 सिक्का काटने वाला Endpoint ---
+app.post('/generate-diet-plan', async (req, res) => {
+  try {
+    // Diet.html से 'prompt' और 'token' आएगा
+    const { prompt, token } = req.body;
+    if (!token || !prompt) {
+      return res.status(400).json({ error: "User token and prompt are required." });
+    }
+
+    // यूजर को वेरिफाई करें
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    // डेटाबेस से यूजर की जानकारी निकालें
+    const userRef = db.collection('users').doc(uid);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // जांचें कि यूजर के पास सिक्के हैं या नहीं
+    const userData = userDoc.data();
+    const COIN_COST = 1; // डाइट प्लान के लिए 1 सिक्का लगेगा
+    if (userData.coins < COIN_COST) {
+      return res.status(403).json({ error: "You don't have enough coins (minimum 1 required for a diet plan)." });
+    }
+
+    // AI से डाइट प्लान जेनरेट करवाएं
+    const result = await aiModel.generateContent(prompt);
+    const response = await result.response;
+    const aiAnswer = response.text();
+
+    // यूजर के अकाउंट से 1 सिक्का काटें
+    await userRef.update({
+      coins: admin.firestore.FieldValue.increment(-COIN_COST)
+    });
+
+    // AI का जवाब (डाइट प्लान) वापस भेजें
+    res.json({ answer: aiAnswer });
+
+  } catch (error) {
+    console.error("Error in /generate-diet-plan endpoint:", error);
+    res.status(500).json({ error: "An internal server error occurred while generating the diet plan." });
+  }
+});
+
+
 // --- Razorpay पेमेंट ऑर्डर बनाने वाला Endpoint ---
 app.post('/create-payment', async (req, res) => {
   // (यह कोड वैसा ही रहेगा, कोई बदलाव नहीं)
@@ -146,9 +193,15 @@ app.post('/verify-payment', async (req, res) => {
 // यह Render को बताता है कि आपकी वेबसाइट की फाइलें कहाँ रखी हैं।
 app.use(express.static(path.join(__dirname, '..')));
 
-// यह सुनिश्चित करता है कि water.html का लिंक भी काम करे।
-app.get('/water.html', (req, res) => {
+// यह सुनिश्चित करता है कि Features फोल्डर की फाइलें भी काम करें।
+app.get('/Features/water.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'Features', 'water.html'));
+});
+app.get('/Features/Diet.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'Features', 'Diet.html'));
+});
+app.get('/Features/Health.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'Features', 'Health.html'));
 });
 
 // बाकी सभी रिक्वेस्ट के लिए index.html दिखाएं।
