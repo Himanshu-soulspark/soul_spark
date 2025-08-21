@@ -1,1 +1,762 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Diet Planner</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon Library: Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+    <style>
+        /* CSS स्टाइलिंग - नई Cyan Green थीम और एनिमेशन */
+        :root {
+            --primary-color: #00A9B5; /* Main Cyan */
+            --secondary-color: #088F8F; /* Darker Cyan Green */
+            --accent-color: #34D1BF; /* Light Cyan Green */
+            
+            --avoid-color: #FF3B30;
+            --limit-color: #FF9500;
+            --safe-color: #34C759;
+            --info-color: #007AFF;
+            --completed-color: #8A8A8E;
+
+            --background-color: #F0FAFA; /* Very Light Cyan Background */
+            --card-bg-color: #ffffff;
+            --text-color: #1c1c1e;
+            --text-light-color: #8A8A8E;
+            --font-family: 'Poppins', sans-serif;
+            --box-shadow-3d: 0 8px 16px rgba(0, 0, 0, 0.15);
+            --border-radius: 16px;
+        }
+
+        /* एनिमेशन */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-top: 60px; /* Space for language switcher */
+            padding-bottom: 80px;
+        }
+
+        .language-switcher {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-bg-color);
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1500;
+            text-align: right;
+        }
+
+        .lang-btn {
+            background-color: var(--background-color);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .lang-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+
+        .main-container {
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        /* यूनिवर्सल 3D बटन स्टाइल */
+        .btn-3d {
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 
+                inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                0 6px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                0 4px 8px rgba(0, 0, 0, 0.25);
+        }
+        .btn-3d:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* --- होम स्क्रीन --- */
+        .medicine-input-container { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        #medicine-input { flex-grow: 1; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 12px; min-width: 0; }
+        #add-med-btn { flex-shrink: 0; background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
+        .medicine-input-container .icon-btn { font-size: 32px; color: var(--secondary-color); cursor: pointer; flex-shrink: 0; }
+        #generate-btn { width: 100%; padding: 20px; font-size: 18px; background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); }
+        #medicine-tags-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; min-height: 50px; }
+        .medicine-tag { background-color: #e0f7fa; color: var(--secondary-color); padding: 10px 15px; border-radius: 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; position: relative; padding-right: 30px; }
+        .remove-tag { position: absolute; top: 2px; right: 5px; cursor: pointer; font-size: 20px; color: var(--secondary-color); }
+        #results-container { margin-top: 30px; }
+        .swipe-indicator { text-align: center; color: var(--text-light-color); margin-bottom: 15px; font-weight: 500; }
+        .results-scroller { display: flex; gap: 20px; overflow-x: auto; padding: 10px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .results-scroller::-webkit-scrollbar { display: none; }
+        .result-card { flex: 0 0 75%; aspect-ratio: 9 / 16; background-color: var(--card-bg-color); border-radius: var(--border-radius); padding: 20px; box-shadow: var(--box-shadow-3d); border-top: 10px solid; scroll-snap-align: start; display: flex; flex-direction: column; }
+        .result-card-header { text-align: center; margin-bottom: 15px; }
+        .result-card-header .sticker { font-size: 48px; }
+        .result-card-header h3 { margin: 10px 0 0; font-size: 22px; }
+        .result-card-content ul { list-style-type: none; padding-left: 0; }
+        .result-card-content li { padding: 10px; border-bottom: 1px solid #eee; font-size: 16px; }
+        .card-avoid { border-color: var(--avoid-color); } .card-avoid h3, .card-avoid li { color: var(--avoid-color); }
+        .card-limit { border-color: var(--limit-color); } .card-limit h3, .card-limit li { color: var(--limit-color); }
+        .card-safe { border-color: var(--safe-color); } .card-safe h3, .card-safe li { color: var(--safe-color); }
+        .card-info { border-color: var(--info-color); } .card-info h3, .card-info p { color: var(--info-color); } .card-info p { font-size: 14px; line-height: 1.6; }
+
+        /* --- डाइट प्लान स्क्रीन --- */
+        .disease-input-container { display: flex; gap: 10px; margin-bottom: 25px; }
+        #disease-input { flex-grow: 1; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 12px; }
+        #add-disease-btn { background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
+        .dashboard-buttons-container { display: flex; flex-direction: column; gap: 15px; }
+        .dashboard-button { background: var(--secondary-color); width: 100%; }
+
+        /* --- डाइट डिटेल स्क्रीन --- */
+        #diet-details .header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        #back-to-plans { font-size: 28px; font-weight: bold; cursor: pointer; color: var(--secondary-color); }
+        #diet-detail-title { margin: 0; font-size: 24px; color: var(--secondary-color); }
+        #diet-detail-desc { font-size: 15px; color: var(--text-light-color); line-height: 1.6; margin-bottom: 25px; }
+        .meal-plan-section { background: var(--card-bg-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .meal-plan-section h3 { margin: 0 0 15px 0; color: var(--primary-color); }
+        .meal-plan-section ul { list-style-type: '🥗'; padding-left: 25px; margin: 0; }
+        .meal-plan-section li { margin-bottom: 10px; }
+        
+        /* --- My Plan Screen --- */
+        #my-plan-empty-state { text-align: center; padding: 40px 20px; }
+        #my-plan-empty-state i { font-size: 80px; color: var(--accent-color); }
+        #my-plan-empty-state h2 { font-size: 22px; color: var(--secondary-color); margin-top: 20px; }
+        #my-plan-empty-state p { color: var(--text-light-color); margin-bottom: 30px; }
+        #create-my-plan-btn { background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); width: 80%; }
+        #my-plan-generated-state { display: none; }
+        .date-strip { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 15px; margin-bottom: 20px; scrollbar-width: none;}
+        .date-strip::-webkit-scrollbar { display: none; }
+        .date-item { flex: 0 0 60px; text-align: center; padding: 10px; border-radius: 12px; background: var(--card-bg-color); cursor: pointer; }
+        .date-item.active { background: var(--secondary-color); color: white; }
+        .day { font-size: 12px; font-weight: 500; }
+        .date { font-size: 18px; font-weight: 700; }
+        .nutrition-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .nutrition-widget { background: var(--card-bg-color); padding: 15px; border-radius: var(--border-radius); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .nutrition-widget h4 { margin: 0 0 5px; font-size: 14px; color: var(--text-light-color); }
+        .nutrition-widget p { margin: 0; font-size: 20px; font-weight: 700; color: var(--primary-color); }
+        .meal-card { background: var(--card-bg-color); border-radius: var(--border-radius); margin-bottom: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; position: relative; }
+        .meal-card-icon { font-size: 32px; background-color: var(--background-color); padding: 15px; border-radius: 12px; }
+        .meal-card-details h3 { margin: 0; font-size: 18px; }
+        .meal-card-details p { margin: 5px 0 0; font-size: 14px; color: var(--text-light-color); }
+        .meal-card-menu { position: absolute; top: 15px; right: 15px; font-size: 24px; color: var(--text-light-color); cursor: pointer;}
+        
+        /* --- Alerts Screen (IMPROVED LAYOUT) --- */
+        #alerts { position: relative; }
+        .date-navigator { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: var(--card-bg-color); border-radius: var(--border-radius); margin-bottom: 25px; }
+        .date-navigator i { font-size: 28px; color: var(--primary-color); cursor: pointer; }
+        .date-navigator h2 { margin: 0; font-size: 18px; color: var(--secondary-color); font-weight: 600; text-align: center; }
+        #today-btn { font-size: 14px; font-weight: 600; color: var(--primary-color); cursor: pointer; background: #e0f7fa; padding: 8px 12px; border-radius: 8px;}
+        .timeline-container { position: relative; }
+        .timeline-container::before { content: ''; position: absolute; left: 88px; top: 10px; bottom: 10px; width: 3px; background-color: #e0f7fa; border-radius: 2px; }
+        .alert-card { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 20px; position: relative; }
+        .alert-time { flex: 0 0 65px; font-weight: 600; color: var(--text-light-color); margin-top: 12px; text-align: right; font-size: 14px; }
+        .alert-timeline-marker { flex-shrink: 0; z-index: 1; }
+        .alert-icon { font-size: 24px; color: white; background-color: var(--primary-color); border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border: 4px solid var(--background-color); }
+        .alert-content { background-color: var(--card-bg-color); border-radius: var(--border-radius); padding: 15px; flex-grow: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .alert-content h3 { margin: 0 0 5px; font-size: 18px; }
+        .alert-content p { margin: 0; font-size: 14px; color: var(--text-light-color); }
+        .alert-action { margin-top: 15px; }
+        .alert-action label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; }
+        .alert-card.completed .alert-icon { background-color: var(--completed-color); }
+        .alert-card.completed .alert-content { background-color: #f8f8f8; }
+        .alert-card.completed h3, .alert-card.completed p { text-decoration: line-through; color: var(--completed-color); }
+        .alert-card.missed .alert-icon { background-color: var(--avoid-color); }
+        .alert-card.missed .alert-content { border-left: 5px solid var(--avoid-color); }
+        .alert-ai-btn {
+            background: linear-gradient(45deg, var(--accent-color), var(--primary-color));
+            color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px;
+            font-weight: 600; cursor: pointer; margin-left: 10px;
+        }
+        #alert-empty-state { text-align: center; padding: 50px 20px; }
+        #alert-empty-state i { font-size: 80px; color: var(--accent-color); }
+        #alert-empty-state h2 { color: var(--secondary-color); margin-top: 20px; }
+        #alert-empty-state p { color: var(--text-light-color); }
+        
+        /* --- Learn Screen (MOBILE FRIENDLY) --- */
+        .learn-search-container { display: flex; gap: 10px; margin-bottom: 25px; }
+        #learn-search-input { flex-grow: 1; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 12px; }
+        #ai-generate-btn { background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
+        .learn-card { background-color: var(--card-bg-color); border-radius: var(--border-radius); box-shadow: 0 6px 15px rgba(0,0,0,0.08); padding: 15px; margin-bottom: 25px; }
+        .learn-card-title { margin: 0 0 15px 0; font-size: 20px; color: var(--secondary-color); }
+        .video-scroller-card { margin-left: -15px; margin-right: -15px; } /* Allow scroller to touch card edges */
+        .video-container { position: relative; width: 100%; padding-top: 56.25%; /* 16:9 Aspect Ratio */ border-radius: 12px; overflow: hidden; background-color: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .article-container { line-height: 1.7; color: var(--text-color); }
+        .article-container h4 { margin-top: 0; color: var(--primary-color); }
+        .article-container p { font-size: 15px; }
+
+        /* Questionnaire Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; display: none; align-items: flex-end; justify-content: center; }
+        .modal-content { background: var(--background-color); width: 100%; max-height: 90vh; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); animation: slideInUp 0.4s ease-out; display: flex; flex-direction: column; }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 20px; color: var(--secondary-color); }
+        .modal-close { font-size: 28px; cursor: pointer; color: var(--text-light-color); }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; font-family: var(--font-family); box-sizing: border-box; }
+        .form-group .multi-select-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .multi-select-option { padding: 8px 15px; background: #e0e0e0; border-radius: 20px; cursor: pointer; }
+        .multi-select-option.selected { background: var(--primary-color); color: white; }
+        .modal-footer { padding: 20px; border-top: 1px solid #ddd; background: white; }
+        #generate-diet-plan-btn { width: 100%; background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
+
+        /* --- नेविगेशन बार --- */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--card-bg-color); display: flex; justify-content: space-around; align-items: center; height: 65px; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.07); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: var(--text-light-color); transition: color 0.3s; flex-grow: 1; text-align: center; }
+        .nav-item i { font-size: 24px; }
+        .nav-item span { font-size: 12px; margin-top: 4px; }
+        .nav-item.active { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <div class="language-switcher">
+        <button id="lang-en-btn" class="lang-btn">English</button>
+        <button id="lang-hi-btn" class="lang-btn active">हिंदी</button>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- 1. होम स्क्रीन (दवा-भोजन इंटरेक्शन) -->
+        <div id="home" class="screen">
+            <div class="medicine-input-container">
+                <input type="text" id="medicine-input" placeholder="दवा का नाम टाइप करें...">
+                <button id="add-med-btn" class="btn-3d">Add</button>
+                <i class='bx bxs-camera icon-btn'></i>
+            </div>
+            <div id="medicine-tags-container"></div>
+            <button id="generate-btn" class="btn-3d">AI Generate</button>
+            <div id="results-container" style="display: none;">
+                <!-- Results will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- 2. डाइट प्लान स्क्रीन (Static Plans) -->
+        <div id="diet-plans" class="screen">
+            <div class="disease-input-container">
+                <input type="text" id="disease-input" placeholder="बीमारी का नाम जोड़ें...">
+                <button id="add-disease-btn" class="btn-3d">Add</button>
+            </div>
+            <div id="disease-buttons-list" class="dashboard-buttons-container">
+                <button class="btn-3d dashboard-button">डायबिटीज (Diabetes)</button>
+                <button class="btn-3d dashboard-button">हाई बीपी (High BP)</button>
+                <button class="btn-3d dashboard-button">थायराइड (Thyroid)</button>
+                <button class="btn-3d dashboard-button">एनीमिया (Anemia)</button>
+                <button class="btn-3d dashboard-button">PCOS</button>
+            </div>
+        </div>
+        
+        <!-- 3. डाइट डिटेल स्क्रीन (For Static Plans) -->
+        <div id="diet-details" class="screen">
+            <div class="header">
+                <span id="back-to-plans"><i class='bx bx-arrow-back'></i></span>
+                <h2 id="diet-detail-title"></h2>
+            </div>
+            <p id="diet-detail-desc"></p>
+            <div id="meal-plan-container"></div>
+        </div>
+
+        <!-- 4. My Plan Screen (AI Diet Planner) -->
+        <div id="my-plan" class="screen active"> <!-- Set this as active by default -->
+            <div id="my-plan-empty-state">
+                <i class='bx bxs-dish'></i>
+                <h2>आपके लिए एक ख़ास भोजन योजना बनाएँ</h2>
+                <p>बस कुछ सवालों के जवाब दें और हमारा AI आपकी दवाओं, स्वास्थ्य लक्ष्यों और स्वाद के अनुसार एक व्यक्तिगत मील प्लान तैयार करेगा।</p>
+                <button id="create-my-plan-btn" class="btn-3d">मेरा प्लान बनाएँ</button>
+            </div>
+            <div id="my-plan-generated-state">
+                <div class="date-strip"></div>
+                <div class="nutrition-summary">
+                     <!-- Nutrition data will be dynamically inserted -->
+                </div>
+                <div class="meals-container">
+                     <!-- Meal cards will be dynamically inserted -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Alerts Screen -->
+        <div id="alerts" class="screen">
+            <div class="date-navigator">
+                <i id="prev-day-btn" class='bx bx-chevron-left'></i>
+                <h2 id="current-date-display">आज, 24 अगस्त</h2>
+                <span id="today-btn">Today</span>
+                <i id="next-day-btn" class='bx bx-chevron-right'></i>
+            </div>
+            <div id="timeline-view" class="timeline-container">
+                <!-- JS will populate this -->
+            </div>
+            <div id="alert-empty-state" style="display: none;">
+                <i class='bx bx-calendar-check'></i>
+                <h2>कोई अलर्ट नहीं</h2>
+                <p>आज के लिए कोई अलर्ट शेड्यूल नहीं है। अपना व्यक्तिगत डाइट प्लान बनाने के लिए 'My Plan' पर जाएँ।</p>
+            </div>
+        </div>
+
+        <!-- 6. Learn Screen -->
+        <div id="learn" class="screen">
+            <div class="learn-search-container">
+                <input type="text" id="learn-search-input" placeholder="व्यायाम का नाम खोजें...">
+                <button id="ai-generate-btn" class="btn-3d">AI Generate</button>
+            </div>
+
+            <div class="learn-card">
+                <h3 class="learn-card-title">वीडियो देखें</h3>
+                <p class="swipe-indicator" style="margin-bottom: 15px; margin-top: -10px;"><i class='bx bx-left-arrow-alt'></i> स्वाइप करें <i class='bx bx-right-arrow-alt'></i></p>
+                <div class="video-scroller-card">
+                    <div class="results-scroller" style="padding-left: 15px; padding-right: 15px;">
+                         <div class="video-container" style="flex: 0 0 100%; scroll-snap-align: start;">
+                            <iframe src="https://www.youtube.com/embed/IODxDxX7oi4" title="Push-ups video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                         <div class="video-container" style="flex: 0 0 100%; scroll-snap-align: start;">
+                            <iframe src="https://www.youtube.com/embed/vc1E5CfRfos" title="Squats video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="learn-card">
+                <h3 class="learn-card-title">AI द्वारा तैयार आर्टिकल</h3>
+                <div class="article-container">
+                    <h4>पुश-अप्स के फायदे</h4>
+                    <p>पुश-अप्स एक बेहतरीन व्यायाम है जो आपके शरीर के ऊपरी हिस्से की मांसपेशियों, जैसे कि छाती, कंधे और ट्राइसेप्स को मजबूत बनाता है। यह आपकी कोर की मांसपेशियों को भी स्थिर करता है। इसे कहीं भी, कभी भी बिना किसी उपकरण के किया जा सकता है।</p>
+                    <p>सही तरीके से पुश-अप करने के लिए, अपने हाथों को कंधों से थोड़ा चौड़ा रखें और शरीर को एक सीधी रेखा में रखें।</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Questionnaire Modal -->
+    <div id="questionnaire-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>मेरा प्लान बनाएँ</h2>
+                <span class="modal-close" id="modal-close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="diet-questionnaire-form">
+                    <div class="form-group"><label for="age">उम्र (वर्षों में)</label><select id="age" name="age"></select></div>
+                    <div class="form-group"><label for="gender">लिंग</label><select id="gender" name="gender"><option value="male">पुरुष</option><option value="female">महिला</option><option value="other">अन्य</option></select></div>
+                    <div class="form-group"><label for="height">कद (cm)</label><select id="height" name="height"></select></div>
+                    <div class="form-group"><label for="weight">वजन (kg)</label><select id="weight" name="weight"></select></div>
+                    <div class="form-group"><label>दैनिक गतिविधि स्तर</label><select name="activity_level"><option value="sedentary">गतिहीन</option><option value="lightly_active">थोड़ा सक्रिय</option><option value="moderately_active">मध्यम रूप से सक्रिय</option><option value="very_active">बहुत सक्रिय</option></select></div>
+                    <div class="form-group"><label>कोई ज्ञात स्वास्थ्य स्थितियाँ?</label><div class="multi-select-container"><div class="multi-select-option" data-value="none">कोई नहीं</div><div class="multi-select-option" data-value="diabetes">डायबिटीज</div><div class="multi-select-option" data-value="hypertension">उच्च रक्तचाप</div><div class="multi-select-option" data-value="thyroid">थायराइड</div><div class="multi-select-option" data-value="pcos">PCOS</div></div></div>
+                    <div class="form-group"><label>कोई खाद्य एलर्जी?</label><div class="multi-select-container"><div class="multi-select-option" data-value="gluten">ग्लूटेन</div><div class="multi-select-option" data-value="dairy">डेयरी</div><div class="multi-select-option" data-value="nuts">नट्स</div><div class="multi-select-option" data-value="seafood">समुद्री भोजन</div></div></div>
+                    <div class="form-group"><label>प्राथमिक आहार वरीयता</label><select name="diet_preference"><option value="vegetarian">शाकाहारी</option><option value="non_vegetarian">मांसाहारी</option><option value="vegan">वेगन</option><option value="jain">जैन</option></select></div>
+                    <div class="form-group"><label>प्राथमिक लक्ष्य</label><select name="primary_goal"><option value="weight_loss">वजन घटाना</option><option value="muscle_gain">मांसपेशी बढ़ाना</option><option value="maintenance">रखरखाव</option><option value="improve_immunity">प्रतिरक्षा में सुधार</option></select></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button id="generate-diet-plan-btn" class="btn-3d">डाइट प्लान जेनरेट करें</button></div>
+        </div>
+    </div>
+
+
+    <!-- बॉटम नेविगेशन बार -->
+    <nav class="bottom-nav">
+        <div class="nav-item" data-screen="home"> <i class='bx bxs-home-alt-2'></i> <span>Home</span> </div>
+        <div class="nav-item" data-screen="diet-plans"> <i class='bx bxs-food-menu'></i> <span>Diet Plans</span> </div>
+        <div class="nav-item active" data-screen="my-plan"> <i class='bx bxs-dish'></i> <span>My Plan</span> </div>
+        <div class="nav-item" data-screen="alerts"> <i class='bx bxs-bell-ring'></i> <span>Alerts</span> </div>
+        <div class="nav-item" data-screen="learn"> <i class='bx bxs-book-heart'></i> <span>Learn</span> </div>
+    </nav>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
+            authDomain: "shubhmed-9f05d.firebaseapp.com",
+            databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
+            projectId: "shubhmed-9f05d",
+            storageBucket: "shubhmed-9f05d.firebasestorage.app",
+            messagingSenderId: "42179676197",
+            appId: "1:42179676197:web:1796559543fb869c5297cc",
+            measurementId: "G-VD9YFFECTC"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                console.log("User is signed in:", currentUser.uid);
+                const plan = await getUserDietPlan();
+                if (plan) {
+                    renderMyPlanUI(plan);
+                    document.getElementById('my-plan-empty-state').style.display = 'none';
+                    document.getElementById('my-plan-generated-state').style.display = 'block';
+                }
+                renderAlerts();
+            } else {
+                console.log("No user signed in. Signing in anonymously...");
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Anonymous sign-in failed:", error);
+                });
+            }
+        });
+
+        // --- DATABASE FUNCTIONS ---
+        async function saveUserDietPlan(plan) {
+            if (!currentUser) return;
+            const userDocRef = doc(db, "users", currentUser.uid);
+            try {
+                await setDoc(userDocRef, { dietPlan: plan }, { merge: true });
+                console.log("Diet plan saved successfully.");
+            } catch (error) {
+                console.error("Error saving diet plan: ", error);
+            }
+        }
+
+        async function getUserDietPlan() {
+            if (!currentUser) return null;
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists() && userDoc.data().dietPlan) {
+                return userDoc.data().dietPlan;
+            }
+            return null;
+        }
+
+
+        // --- MAIN APP LOGIC ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Your existing non-Firebase dependent JS code
+            const navItems = document.querySelectorAll('.nav-item');
+            const screens = document.querySelectorAll('.screen');
+            let activeScreenId = 'my-plan'; // Default to My Plan screen
+
+            function showScreen(screenId) {
+                activeScreenId = screenId;
+                screens.forEach(s => s.classList.remove('active'));
+                const screenToShow = document.getElementById(screenId);
+                if (screenToShow) {
+                    screenToShow.classList.add('active');
+                }
+                if (screenId === 'alerts') {
+                    renderAlerts(); // Re-render alerts when screen is shown
+                }
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    const screenId = item.getAttribute('data-screen');
+                    showScreen(screenId);
+                });
+            });
+
+            // --- Home Screen Logic ---
+            const medicineInput = document.getElementById('medicine-input');
+            const addMedBtn = document.getElementById('add-med-btn');
+            const tagsContainer = document.getElementById('medicine-tags-container');
+            const generateBtn = document.getElementById('generate-btn');
+            const resultsContainer = document.getElementById('results-container');
+            addMedBtn.addEventListener('click', () => {
+                const medName = medicineInput.value.trim();
+                if (medName) {
+                    const tag = document.createElement('div');
+                    tag.classList.add('medicine-tag');
+                    tag.innerHTML = `<span>${medName}</span><span class="remove-tag">&times;</span>`;
+                    tagsContainer.appendChild(tag);
+                    medicineInput.value = '';
+                    tag.querySelector('.remove-tag').addEventListener('click', () => tag.remove());
+                }
+            });
+            generateBtn.addEventListener('click', async () => {
+                if (tagsContainer.children.length === 0) {
+                    alert("कृपया कम से कम एक दवा जोड़ें।");
+                    return;
+                }
+                
+                // This feature requires a different endpoint not implemented yet
+                alert("This feature is under development.");
+            });
+
+            // --- Diet Plan Screen Logic ---
+            const backToPlansBtn = document.getElementById('back-to-plans');
+            backToPlansBtn.addEventListener('click', () => showScreen('diet-plans'));
+
+            // --- My Plan Screen Logic ---
+            const createMyPlanBtn = document.getElementById('create-my-plan-btn');
+            const questionnaireModal = document.getElementById('questionnaire-modal');
+            const closeModalBtn = document.getElementById('modal-close-btn');
+            const generateDietPlanBtn = document.getElementById('generate-diet-plan-btn');
+            createMyPlanBtn.addEventListener('click', () => { questionnaireModal.style.display = 'flex'; });
+            closeModalBtn.addEventListener('click', () => { questionnaireModal.style.display = 'none'; });
+            window.addEventListener('click', (event) => { if (event.target == questionnaireModal) { questionnaireModal.style.display = 'none'; } });
+
+            // ======================================================================================
+            // ===== START: MODIFIED AI DIET PLAN GENERATION LOGIC ====================================
+            // ======================================================================================
+            generateDietPlanBtn.addEventListener('click', async () => {
+                if (!currentUser) {
+                    alert("Authentication error. Please refresh the page.");
+                    return;
+                }
+
+                generateDietPlanBtn.disabled = true;
+                generateDietPlanBtn.textContent = 'Generating...';
+
+                try {
+                    const formData = new FormData(document.getElementById('diet-questionnaire-form'));
+                    const userDetails = Object.fromEntries(formData.entries());
+
+                    // Collect multi-select options
+                    userDetails.health_conditions = Array.from(document.querySelectorAll('.multi-select-container .multi-select-option.selected'))
+                        .map(el => el.dataset.value)
+                        .filter(val => val !== 'none');
+                    
+                    userDetails.allergies = Array.from(document.querySelectorAll('.multi-select-container .multi-select-option.selected[data-value]'))
+                        .filter(el => ['gluten', 'dairy', 'nuts', 'seafood'].includes(el.dataset.value))
+                        .map(el => el.dataset.value);
+
+                    // Create a detailed prompt for the AI
+                    const prompt = `
+                        Create a structured 7-day diet plan for a user with the following details:
+                        - Age: ${userDetails.age} years
+                        - Gender: ${userDetails.gender}
+                        - Height: ${userDetails.height} cm
+                        - Weight: ${userDetails.weight} kg
+                        - Activity Level: ${userDetails.activity_level}
+                        - Health Conditions: ${userDetails.health_conditions.join(', ') || 'None'}
+                        - Food Allergies: ${userDetails.allergies.join(', ') || 'None'}
+                        - Diet Preference: ${userDetails.diet_preference}
+                        - Primary Goal: ${userDetails.primary_goal}
+
+                        The output MUST be a valid JSON object. Do not include any text before or after the JSON.
+                        The JSON object should have two main keys: "metadata" and "schedule".
+                        1.  The "metadata" object should contain: "calories" (number), "protein" (number), "carbs" (number), and "fat" (number).
+                        2.  The "schedule" array should contain objects for each day's plan. Each object should have keys: "time" (e.g., "08:30 AM"), "icon" (an appropriate emoji), "title" (e.g., "Breakfast"), "instruction" (a short description of the meal), and "type" (string, should be 'meal').
+                        
+                        Provide at least 4 meal entries per day (Breakfast, Lunch, Snack, Dinner).
+                        Example for one schedule item: {"time": "08:30 AM", "icon": "🍳", "title": "Breakfast", "instruction": "Masala Oats with vegetables", "type": "meal"}
+                    `;
+                    
+                    const idToken = await currentUser.getIdToken();
+
+                    // Call the new server endpoint
+                    const response = await fetch('/generate-diet-plan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            token: idToken
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to generate plan.');
+                    }
+
+                    const result = await response.json();
+                    
+                    // The server should return a string, we need to parse it to JSON
+                    const planText = result.answer.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const newPlan = JSON.parse(planText);
+
+                    await saveUserDietPlan(newPlan);
+                    renderMyPlanUI(newPlan);
+                    
+                    questionnaireModal.style.display = 'none';
+                    document.getElementById('my-plan-empty-state').style.display = 'none';
+                    document.getElementById('my-plan-generated-state').style.display = 'block';
+
+                    await renderAlerts();
+
+                } catch (error) {
+                    console.error("Error generating diet plan:", error);
+                    alert("Error: " + error.message);
+                } finally {
+                    generateDietPlanBtn.disabled = false;
+                    generateDietPlanBtn.textContent = 'डाइट प्लान जेनरेट करें';
+                }
+            });
+            // ======================================================================================
+            // ===== END: MODIFIED AI DIET PLAN GENERATION LOGIC ======================================
+            // ======================================================================================
+            
+            function renderMyPlanUI(plan) {
+                 if(!plan) return;
+                 const nutritionContainer = document.querySelector('#my-plan-generated-state .nutrition-summary');
+                 const mealsContainer = document.querySelector('#my-plan-generated-state .meals-container');
+                 
+                 nutritionContainer.innerHTML = `
+                    <div class="nutrition-widget"><h4>कैलोरी</h4><p>${plan.metadata.calories} kcal</p></div>
+                    <div class="nutrition-widget"><h4>प्रोटीन</h4><p>${plan.metadata.protein} g</p></div>
+                    <div class="nutrition-widget"><h4>कार्ब्स</h4><p>${plan.metadata.carbs} g</p></div>
+                    <div class="nutrition-widget"><h4>फैट</h4><p>${plan.metadata.fat} g</p></div>
+                 `;
+
+                 mealsContainer.innerHTML = ''; // Clear previous meals
+                 plan.schedule.forEach(item => {
+                    if(item.type === 'meal'){
+                         const mealCard = document.createElement('div');
+                         mealCard.className = 'meal-card';
+                         mealCard.innerHTML = `
+                            <span class="meal-card-icon">${item.icon}</span>
+                            <div class="meal-card-details">
+                                <h3>${item.title} (${item.time})</h3>
+                                <p>${item.instruction}</p>
+                            </div>
+                            <i class='bx bx-dots-vertical-rounded meal-card-menu'></i>
+                         `;
+                         mealsContainer.appendChild(mealCard);
+                    }
+                 });
+            }
+
+            // --- ALERTS SCREEN LOGIC (DYNAMIC) ---
+            const prevDayBtn = document.getElementById('prev-day-btn');
+            const nextDayBtn = document.getElementById('next-day-btn');
+            const todayBtn = document.getElementById('today-btn');
+            const currentDateDisplay = document.getElementById('current-date-display');
+            const timelineView = document.getElementById('timeline-view');
+            const alertEmptyState = document.getElementById('alert-empty-state');
+            
+            let currentAlertDate = new Date();
+            
+            async function renderAlerts() {
+                if (!currentDateDisplay || !timelineView || !alertEmptyState) return;
+
+                currentDateDisplay.textContent = formatAlertDate(currentAlertDate);
+                timelineView.innerHTML = '';
+                
+                const plan = await getUserDietPlan();
+
+                if (!plan || !plan.schedule || plan.schedule.length === 0) {
+                    alertEmptyState.style.display = 'block';
+                    timelineView.style.display = 'none';
+                } else {
+                    alertEmptyState.style.display = 'none';
+                    timelineView.style.display = 'block';
+                    
+                    plan.schedule.forEach((alert, index) => {
+                        const card = document.createElement('div');
+                        card.className = `alert-card`; // Status classes can be added later
+                        card.innerHTML = `
+                            <div class="alert-time">${alert.time}</div>
+                            <div class="alert-timeline-marker">
+                                <div class="alert-icon">${alert.icon}</div>
+                            </div>
+                            <div class="alert-content">
+                                <h3>${alert.title}</h3>
+                                <p>${alert.instruction}</p>
+                                <div class="alert-action">
+                                    <label>
+                                        <input type="checkbox" class="mark-done-cb" data-index="${index}">
+                                        पूर्ण के रूप में चिह्नित करें
+                                    </label>
+                                </div>
+                            </div>
+                        `;
+                        timelineView.appendChild(card);
+                    });
+                }
+            }
+            
+            function formatAlertDate(date) {
+                // Formatting logic remains the same
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const compareDate = new Date(date);
+                compareDate.setHours(0,0,0,0);
+                const diffTime = compareDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return `आज, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                if (diffDays === -1) return `कल, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                if (diffDays === 1) return `आने वाला कल, ${date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'long' })}`;
+                return date.toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+            }
+
+            prevDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() - 1); renderAlerts(); });
+            nextDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() + 1); renderAlerts(); });
+            todayBtn.addEventListener('click', () => { currentAlertDate = new Date(); renderAlerts(); });
+
+            // --- UI Population & Other helpers ---
+            function populateSelect(elementId, start, end) {
+                const select = document.getElementById(elementId);
+                for (let i = start; i <= end; i++) {
+                    const option = document.createElement('option');
+                    option.value = i; option.textContent = i;
+                    select.appendChild(option);
+                }
+            }
+            populateSelect('age', 1, 100); populateSelect('height', 100, 220); populateSelect('weight', 20, 200);
+            document.querySelectorAll('.multi-select-option').forEach(option => {
+                option.addEventListener('click', () => { option.classList.toggle('selected'); });
+            });
+            const dateStrip = document.querySelector('.date-strip');
+            const today = new Date();
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (let i = -3; i <= 3; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() + i);
+                const item = document.createElement('div');
+                item.className = 'date-item' + (i === 0 ? ' active' : '');
+                item.innerHTML = `<div class="day">${days[d.getDay()]}</div><div class="date">${d.getDate()}</div>`;
+                dateStrip.appendChild(item);
+            }
+        });
+    </script>
+</body>
+</html>
