@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Diet Planner</title>
+    <title>AI Health Assistant</title>
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,38 +49,11 @@
             font-family: var(--font-family);
             background-color: var(--background-color);
             color: var(--text-color);
-            padding-top: 60px; /* Space for language switcher */
+            /* MODIFIED: Removed padding-top for language switcher */
             padding-bottom: 80px;
         }
 
-        .language-switcher {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--card-bg-color);
-            padding: 10px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1500;
-            text-align: right;
-        }
-
-        .lang-btn {
-            background-color: var(--background-color);
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 5px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        .lang-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
+        /* REMOVED: Language Switcher CSS */
 
         .main-container {
             padding: 20px;
@@ -116,7 +89,8 @@
                 0 4px 8px rgba(0, 0, 0, 0.25);
         }
         .btn-3d:disabled {
-            background: #ccc;
+            background-color: #ccc !important;
+            background-image: none !important;
             cursor: not-allowed;
             box-shadow: none;
         }
@@ -255,16 +229,13 @@
     </style>
 </head>
 <body>
-
-    <div class="language-switcher">
-        <button id="lang-en-btn" class="lang-btn">English</button>
-        <button id="lang-hi-btn" class="lang-btn active">हिंदी</button>
-    </div>
+    
+    <!-- REMOVED: Language Switcher HTML Block -->
 
     <div class="main-container">
         
-        <!-- 1. होम स्क्रीन (दवा-भोजन इंटरेक्शन) -->
-        <div id="home" class="screen">
+        <!-- 1. होम स्क्रीन -->
+        <div id="home" class="screen active">
             <div class="medicine-input-container">
                 <input type="text" id="medicine-input" placeholder="दवा का नाम टाइप करें...">
                 <button id="add-med-btn" class="btn-3d">Add</button>
@@ -277,7 +248,7 @@
             </div>
         </div>
 
-        <!-- 2. डाइट प्लान स्क्रीन (Static Plans) -->
+        <!-- 2. डाइट प्लान स्क्रीन -->
         <div id="diet-plans" class="screen">
             <div class="disease-input-container">
                 <input type="text" id="disease-input" placeholder="बीमारी का नाम जोड़ें...">
@@ -292,7 +263,7 @@
             </div>
         </div>
         
-        <!-- 3. डाइट डिटेल स्क्रीन (For Static Plans) -->
+        <!-- 3. डाइट डिटेल स्क्रीन -->
         <div id="diet-details" class="screen">
             <div class="header">
                 <span id="back-to-plans"><i class='bx bx-arrow-back'></i></span>
@@ -302,8 +273,8 @@
             <div id="meal-plan-container"></div>
         </div>
 
-        <!-- 4. My Plan Screen (AI Diet Planner) -->
-        <div id="my-plan" class="screen active"> <!-- Set this as active by default -->
+        <!-- 4. My Plan Screen -->
+        <div id="my-plan" class="screen">
             <div id="my-plan-empty-state">
                 <i class='bx bxs-dish'></i>
                 <h2>आपके लिए एक ख़ास भोजन योजना बनाएँ</h2>
@@ -400,9 +371,9 @@
 
     <!-- बॉटम नेविगेशन बार -->
     <nav class="bottom-nav">
-        <div class="nav-item" data-screen="home"> <i class='bx bxs-home-alt-2'></i> <span>Home</span> </div>
+        <div class="nav-item active" data-screen="home"> <i class='bx bxs-home-alt-2'></i> <span>Home</span> </div>
         <div class="nav-item" data-screen="diet-plans"> <i class='bx bxs-food-menu'></i> <span>Diet Plans</span> </div>
-        <div class="nav-item active" data-screen="my-plan"> <i class='bx bxs-dish'></i> <span>My Plan</span> </div>
+        <div class="nav-item" data-screen="my-plan"> <i class='bx bxs-dish'></i> <span>My Plan</span> </div>
         <div class="nav-item" data-screen="alerts"> <i class='bx bxs-bell-ring'></i> <span>Alerts</span> </div>
         <div class="nav-item" data-screen="learn"> <i class='bx bxs-book-heart'></i> <span>Learn</span> </div>
     </nav>
@@ -467,7 +438,7 @@
         async function getUserDietPlan() {
             if (!currentUser) return null;
             const userDocRef = doc(db, "users", currentUser.uid);
-            const userDoc = await getDoc(userDocRef);
+            const userDoc = await getDoc(userDoc);
             if (userDoc.exists() && userDoc.data().dietPlan) {
                 return userDoc.data().dietPlan;
             }
@@ -477,10 +448,9 @@
 
         // --- MAIN APP LOGIC ---
         document.addEventListener('DOMContentLoaded', function() {
-            // Your existing non-Firebase dependent JS code
             const navItems = document.querySelectorAll('.nav-item');
             const screens = document.querySelectorAll('.screen');
-            let activeScreenId = 'my-plan'; // Default to My Plan screen
+            let activeScreenId = 'home'; 
 
             function showScreen(screenId) {
                 activeScreenId = screenId;
@@ -489,15 +459,21 @@
                 if (screenToShow) {
                     screenToShow.classList.add('active');
                 }
+                navItems.forEach(item => {
+                    if(item.dataset.screen === screenId) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
                 if (screenId === 'alerts') {
-                    renderAlerts(); // Re-render alerts when screen is shown
+                    renderAlerts(); 
                 }
             }
 
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
-                    navItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
                     const screenId = item.getAttribute('data-screen');
                     showScreen(screenId);
                 });
@@ -509,6 +485,7 @@
             const tagsContainer = document.getElementById('medicine-tags-container');
             const generateBtn = document.getElementById('generate-btn');
             const resultsContainer = document.getElementById('results-container');
+            
             addMedBtn.addEventListener('click', () => {
                 const medName = medicineInput.value.trim();
                 if (medName) {
@@ -520,14 +497,70 @@
                     tag.querySelector('.remove-tag').addEventListener('click', () => tag.remove());
                 }
             });
+            
+            // MODIFIED: This button is now fully functional
             generateBtn.addEventListener('click', async () => {
                 if (tagsContainer.children.length === 0) {
                     alert("कृपया कम से कम एक दवा जोड़ें।");
                     return;
                 }
-                
-                // This feature requires a different endpoint not implemented yet
-                alert("This feature is under development.");
+                if (!currentUser) {
+                    alert("कृपया AI फीचर का उपयोग करने के लिए लॉग इन करें।");
+                    return;
+                }
+
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+
+                try {
+                    const medicineNames = Array.from(tagsContainer.children).map(tag => tag.querySelector('span').textContent).join(', ');
+                    const question = `Analyze the potential food interactions for these medicines: ${medicineNames}. Provide a simple list for foods to 'Completely Avoid', 'Limit', and foods that are 'Safe'. Keep the language simple.`;
+
+                    const idToken = await currentUser.getIdToken();
+
+                    const response = await fetch('/ask-ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: question, token: idToken })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to get response from AI.');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Simple parsing of AI response
+                    const lines = result.answer.split('\n');
+                    let avoid = [], limit = [], safe = [];
+                    let currentList = null;
+
+                    lines.forEach(line => {
+                        if (line.toLowerCase().includes('avoid')) currentList = avoid;
+                        else if (line.toLowerCase().includes('limit')) currentList = limit;
+                        else if (line.toLowerCase().includes('safe')) currentList = safe;
+                        else if (currentList && (line.startsWith('*') || line.startsWith('-'))) {
+                            currentList.push(`<li>${line.substring(2).trim()}</li>`);
+                        }
+                    });
+
+                    resultsContainer.innerHTML = `
+                        <p class="swipe-indicator"><i class='bx bx-left-arrow-alt'></i> स्वाइप करके देखें <i class='bx bx-right-arrow-alt'></i></p>
+                        <div class="results-scroller">
+                            <div class="result-card card-avoid"> <div class="result-card-header"> <span class="sticker">🍔</span> <h3>पूरी तरह से बचें</h3> </div> <div class="result-card-content"> <ul> ${avoid.join('')} </ul> </div> </div>
+                            <div class="result-card card-limit"> <div class="result-card-header"> <span class="sticker">🍚</span> <h3>सीमित मात्रा में लें</h3> </div> <div class="result-card-content"> <ul> ${limit.join('')} </ul> </div> </div>
+                            <div class="result-card card-safe"> <div class="result-card-header"> <span class="sticker">🥗</span> <h3>सुरक्षित भोजन</h3> </div> <div class="result-card-content"> <ul> ${safe.join('')} </ul> </div> </div>
+                        </div>`;
+                    resultsContainer.style.display = 'block';
+
+                } catch (error) {
+                    console.error("Error generating medicine interaction:", error);
+                    alert("Error: " + error.message);
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'AI Generate';
+                }
             });
 
             // --- Diet Plan Screen Logic ---
@@ -542,10 +575,7 @@
             createMyPlanBtn.addEventListener('click', () => { questionnaireModal.style.display = 'flex'; });
             closeModalBtn.addEventListener('click', () => { questionnaireModal.style.display = 'none'; });
             window.addEventListener('click', (event) => { if (event.target == questionnaireModal) { questionnaireModal.style.display = 'none'; } });
-
-            // ======================================================================================
-            // ===== START: MODIFIED AI DIET PLAN GENERATION LOGIC ====================================
-            // ======================================================================================
+            
             generateDietPlanBtn.addEventListener('click', async () => {
                 if (!currentUser) {
                     alert("Authentication error. Please refresh the page.");
@@ -559,47 +589,35 @@
                     const formData = new FormData(document.getElementById('diet-questionnaire-form'));
                     const userDetails = Object.fromEntries(formData.entries());
 
-                    // Collect multi-select options
-                    userDetails.health_conditions = Array.from(document.querySelectorAll('.multi-select-container .multi-select-option.selected'))
+                    userDetails.health_conditions = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-container .multi-select-option.selected'))
                         .map(el => el.dataset.value)
-                        .filter(val => val !== 'none');
+                        .filter(val => ['diabetes', 'hypertension', 'thyroid', 'pcos'].includes(val));
                     
-                    userDetails.allergies = Array.from(document.querySelectorAll('.multi-select-container .multi-select-option.selected[data-value]'))
-                        .filter(el => ['gluten', 'dairy', 'nuts', 'seafood'].includes(el.dataset.value))
-                        .map(el => el.dataset.value);
+                    userDetails.allergies = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-container .multi-select-option.selected'))
+                        .map(el => el.dataset.value)
+                        .filter(val => ['gluten', 'dairy', 'nuts', 'seafood'].includes(val));
 
-                    // Create a detailed prompt for the AI
                     const prompt = `
-                        Create a structured 7-day diet plan for a user with the following details:
-                        - Age: ${userDetails.age} years
-                        - Gender: ${userDetails.gender}
-                        - Height: ${userDetails.height} cm
-                        - Weight: ${userDetails.weight} kg
-                        - Activity Level: ${userDetails.activity_level}
-                        - Health Conditions: ${userDetails.health_conditions.join(', ') || 'None'}
-                        - Food Allergies: ${userDetails.allergies.join(', ') || 'None'}
-                        - Diet Preference: ${userDetails.diet_preference}
-                        - Primary Goal: ${userDetails.primary_goal}
-
-                        The output MUST be a valid JSON object. Do not include any text before or after the JSON.
-                        The JSON object should have two main keys: "metadata" and "schedule".
-                        1.  The "metadata" object should contain: "calories" (number), "protein" (number), "carbs" (number), and "fat" (number).
-                        2.  The "schedule" array should contain objects for each day's plan. Each object should have keys: "time" (e.g., "08:30 AM"), "icon" (an appropriate emoji), "title" (e.g., "Breakfast"), "instruction" (a short description of the meal), and "type" (string, should be 'meal').
+                        Create a structured 7-day diet plan in Hindi for a user with these details:
+                        - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg
+                        - Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal}
+                        - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}
                         
-                        Provide at least 4 meal entries per day (Breakfast, Lunch, Snack, Dinner).
-                        Example for one schedule item: {"time": "08:30 AM", "icon": "🍳", "title": "Breakfast", "instruction": "Masala Oats with vegetables", "type": "meal"}
+                        The output MUST be a valid JSON object ONLY. No extra text or markdown.
+                        The root object must have two keys: "metadata" and "weeklyPlan".
+                        1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers.
+                        2. "weeklyPlan": An array of 7 objects, one for each day from Sunday (index 0) to Saturday (index 6).
+                           Each day object must have two keys: "day" (e.g., "रविवार") and "schedule".
+                           The "schedule" must be an array of meal objects. Each meal object needs: "time" (e.g., "08:30 AM"), "icon" (emoji), "title" (e.g., "नाश्ता"), "instruction" (meal description in Hindi), and "type" ("meal").
+                        Provide at least 4 meals per day.
                     `;
                     
                     const idToken = await currentUser.getIdToken();
 
-                    // Call the new server endpoint
                     const response = await fetch('/generate-diet-plan', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            prompt: prompt,
-                            token: idToken
-                        })
+                        body: JSON.stringify({ prompt: prompt, token: idToken })
                     });
 
                     if (!response.ok) {
@@ -608,8 +626,6 @@
                     }
 
                     const result = await response.json();
-                    
-                    // The server should return a string, we need to parse it to JSON
                     const planText = result.answer.replace(/```json/g, '').replace(/```/g, '').trim();
                     const newPlan = JSON.parse(planText);
 
@@ -630,38 +646,16 @@
                     generateDietPlanBtn.textContent = 'डाइट प्लान जेनरेट करें';
                 }
             });
-            // ======================================================================================
-            // ===== END: MODIFIED AI DIET PLAN GENERATION LOGIC ======================================
-            // ======================================================================================
             
             function renderMyPlanUI(plan) {
-                 if(!plan) return;
+                 if(!plan || !plan.metadata) return;
                  const nutritionContainer = document.querySelector('#my-plan-generated-state .nutrition-summary');
-                 const mealsContainer = document.querySelector('#my-plan-generated-state .meals-container');
-                 
                  nutritionContainer.innerHTML = `
                     <div class="nutrition-widget"><h4>कैलोरी</h4><p>${plan.metadata.calories} kcal</p></div>
                     <div class="nutrition-widget"><h4>प्रोटीन</h4><p>${plan.metadata.protein} g</p></div>
                     <div class="nutrition-widget"><h4>कार्ब्स</h4><p>${plan.metadata.carbs} g</p></div>
                     <div class="nutrition-widget"><h4>फैट</h4><p>${plan.metadata.fat} g</p></div>
                  `;
-
-                 mealsContainer.innerHTML = ''; // Clear previous meals
-                 plan.schedule.forEach(item => {
-                    if(item.type === 'meal'){
-                         const mealCard = document.createElement('div');
-                         mealCard.className = 'meal-card';
-                         mealCard.innerHTML = `
-                            <span class="meal-card-icon">${item.icon}</span>
-                            <div class="meal-card-details">
-                                <h3>${item.title} (${item.time})</h3>
-                                <p>${item.instruction}</p>
-                            </div>
-                            <i class='bx bx-dots-vertical-rounded meal-card-menu'></i>
-                         `;
-                         mealsContainer.appendChild(mealCard);
-                    }
-                 });
             }
 
             // --- ALERTS SCREEN LOGIC (DYNAMIC) ---
@@ -681,17 +675,27 @@
                 timelineView.innerHTML = '';
                 
                 const plan = await getUserDietPlan();
-
-                if (!plan || !plan.schedule || plan.schedule.length === 0) {
+                
+                // MODIFIED: Logic to show day-specific alerts
+                if (!plan || !plan.weeklyPlan || plan.weeklyPlan.length < 7) {
                     alertEmptyState.style.display = 'block';
                     timelineView.style.display = 'none';
                 } else {
                     alertEmptyState.style.display = 'none';
                     timelineView.style.display = 'block';
                     
-                    plan.schedule.forEach((alert, index) => {
+                    const dayOfWeek = currentAlertDate.getDay(); // 0 for Sunday, 1 for Monday...
+                    const todaySchedule = plan.weeklyPlan[dayOfWeek].schedule;
+
+                    if (!todaySchedule || todaySchedule.length === 0) {
+                         alertEmptyState.style.display = 'block';
+                         timelineView.style.display = 'none';
+                         return;
+                    }
+
+                    todaySchedule.forEach((alert, index) => {
                         const card = document.createElement('div');
-                        card.className = `alert-card`; // Status classes can be added later
+                        card.className = `alert-card`;
                         card.innerHTML = `
                             <div class="alert-time">${alert.time}</div>
                             <div class="alert-timeline-marker">
@@ -714,7 +718,6 @@
             }
             
             function formatAlertDate(date) {
-                // Formatting logic remains the same
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 const compareDate = new Date(date);
@@ -735,6 +738,7 @@
             // --- UI Population & Other helpers ---
             function populateSelect(elementId, start, end) {
                 const select = document.getElementById(elementId);
+                if (!select) return;
                 for (let i = start; i <= end; i++) {
                     const option = document.createElement('option');
                     option.value = i; option.textContent = i;
@@ -756,6 +760,9 @@
                 item.innerHTML = `<div class="day">${days[d.getDay()]}</div><div class="date">${d.getDate()}</div>`;
                 dateStrip.appendChild(item);
             }
+
+            // Initial setup
+            showScreen('home');
         });
     </script>
 </body>
