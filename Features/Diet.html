@@ -202,10 +202,12 @@
     </nav>
     
     <script type="module">
+        // Firebase से जरूरी मॉड्यूल इम्पोर्ट करें
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
+        // आपका Firebase कॉन्फ़िगरेशन ऑब्जेक्ट
         const firebaseConfig = {
             apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
             authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -215,32 +217,41 @@
             appId: "1:42179676197:web:1796559543fb869c5297cc",
         };
 
+        // Firebase ऐप को इनिशियलाइज़ करें
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getFirestore(app);
         let currentUser = null;
 
+        // उपयोगकर्ता की प्रमाणीकरण स्थिति (authentication state) में बदलाव को सुनें
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // अगर उपयोगकर्ता लॉग इन है
                 currentUser = user;
+                // उपयोगकर्ता का डाइट प्लान Firestore से प्राप्त करें
                 const plan = await getUserDietPlan();
                 if (plan) {
+                    // अगर प्लान मौजूद है, तो उसे UI में दिखाएँ
                     renderMyPlanUI(plan);
                     document.getElementById('my-plan-empty-state').style.display = 'none';
                     document.getElementById('my-plan-generated-state').style.display = 'block';
                 }
+                // अलर्ट्स को रेंडर करें
                 renderAlerts();
             } else {
+                // अगर कोई उपयोगकर्ता लॉग इन नहीं है, तो गुमनाम रूप से साइन इन करें
                 signInAnonymously(auth).catch(console.error);
             }
         });
 
+        // उपयोगकर्ता के डाइट प्लान को Firestore में सेव करें
         async function saveUserDietPlan(plan) {
             if (!currentUser) return;
             const userDocRef = doc(db, "users", currentUser.uid);
             await setDoc(userDocRef, { dietPlan: plan }, { merge: true });
         }
 
+        // Firestore से उपयोगकर्ता का डाइट प्लान प्राप्त करें
         async function getUserDietPlan() {
             if (!currentUser) return null;
             const userDocRef = doc(db, "users", currentUser.uid);
@@ -248,10 +259,12 @@
             return userDoc.exists() ? userDoc.data().dietPlan : null;
         }
 
+        // DOM पूरी तरह से लोड होने पर यह फंक्शन चलाएँ
         document.addEventListener('DOMContentLoaded', function() {
             const navItems = document.querySelectorAll('.nav-item');
             const screens = document.querySelectorAll('.screen');
             
+            // दी गई ID वाली स्क्रीन दिखाएँ और बाकी को छिपाएँ
             function showScreen(screenId) {
                 screens.forEach(s => s.classList.remove('active'));
                 document.getElementById(screenId)?.classList.add('active');
@@ -259,14 +272,17 @@
                 if (screenId === 'alerts') renderAlerts();
             }
 
+            // नेविगेशन आइटम पर क्लिक इवेंट्स
             navItems.forEach(item => item.addEventListener('click', () => showScreen(item.dataset.screen)));
 
+            // Home स्क्रीन के एलिमेंट्स
             const medicineInput = document.getElementById('medicine-input');
             const addMedBtn = document.getElementById('add-med-btn');
             const tagsContainer = document.getElementById('medicine-tags-container');
             const generateBtn = document.getElementById('generate-btn');
             const resultsContainer = document.getElementById('results-container');
             
+            // 'Add' बटन पर क्लिक करने पर दवा का टैग जोड़ें
             addMedBtn.addEventListener('click', () => {
                 const medName = medicineInput.value.trim();
                 if (medName) {
@@ -279,6 +295,7 @@
                 }
             });
             
+            // 'AI Generate' बटन पर क्लिक करने पर भोजन-दवा इंटरैक्शन प्राप्त करें
             generateBtn.addEventListener('click', async () => {
                 if (tagsContainer.children.length === 0) return alert("कृपया कम से कम एक दवा जोड़ें।");
                 if (!currentUser) return alert("AI फीचर का उपयोग करने के लिए कृपया लॉग इन करें।");
@@ -290,6 +307,7 @@
                     const medicineNames = Array.from(tagsContainer.children).map(tag => tag.querySelector('span').textContent).join(', ');
                     const idToken = await currentUser.getIdToken();
 
+                    // महत्वपूर्ण: यह '/get-food-interaction' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const response = await fetch('/get-food-interaction', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -322,6 +340,7 @@
                 }
             });
 
+            // My Plan स्क्रीन के एलिमेंट्स
             const createMyPlanBtn = document.getElementById('create-my-plan-btn');
             const questionnaireModal = document.getElementById('questionnaire-modal');
             const closeModalBtn = document.getElementById('modal-close-btn');
@@ -329,6 +348,7 @@
             createMyPlanBtn.addEventListener('click', () => { questionnaireModal.style.display = 'flex'; });
             closeModalBtn.addEventListener('click', () => { questionnaireModal.style.display = 'none'; });
             
+            // 'डाइट प्लान जेनरेट करें' बटन पर क्लिक करने पर AI से डाइट प्लान बनाएँ
             generateDietPlanBtn.addEventListener('click', async () => {
                 if (!currentUser) return alert("Authentication error. Please refresh the page.");
                 generateDietPlanBtn.disabled = true;
@@ -340,6 +360,8 @@
                     userDetails.allergies = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-option.selected')).map(el => el.dataset.value).filter(val => ['gluten', 'dairy', 'nuts', 'seafood'].includes(val));
                     const prompt = `Create a structured 7-day diet plan in Hindi for a user with these details: - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg, Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal} - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}. The output MUST be a valid JSON object ONLY. No extra text or markdown. The root object must have two keys: "metadata" and "weeklyPlan". 1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers. 2. "weeklyPlan": An array of 7 objects, one for each day from Sunday (index 0) to Saturday (index 6). Each day object must have two keys: "day" (e.g., "रविवार") and "schedule". The "schedule" must be an array of meal objects. Each meal object needs: "time" (e.g., "08:30 AM"), "icon" (emoji), "title" (e.g., "नाश्ता"), "instruction" (meal description in Hindi), and "type" ("meal"). Provide at least 4 meals per day.`;
                     const idToken = await currentUser.getIdToken();
+                    
+                    // महत्वपूर्ण: यह '/generate-diet-plan' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const response = await fetch('/generate-diet-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, token: idToken }) });
                     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate plan.');
                     const result = await response.json();
@@ -360,12 +382,14 @@
                 }
             });
             
+            // My Plan UI को रेंडर करें
             function renderMyPlanUI(plan) {
                  if(!plan || !plan.metadata) return;
                  const nutritionContainer = document.querySelector('#my-plan-generated-state .nutrition-summary');
                  nutritionContainer.innerHTML = `<div class="nutrition-widget"><h4>कैलोरी</h4><p>${plan.metadata.calories} kcal</p></div> <div class="nutrition-widget"><h4>प्रोटीन</h4><p>${plan.metadata.protein} g</p></div> <div class="nutrition-widget"><h4>कार्ब्स</h4><p>${plan.metadata.carbs} g</p></div> <div class="nutrition-widget"><h4>फैट</h4><p>${plan.metadata.fat} g</p></div>`;
             }
 
+            // Alerts स्क्रीन के एलिमेंट्स
             const prevDayBtn = document.getElementById('prev-day-btn');
             const nextDayBtn = document.getElementById('next-day-btn');
             const todayBtn = document.getElementById('today-btn');
@@ -375,6 +399,7 @@
             
             let currentAlertDate = new Date();
             
+            // चयनित दिन के लिए अलर्ट्स (भोजन योजना) दिखाएँ
             async function renderAlerts() {
                 if (!currentDateDisplay || !timelineView || !alertEmptyState) return;
                 currentDateDisplay.textContent = formatAlertDate(currentAlertDate);
@@ -386,7 +411,7 @@
                 } else {
                     alertEmptyState.style.display = 'none';
                     timelineView.style.display = 'block';
-                    const dayOfWeek = currentAlertDate.getDay();
+                    const dayOfWeek = currentAlertDate.getDay(); // Sunday - 0, Monday - 1, ...
                     const todaySchedule = plan.weeklyPlan[dayOfWeek].schedule;
                     if (!todaySchedule || todaySchedule.length === 0) {
                          alertEmptyState.style.display = 'block';
@@ -402,6 +427,7 @@
                 }
             }
             
+            // तारीख को एक पठनीय फॉर्मेट में बदलें
             function formatAlertDate(date) {
                 const today = new Date(); today.setHours(0,0,0,0);
                 const compareDate = new Date(date); compareDate.setHours(0,0,0,0);
@@ -412,15 +438,18 @@
                 return date.toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' });
             }
 
+            // दिन बदलने वाले बटनों के लिए इवेंट्स
             prevDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() - 1); renderAlerts(); });
             nextDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() + 1); renderAlerts(); });
             todayBtn.addEventListener('click', () => { currentAlertDate = new Date(); renderAlerts(); });
             
+            // Learn स्क्रीन के एलिमेंट्स
             const aiGenerateLearnBtn = document.getElementById('ai-generate-learn-btn');
             const learnSearchInput = document.getElementById('learn-search-input');
             const aiArticleContainer = document.getElementById('ai-article-container');
             const videoScroller = document.getElementById('video-scroller-container');
 
+            // 'AI Generate' पर क्लिक करने पर आर्टिकल और वीडियो खोजें
             aiGenerateLearnBtn.addEventListener('click', async () => {
                 const topic = learnSearchInput.value.trim();
                 if (!topic) return alert('कृपया एक विषय लिखें।');
@@ -433,24 +462,29 @@
                 
                 try {
                     const idToken = await currentUser.getIdToken();
-                    // Fetch Article
+                    // आर्टिकल प्राप्त करने का प्रॉमिस
+                    // महत्वपूर्ण: यह '/ask-ai' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const articlePromise = fetch('/ask-ai', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ question: `Write a short, simple, and informative article in Hindi about "${topic}".`, token: idToken })
                     }).then(res => res.json());
 
-                    // Fetch Videos
+                    // वीडियो प्राप्त करने का प्रॉमिस
+                    // महत्वपूर्ण: यह '/get-youtube-videos' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const videoPromise = fetch(`/get-youtube-videos?query=${encodeURIComponent(topic)}`).then(res => res.json());
 
+                    // दोनों प्रॉमिस को एक साथ चलाएँ
                     const [articleResult, videoResult] = await Promise.all([articlePromise, videoPromise]);
 
-                    if (articleResult.answer) {
+                    // आर्टिकल को UI में दिखाएँ
+                    if (articleResult && articleResult.answer) {
                         aiArticleContainer.innerHTML = articleResult.answer.replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>').replace(/\n/g, '<br>');
                     } else {
                         throw new Error(articleResult.error || 'Could not fetch article.');
                     }
                     
+                    // वीडियो को UI में दिखाएँ
                     if (videoResult && videoResult.length > 0) {
                         videoScroller.innerHTML = videoResult.map(video => `
                             <div class="video-container" style="flex: 0 0 100%; scroll-snap-align: start;">
@@ -464,12 +498,14 @@
                 } catch (error) {
                     console.error("Error in Learn feature:", error);
                     alert("Error: " + error.message);
+                    aiArticleContainer.innerHTML = "<p>जानकारी प्राप्त करने में विफल। कृपया पुनः प्रयास करें।</p>";
                 } finally {
                     aiGenerateLearnBtn.disabled = false;
                     aiGenerateLearnBtn.textContent = 'AI Generate';
                 }
             });
 
+            // फॉर्म के ड्रॉपडाउन को पॉप्युलेट करने के लिए हेल्पर फंक्शन
             function populateSelect(elementId, start, end) {
                 const select = document.getElementById(elementId);
                 if (!select) return;
@@ -480,10 +516,13 @@
                 }
             }
             populateSelect('age', 1, 100); populateSelect('height', 100, 220); populateSelect('weight', 20, 200);
+            
+            // मल्टी-सेलेक्ट विकल्पों के लिए क्लिक इवेंट
             document.querySelectorAll('.multi-select-option').forEach(option => {
                 option.addEventListener('click', () => { option.classList.toggle('selected'); });
             });
 
+            // ऐप शुरू होने पर Home स्क्रीन दिखाएँ
             showScreen('home');
         });
     </script>
