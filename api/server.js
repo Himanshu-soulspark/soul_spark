@@ -7,8 +7,8 @@ const admin = require('firebase-admin');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Razorpay = require('razorpay');
 const path = require('path');
-const axios = require('axios'); // <<<--- मौसम और पोषण की जानकारी के लिए नया पैकेज
-const { google } = require('googleapis'); // <<<--- YouTube वीडियो खोजने के लिए नया पैकेज
+const axios = require('axios');
+const { google } = require('googleapis');
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें
@@ -19,7 +19,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- Firebase Admin SDK को शुरू करें (API Key 1: FIREBASE_SERVICE_ACCOUNT) ---
+// --- Firebase Admin SDK को शुरू करें ---
 try {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   admin.initializeApp({
@@ -31,35 +31,32 @@ try {
 }
 const db = admin.firestore();
 
-// --- Google AI (Gemini) को शुरू करें (API Key 2: GEMINI_API_KEY) ---
+// --- Google AI (Gemini) को शुरू करें ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 console.log("Google Generative AI initialized.");
 
 
-// --- Razorpay को शुरू करें (API Key 3 & 4: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET) ---
+// --- Razorpay को शुरू करें ---
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 console.log("Razorpay initialized.");
 
-// --- YouTube API को शुरू करें (API Key 5: YOUTUBE_API_KEY) ---
+// --- YouTube API को शुरू करें ---
 const youtube = google.youtube({
   version: 'v3',
   auth: process.env.YOUTUBE_API_KEY
 });
 console.log("YouTube API initialized.");
 
-// Nutritionix और Weather API Keys को सीधे इस्तेमाल किया जाएगा, उनके लिए अलग से ऑब्जेक्ट बनाने की ज़रूरत नहीं है।
-// (API Key 6: NUTRITIONIX_API_KEY, API Key 7: USDA_API_KEY, API Key 8: WEATHER_API_KEY)
-
 
 // =================================================================
 // 3. API Endpoints (आपके सर्वर के रास्ते)
 // =================================================================
 
-// --- (मौजूदा) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
+// --- (सुधारा हुआ) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
 app.post('/get-food-interaction', async (req, res) => {
   try {
     const { medicines, token } = req.body;
@@ -74,8 +71,24 @@ app.post('/get-food-interaction', async (req, res) => {
     const COIN_COST = 2;
     if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
 
-    const promptForJson = `Analyze food interactions for: ${medicines}. Respond ONLY with a valid JSON object. The JSON must have three keys: "avoid", "limit", and "safe", each with an array of strings. If a category is empty, provide an empty array. Example: {"avoid": ["Alcohol"], "limit": [], "safe": ["Vegetables"]}`;
-    const result = await aiModel.generateContent(promptForJson);
+    // <<<<<<<<<<<<<<< यही एकमात्र ज़रूरी बदलाव है >>>>>>>>>>>>>>>>
+    // AI को बेहतर और विस्तृत निर्देश दिए गए हैं ताकि वह हिंदी में और कारण के साथ जवाब दे।
+    const improvedPrompt = `
+      You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
+
+      Your task is to provide a detailed food interaction guide. The response MUST be a valid JSON object ONLY, with no extra text or markdown. The entire response, including all food names and reasons, MUST be in simple Hindi (Devanagari script).
+
+      The JSON object must have three keys: "avoid", "limit", and "safe".
+
+      1. "avoid": An array of objects for foods to completely avoid. Each object must have "item" and "reason" keys.
+      2. "limit": An array of objects for foods to eat in limited quantity. Each object must also have "item" and "reason" keys.
+      3. "safe": An array of strings listing at least 5 examples of safe foods in Hindi.
+
+      For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
+    `;
+    // <<<<<<<<<<<<<<< बदलाव यहाँ समाप्त होता है >>>>>>>>>>>>>>>>
+
+    const result = await aiModel.generateContent(improvedPrompt); // यहाँ सुधारे हुए प्रॉम्प्ट का उपयोग किया गया है
     const aiAnswer = result.response.text();
 
     await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
@@ -87,6 +100,7 @@ app.post('/get-food-interaction', async (req, res) => {
 });
 
 // --- (मौजूदा) AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
+// यह फंक्शन वैसा का वैसा ही है क्योंकि यह आपके नए 'Diet Plans' फीचर के लिए काम करेगा।
 app.post('/ask-ai', async (req, res) => {
   try {
     const { question, token } = req.body;
@@ -132,13 +146,14 @@ app.post('/generate-diet-plan', async (req, res) => {
     
     await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
     res.json({ answer: aiAnswer });
-  } catch (error) {
+  } catch (error)
+ {
     console.error("Error in /generate-diet-plan:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
 
-// --- (नया) YouTube वीडियो खोजने वाला Endpoint ---
+// --- (मौजूदा) YouTube वीडियो खोजने वाला Endpoint ---
 app.get('/get-youtube-videos', async (req, res) => {
     const { query } = req.query;
     if (!query) return res.status(400).json({ error: 'Search query is required.' });
@@ -156,7 +171,7 @@ app.get('/get-youtube-videos', async (req, res) => {
     }
 });
 
-// --- (नया) मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
+// --- (मौजूदा) मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
 app.get('/get-weather-advice', async (req, res) => {
     const { city } = req.query;
     if (!city) return res.status(400).json({ error: 'City is required.' });
@@ -180,17 +195,16 @@ app.get('/get-weather-advice', async (req, res) => {
     }
 });
 
-// --- (नया) भोजन की पोषण जानकारी देने वाला Endpoint ---
+// --- (मौजूदा) भोजन की पोषण जानकारी देने वाला Endpoint ---
 app.get('/get-nutrition-info', async (req, res) => {
     const { food } = req.query;
     if (!food) return res.status(400).json({ error: 'Food item is required.' });
     try {
-        // सबसे पहले Nutritionix (ब्रांडेड भोजन) से खोजने की कोशिश करें
         const nutritionixResponse = await axios.post('https://trackapi.nutritionix.com/v2/natural/nutrients', {
             query: food
         }, {
             headers: {
-                'x-app-id': process.env.NUTRITIONIX_APP_ID, // ज़रूरी: Render में NUTRITIONIX_APP_ID भी डालें
+                'x-app-id': process.env.NUTRITIONIX_APP_ID,
                 'x-app-key': process.env.NUTRITIONIX_API_KEY
             }
         });
@@ -199,7 +213,6 @@ app.get('/get-nutrition-info', async (req, res) => {
         }
     } catch (nutritionixError) {
         console.log("Nutritionix failed, trying USDA...");
-        // अगर Nutritionix से नहीं मिला, तो USDA (साधारण भोजन) से खोजें
         try {
             const usdaResponse = await axios.get('https://api.nal.usda.gov/fdc/v1/foods/search', {
                 params: {
@@ -214,7 +227,6 @@ app.get('/get-nutrition-info', async (req, res) => {
             console.error('USDA API Error:', usdaError);
         }
     }
-    // अगर कहीं से भी जानकारी नहीं मिली
     res.status(404).json({ error: 'Could not find nutritional information for this item.' });
 });
 
