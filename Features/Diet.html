@@ -28,9 +28,9 @@
         .btn-3d { padding: 15px 25px; font-size: 16px; font-weight: 600; color: white; border: none; border-radius: 12px; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 6px 12px rgba(0, 0, 0, 0.2); transition: transform 0.1s, box-shadow 0.1s; }
         .btn-3d:active { transform: translateY(2px); box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 4px 8px rgba(0, 0, 0, 0.25); }
         .btn-3d:disabled { background-color: #ccc !important; background-image: none !important; cursor: not-allowed; box-shadow: none; }
-        .medicine-input-container { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
-        #medicine-input { flex-grow: 1; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 12px; min-width: 0; }
-        #add-med-btn { flex-shrink: 0; background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
+        .input-container { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .input-container input { flex-grow: 1; padding: 15px; font-size: 16px; border: 1px solid #ccc; border-radius: 12px; min-width: 0; }
+        #add-med-btn, #add-disease-btn { flex-shrink: 0; background: linear-gradient(45deg, var(--accent-color), var(--primary-color)); }
         #generate-btn { width: 100%; padding: 20px; font-size: 18px; background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); }
         #medicine-tags-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; min-height: 50px; }
         .medicine-tag { background-color: #e0f7fa; color: var(--secondary-color); padding: 10px 15px; border-radius: 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; position: relative; padding-right: 30px; }
@@ -49,6 +49,7 @@
         .card-avoid { border-color: var(--avoid-color); } .card-avoid h3, .card-avoid li { color: var(--avoid-color); }
         .card-limit { border-color: var(--limit-color); } .card-limit h3, .card-limit li { color: var(--limit-color); }
         .card-safe { border-color: var(--safe-color); } .card-safe h3, .card-safe li { color: var(--safe-color); }
+        .card-cure { border-color: var(--primary-color); } .card-cure h3, .card-cure p { color: var(--secondary-color); }
         #my-plan-empty-state { text-align: center; padding: 40px 20px; }
         #my-plan-empty-state i { font-size: 80px; color: var(--accent-color); }
         #my-plan-empty-state h2 { font-size: 22px; color: var(--secondary-color); margin-top: 20px; }
@@ -102,6 +103,18 @@
         .nav-item i { font-size: 24px; }
         .nav-item span { font-size: 12px; margin-top: 4px; }
         .nav-item.active { color: var(--primary-color); }
+        /* --- नए स्टाइल --- */
+        #disease-list { list-style: none; padding: 0; margin: 0; }
+        #disease-list li { background-color: var(--card-bg-color); padding: 18px; margin-bottom: 10px; border-radius: 12px; font-weight: 500; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        #disease-list li:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        #disease-details-container { display: flex; flex-direction: column; gap: 20px; }
+        .page-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        #back-to-list-btn { background: none; border: none; font-size: 32px; color: var(--primary-color); cursor: pointer; padding: 0; }
+        .page-header h2 { margin: 0; font-size: 24px; color: var(--secondary-color); }
+        .disease-card { background-color: var(--card-bg-color); border-radius: var(--border-radius); padding: 20px; box-shadow: var(--box-shadow-3d); border-top: 10px solid; aspect-ratio: 16 / 9; overflow-y: auto; }
+        .disease-card h3 { margin-top: 0; font-size: 20px; }
+        .disease-card ul { list-style-position: inside; padding-left: 5px; }
+        .disease-card p { line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -109,7 +122,7 @@
     <div class="main-container">
         
         <div id="home" class="screen active">
-            <div class="medicine-input-container">
+            <div class="input-container">
                 <input type="text" id="medicine-input" placeholder="दवा का नाम टाइप करें...">
                 <button id="add-med-btn" class="btn-3d">Add</button>
             </div>
@@ -119,7 +132,23 @@
         </div>
 
         <div id="diet-plans" class="screen">
-             <h2>Diet Plans (Placeholder)</h2>
+            <div class="input-container">
+                <input type="text" id="disease-input" placeholder="बीमारी का नाम टाइप करें...">
+                <button id="add-disease-btn" class="btn-3d">Add</button>
+            </div>
+            <ul id="disease-list">
+                <!-- बीमारियों की सूची जावास्क्रिप्ट से भरी जाएगी -->
+            </ul>
+        </div>
+
+        <div id="disease-details" class="screen">
+            <div class="page-header">
+                <button id="back-to-list-btn"><i class='bx bx-arrow-back'></i></button>
+                <h2 id="disease-title"></h2>
+            </div>
+            <div id="disease-details-container">
+                <!-- AI से मिली जानकारी यहाँ कार्ड के रूप में दिखाई जाएगी -->
+            </div>
         </div>
         
         <div id="my-plan" class="screen">
@@ -202,12 +231,10 @@
     </nav>
     
     <script type="module">
-        // Firebase से जरूरी मॉड्यूल इम्पोर्ट करें
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
-        // आपका Firebase कॉन्फ़िगरेशन ऑब्जेक्ट
         const firebaseConfig = {
             apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
             authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -217,41 +244,32 @@
             appId: "1:42179676197:web:1796559543fb869c5297cc",
         };
 
-        // Firebase ऐप को इनिशियलाइज़ करें
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getFirestore(app);
         let currentUser = null;
 
-        // उपयोगकर्ता की प्रमाणीकरण स्थिति (authentication state) में बदलाव को सुनें
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // अगर उपयोगकर्ता लॉग इन है
                 currentUser = user;
-                // उपयोगकर्ता का डाइट प्लान Firestore से प्राप्त करें
                 const plan = await getUserDietPlan();
                 if (plan) {
-                    // अगर प्लान मौजूद है, तो उसे UI में दिखाएँ
                     renderMyPlanUI(plan);
                     document.getElementById('my-plan-empty-state').style.display = 'none';
                     document.getElementById('my-plan-generated-state').style.display = 'block';
                 }
-                // अलर्ट्स को रेंडर करें
                 renderAlerts();
             } else {
-                // अगर कोई उपयोगकर्ता लॉग इन नहीं है, तो गुमनाम रूप से साइन इन करें
                 signInAnonymously(auth).catch(console.error);
             }
         });
 
-        // उपयोगकर्ता के डाइट प्लान को Firestore में सेव करें
         async function saveUserDietPlan(plan) {
             if (!currentUser) return;
             const userDocRef = doc(db, "users", currentUser.uid);
             await setDoc(userDocRef, { dietPlan: plan }, { merge: true });
         }
 
-        // Firestore से उपयोगकर्ता का डाइट प्लान प्राप्त करें
         async function getUserDietPlan() {
             if (!currentUser) return null;
             const userDocRef = doc(db, "users", currentUser.uid);
@@ -259,12 +277,10 @@
             return userDoc.exists() ? userDoc.data().dietPlan : null;
         }
 
-        // DOM पूरी तरह से लोड होने पर यह फंक्शन चलाएँ
         document.addEventListener('DOMContentLoaded', function() {
             const navItems = document.querySelectorAll('.nav-item');
             const screens = document.querySelectorAll('.screen');
             
-            // दी गई ID वाली स्क्रीन दिखाएँ और बाकी को छिपाएँ
             function showScreen(screenId) {
                 screens.forEach(s => s.classList.remove('active'));
                 document.getElementById(screenId)?.classList.add('active');
@@ -272,17 +288,15 @@
                 if (screenId === 'alerts') renderAlerts();
             }
 
-            // नेविगेशन आइटम पर क्लिक इवेंट्स
             navItems.forEach(item => item.addEventListener('click', () => showScreen(item.dataset.screen)));
-
-            // Home स्क्रीन के एलिमेंट्स
+            
+            // --- Home Screen Logic ---
             const medicineInput = document.getElementById('medicine-input');
             const addMedBtn = document.getElementById('add-med-btn');
             const tagsContainer = document.getElementById('medicine-tags-container');
             const generateBtn = document.getElementById('generate-btn');
             const resultsContainer = document.getElementById('results-container');
             
-            // 'Add' बटन पर क्लिक करने पर दवा का टैग जोड़ें
             addMedBtn.addEventListener('click', () => {
                 const medName = medicineInput.value.trim();
                 if (medName) {
@@ -295,7 +309,6 @@
                 }
             });
             
-            // 'AI Generate' बटन पर क्लिक करने पर भोजन-दवा इंटरैक्शन प्राप्त करें
             generateBtn.addEventListener('click', async () => {
                 if (tagsContainer.children.length === 0) return alert("कृपया कम से कम एक दवा जोड़ें।");
                 if (!currentUser) return alert("AI फीचर का उपयोग करने के लिए कृपया लॉग इन करें।");
@@ -307,7 +320,6 @@
                     const medicineNames = Array.from(tagsContainer.children).map(tag => tag.querySelector('span').textContent).join(', ');
                     const idToken = await currentUser.getIdToken();
 
-                    // महत्वपूर्ण: यह '/get-food-interaction' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const response = await fetch('/get-food-interaction', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -320,14 +332,24 @@
                     const aiJsonText = result.answer.replace(/```json/g, '').replace(/```/g, '').trim();
                     const data = JSON.parse(aiJsonText);
                     
-                    const createList = (items) => items && items.length > 0 ? items.map(item => `<li>${item}</li>`).join('') : '<li>कोई विशेष जानकारी नहीं।</li>';
+                    const createList = (items, type) => {
+                        if (!items || items.length === 0) return '<ul><li>कोई विशेष जानकारी नहीं।</li></ul>';
+                        let listHtml = '<ul>';
+                        if (type === 'safe') {
+                            listHtml += items.map(item => `<li>${item}</li>`).join('');
+                        } else {
+                            listHtml += items.map(item => `<li><strong>${item.item}:</strong> ${item.reason}</li>`).join('');
+                        }
+                        listHtml += '</ul>';
+                        return listHtml;
+                    };
 
                     resultsContainer.innerHTML = `
                         <p class="swipe-indicator"><i class='bx bx-left-arrow-alt'></i> स्वाइप करके देखें <i class='bx bx-right-arrow-alt'></i></p>
                         <div class="results-scroller">
-                            <div class="result-card card-avoid"> <div class="result-card-header"> <span class="sticker">🍔</span> <h3>पूरी तरह से बचें</h3> </div> <div class="result-card-content"> <ul> ${createList(data.avoid)} </ul> </div> </div>
-                            <div class="result-card card-limit"> <div class="result-card-header"> <span class="sticker">🍚</span> <h3>सीमित मात्रा में लें</h3> </div> <div class="result-card-content"> <ul> ${createList(data.limit)} </ul> </div> </div>
-                            <div class="result-card card-safe"> <div class="result-card-header"> <span class="sticker">🥗</span> <h3>सुरक्षित भोजन</h3> </div> <div class="result-card-content"> <ul> ${createList(data.safe)} </ul> </div> </div>
+                            <div class="result-card card-avoid"> <div class="result-card-header"> <span class="sticker">🍔</span> <h3>पूरी तरह से बचें</h3> </div> <div class="result-card-content"> ${createList(data.avoid, 'avoid')} </div> </div>
+                            <div class="result-card card-limit"> <div class="result-card-header"> <span class="sticker">🍚</span> <h3>सीमित मात्रा में लें</h3> </div> <div class="result-card-content"> ${createList(data.limit, 'limit')} </div> </div>
+                            <div class="result-card card-safe"> <div class="result-card-header"> <span class="sticker">🥗</span> <h3>सुरक्षित भोजन</h3> </div> <div class="result-card-content"> ${createList(data.safe, 'safe')} </div> </div>
                         </div>`;
                     resultsContainer.style.display = 'block';
 
@@ -340,7 +362,87 @@
                 }
             });
 
-            // My Plan स्क्रीन के एलिमेंट्स
+            // --- Diet Plans & Disease Details Logic (नया सेक्शन) ---
+            const diseaseInput = document.getElementById('disease-input');
+            const addDiseaseBtn = document.getElementById('add-disease-btn');
+            const diseaseList = document.getElementById('disease-list');
+            const diseaseDetailsContainer = document.getElementById('disease-details-container');
+            const diseaseTitle = document.getElementById('disease-title');
+            const backToListBtn = document.getElementById('back-to-list-btn');
+
+            let commonDiseases = ["डायबिटीज (Diabetes)", "उच्च रक्तचाप (Hypertension)", "थायराइड (Thyroid)", "कोलेस्ट्रॉल (Cholesterol)", "मोटापा (Obesity)", "किडनी स्टोन (Kidney Stone)", "फैटी लिवर (Fatty Liver)", "अस्थमा (Asthma)", "गठिया (Arthritis)", "एनीमिया (Anemia)", "पीलिया (Jaundice)", "माइग्रेन (Migraine)", "कब्ज (Constipation)", "एसिडिटी (Acidity)", "डेंगू (Dengue)", "चिकनगुनिया (Chikungunya)", "वायरल बुखार (Viral Fever)", "डिप्रेशन (Depression)", "त्वचा की एलर्जी (Skin Allergy)", "बालों का झड़ना (Hair Fall)"];
+
+            function renderDiseaseList() {
+                diseaseList.innerHTML = '';
+                commonDiseases.forEach(disease => {
+                    const li = document.createElement('li');
+                    li.textContent = disease;
+                    li.dataset.disease = disease;
+                    diseaseList.appendChild(li);
+                });
+            }
+
+            addDiseaseBtn.addEventListener('click', () => {
+                const newDisease = diseaseInput.value.trim();
+                if (newDisease && !commonDiseases.includes(newDisease)) {
+                    commonDiseases.unshift(newDisease); // नई बीमारी को सबसे ऊपर जोड़ें
+                    renderDiseaseList();
+                    diseaseInput.value = '';
+                }
+            });
+
+            diseaseList.addEventListener('click', (e) => {
+                if (e.target.tagName === 'LI') {
+                    const diseaseName = e.target.dataset.disease;
+                    fetchAndDisplayDiseaseInfo(diseaseName);
+                }
+            });
+            
+            backToListBtn.addEventListener('click', () => showScreen('diet-plans'));
+
+            async function fetchAndDisplayDiseaseInfo(diseaseName) {
+                if (!currentUser) return alert("AI फीचर का उपयोग करने के लिए कृपया लॉग इन करें।");
+                
+                diseaseTitle.textContent = diseaseName;
+                diseaseDetailsContainer.innerHTML = '<p>AI आपके लिए जानकारी तैयार कर रहा ہے...</p>';
+                showScreen('disease-details');
+
+                try {
+                    const idToken = await currentUser.getIdToken();
+                    const prompt = `Provide a detailed diet and management plan in simple Hindi for the disease: "${diseaseName}". The response must be a valid JSON object ONLY, with no extra text or markdown. The JSON should have four keys: "avoid", "limit", "safe", and "cure". 
+                    1. "avoid": An array of at least 5 strings listing foods to completely avoid.
+                    2. "limit": An array of at least 5 strings listing foods to eat in moderation.
+                    3. "safe": An array of at least 5 strings listing beneficial foods.
+                    4. "cure": A short paragraph in Hindi (as a single string) explaining general tips to manage or cure the disease.
+                    Example for "Diabetes": {"avoid": ["चीनी", "मैदा"], "limit": ["चावल", "आलू"], "safe": ["करेला", "मेथी"], "cure": "नियमित व्यायाम करें और तनाव से दूर रहें..."}`;
+
+                    // महत्वपूर्ण: यह '/get-disease-info' आपके सर्वर पर एक नया API एंडपॉइंट होना चाहिए
+                    const response = await fetch('/ask-ai', { // हम मौजूदा /ask-ai का उपयोग कर सकते हैं
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: prompt, token: idToken })
+                    });
+                    if (!response.ok) throw new Error((await response.json()).error || 'Failed to get response from AI.');
+                    
+                    const result = await response.json();
+                    const aiJsonText = result.answer.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const data = JSON.parse(aiJsonText);
+
+                    diseaseDetailsContainer.innerHTML = `
+                        <div class="disease-card card-avoid"><h3>क्या न खाएं 🍔</h3><ul>${data.avoid.map(item => `<li>${item}</li>`).join('')}</ul></div>
+                        <div class="disease-card card-limit"><h3>क्या कम खाएं 🍚</h3><ul>${data.limit.map(item => `<li>${item}</li>`).join('')}</ul></div>
+                        <div class="disease-card card-safe"><h3>क्या खाएं 🥗</h3><ul>${data.safe.map(item => `<li>${item}</li>`).join('')}</ul></div>
+                        <div class="disease-card card-cure"><h3>इलाज और प्रबंधन 💡</h3><p>${data.cure}</p></div>
+                    `;
+                } catch (error) {
+                    console.error("Error fetching disease info:", error);
+                    diseaseDetailsContainer.innerHTML = `<p>जानकारी प्राप्त करने में विफल। कृपया पुनः प्रयास करें। Error: ${error.message}</p>`;
+                }
+            }
+            
+            renderDiseaseList(); // पहली बार सूची लोड करें
+
+            // --- My Plan Logic ---
             const createMyPlanBtn = document.getElementById('create-my-plan-btn');
             const questionnaireModal = document.getElementById('questionnaire-modal');
             const closeModalBtn = document.getElementById('modal-close-btn');
@@ -348,7 +450,6 @@
             createMyPlanBtn.addEventListener('click', () => { questionnaireModal.style.display = 'flex'; });
             closeModalBtn.addEventListener('click', () => { questionnaireModal.style.display = 'none'; });
             
-            // 'डाइट प्लान जेनरेट करें' बटन पर क्लिक करने पर AI से डाइट प्लान बनाएँ
             generateDietPlanBtn.addEventListener('click', async () => {
                 if (!currentUser) return alert("Authentication error. Please refresh the page.");
                 generateDietPlanBtn.disabled = true;
@@ -358,10 +459,8 @@
                     const userDetails = Object.fromEntries(formData.entries());
                     userDetails.health_conditions = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-option.selected')).map(el => el.dataset.value).filter(val => ['diabetes', 'hypertension', 'thyroid', 'pcos'].includes(val));
                     userDetails.allergies = Array.from(document.querySelectorAll('#diet-questionnaire-form .multi-select-option.selected')).map(el => el.dataset.value).filter(val => ['gluten', 'dairy', 'nuts', 'seafood'].includes(val));
-                    const prompt = `Create a structured 7-day diet plan in Hindi for a user with these details: - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg, Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal} - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}. The output MUST be a valid JSON object ONLY. No extra text or markdown. The root object must have two keys: "metadata" and "weeklyPlan". 1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers. 2. "weeklyPlan": An array of 7 objects, one for each day from Sunday (index 0) to Saturday (index 6). Each day object must have two keys: "day" (e.g., "रविवार") and "schedule". The "schedule" must be an array of meal objects. Each meal object needs: "time" (e.g., "08:30 AM"), "icon" (emoji), "title" (e.g., "नाश्ता"), "instruction" (meal description in Hindi), and "type" ("meal"). Provide at least 4 meals per day.`;
+                    const prompt = `Create a structured 7-day diet plan in Hindi for a user with these details: - Age: ${userDetails.age}, Gender: ${userDetails.gender}, Height: ${userDetails.height}cm, Weight: ${userDetails.weight}kg, Activity: ${userDetails.activity_level}, Goal: ${userDetails.primary_goal} - Conditions: ${userDetails.health_conditions.join(', ') || 'None'}, Allergies: ${userDetails.allergies.join(', ') || 'None'}, Diet: ${userDetails.diet_preference}. The output MUST be a valid JSON object ONLY. No extra text or markdown. The root object must have two keys: "metadata" and "weeklyPlan". 1. "metadata": An object with total "calories", "protein", "carbs", "fat" as numbers. 2. "weeklyPlan": An array of 7 objects, one for each day from Sunday (index 0) to Saturday (index 6). Each day object must have "day" (e.g., "रविवार") and "schedule". The "schedule" must be an array of meal objects. Each meal object needs: "time" (e.g., "08:30 AM"), "icon" (emoji like 早餐, 午餐, 晚餐), "title" (e.g., "नाश्ता", "दोपहर का भोजन", "शाम का नाश्ता", "रात का खाना"), "instruction" (meal description in Hindi), and "type" ("meal"). Provide at least 4 meals per day: Breakfast, Lunch, Evening Snack, and Dinner.`;
                     const idToken = await currentUser.getIdToken();
-                    
-                    // महत्वपूर्ण: यह '/generate-diet-plan' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const response = await fetch('/generate-diet-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, token: idToken }) });
                     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate plan.');
                     const result = await response.json();
@@ -372,7 +471,8 @@
                     questionnaireModal.style.display = 'none';
                     document.getElementById('my-plan-empty-state').style.display = 'none';
                     document.getElementById('my-plan-generated-state').style.display = 'block';
-                    await renderAlerts();
+                    await renderAlerts(); // अलर्ट्स को तुरंत अपडेट करें
+                    showScreen('alerts'); // प्लान बनने के बाद सीधे अलर्ट्स पेज पर ले जाएँ
                 } catch (error) {
                     console.error("Error generating diet plan:", error);
                     alert("Error: " + error.message);
@@ -382,14 +482,13 @@
                 }
             });
             
-            // My Plan UI को रेंडर करें
             function renderMyPlanUI(plan) {
                  if(!plan || !plan.metadata) return;
                  const nutritionContainer = document.querySelector('#my-plan-generated-state .nutrition-summary');
                  nutritionContainer.innerHTML = `<div class="nutrition-widget"><h4>कैलोरी</h4><p>${plan.metadata.calories} kcal</p></div> <div class="nutrition-widget"><h4>प्रोटीन</h4><p>${plan.metadata.protein} g</p></div> <div class="nutrition-widget"><h4>कार्ब्स</h4><p>${plan.metadata.carbs} g</p></div> <div class="nutrition-widget"><h4>फैट</h4><p>${plan.metadata.fat} g</p></div>`;
             }
 
-            // Alerts स्क्रीन के एलिमेंट्स
+            // --- Alerts Screen Logic ---
             const prevDayBtn = document.getElementById('prev-day-btn');
             const nextDayBtn = document.getElementById('next-day-btn');
             const todayBtn = document.getElementById('today-btn');
@@ -399,7 +498,6 @@
             
             let currentAlertDate = new Date();
             
-            // चयनित दिन के लिए अलर्ट्स (भोजन योजना) दिखाएँ
             async function renderAlerts() {
                 if (!currentDateDisplay || !timelineView || !alertEmptyState) return;
                 currentDateDisplay.textContent = formatAlertDate(currentAlertDate);
@@ -411,7 +509,7 @@
                 } else {
                     alertEmptyState.style.display = 'none';
                     timelineView.style.display = 'block';
-                    const dayOfWeek = currentAlertDate.getDay(); // Sunday - 0, Monday - 1, ...
+                    const dayOfWeek = currentAlertDate.getDay();
                     const todaySchedule = plan.weeklyPlan[dayOfWeek].schedule;
                     if (!todaySchedule || todaySchedule.length === 0) {
                          alertEmptyState.style.display = 'block';
@@ -427,7 +525,6 @@
                 }
             }
             
-            // तारीख को एक पठनीय फॉर्मेट में बदलें
             function formatAlertDate(date) {
                 const today = new Date(); today.setHours(0,0,0,0);
                 const compareDate = new Date(date); compareDate.setHours(0,0,0,0);
@@ -438,18 +535,16 @@
                 return date.toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' });
             }
 
-            // दिन बदलने वाले बटनों के लिए इवेंट्स
             prevDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() - 1); renderAlerts(); });
             nextDayBtn.addEventListener('click', () => { currentAlertDate.setDate(currentAlertDate.getDate() + 1); renderAlerts(); });
             todayBtn.addEventListener('click', () => { currentAlertDate = new Date(); renderAlerts(); });
             
-            // Learn स्क्रीन के एलिमेंट्स
+            // --- Learn Screen Logic ---
             const aiGenerateLearnBtn = document.getElementById('ai-generate-learn-btn');
             const learnSearchInput = document.getElementById('learn-search-input');
             const aiArticleContainer = document.getElementById('ai-article-container');
             const videoScroller = document.getElementById('video-scroller-container');
 
-            // 'AI Generate' पर क्लिक करने पर आर्टिकल और वीडियो खोजें
             aiGenerateLearnBtn.addEventListener('click', async () => {
                 const topic = learnSearchInput.value.trim();
                 if (!topic) return alert('कृपया एक विषय लिखें।');
@@ -462,29 +557,22 @@
                 
                 try {
                     const idToken = await currentUser.getIdToken();
-                    // आर्टिकल प्राप्त करने का प्रॉमिस
-                    // महत्वपूर्ण: यह '/ask-ai' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const articlePromise = fetch('/ask-ai', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ question: `Write a short, simple, and informative article in Hindi about "${topic}".`, token: idToken })
                     }).then(res => res.json());
 
-                    // वीडियो प्राप्त करने का प्रॉमिस
-                    // महत्वपूर्ण: यह '/get-youtube-videos' आपके सर्वर पर एक API एंडपॉइंट होना चाहिए
                     const videoPromise = fetch(`/get-youtube-videos?query=${encodeURIComponent(topic)}`).then(res => res.json());
 
-                    // दोनों प्रॉमिस को एक साथ चलाएँ
                     const [articleResult, videoResult] = await Promise.all([articlePromise, videoPromise]);
 
-                    // आर्टिकल को UI में दिखाएँ
-                    if (articleResult && articleResult.answer) {
+                    if (articleResult.answer) {
                         aiArticleContainer.innerHTML = articleResult.answer.replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>').replace(/\n/g, '<br>');
                     } else {
                         throw new Error(articleResult.error || 'Could not fetch article.');
                     }
                     
-                    // वीडियो को UI में दिखाएँ
                     if (videoResult && videoResult.length > 0) {
                         videoScroller.innerHTML = videoResult.map(video => `
                             <div class="video-container" style="flex: 0 0 100%; scroll-snap-align: start;">
@@ -498,14 +586,13 @@
                 } catch (error) {
                     console.error("Error in Learn feature:", error);
                     alert("Error: " + error.message);
-                    aiArticleContainer.innerHTML = "<p>जानकारी प्राप्त करने में विफल। कृपया पुनः प्रयास करें।</p>";
                 } finally {
                     aiGenerateLearnBtn.disabled = false;
                     aiGenerateLearnBtn.textContent = 'AI Generate';
                 }
             });
 
-            // फॉर्म के ड्रॉपडाउन को पॉप्युलेट करने के लिए हेल्पर फंक्शन
+            // --- Form Population & Initial Setup ---
             function populateSelect(elementId, start, end) {
                 const select = document.getElementById(elementId);
                 if (!select) return;
@@ -516,14 +603,11 @@
                 }
             }
             populateSelect('age', 1, 100); populateSelect('height', 100, 220); populateSelect('weight', 20, 200);
-            
-            // मल्टी-सेलेक्ट विकल्पों के लिए क्लिक इवेंट
             document.querySelectorAll('.multi-select-option').forEach(option => {
                 option.addEventListener('click', () => { option.classList.toggle('selected'); });
             });
 
-            // ऐप शुरू होने पर Home स्क्रीन दिखाएँ
-            showScreen('home');
+            showScreen('home'); // ऐप शुरू होने पर Home स्क्रीन दिखाएँ
         });
     </script>
 </body>
