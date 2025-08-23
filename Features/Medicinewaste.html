@@ -142,6 +142,40 @@
             background-color: #d3e4e2;
             color: var(--medium-text);
         }
+        
+        /* =================== नया बदलाव शुरू =================== */
+        .address-container {
+            position: relative; /* बटन को एड्रेस बॉक्स के अंदर रखने के लिए */
+        }
+        
+        .map-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: inline-flex; /* इसे तभी इस्तेमाल करेंगे जब javascript इसे दिखाएगी */
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            background-color: var(--background-color);
+            box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
+            color: var(--primary-green);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .map-btn:active {
+             box-shadow: inset 3px 3px 6px var(--dark-shadow), inset -3px -3px 6px var(--light-shadow);
+        }
+        
+        .map-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+        /* =================== नया बदलाव खत्म =================== */
 
         .location-status {
             font-size: 0.9em;
@@ -540,10 +574,17 @@
                         <label for="profile-mobile">Mobile Number</label>
                         <input type="tel" id="profile-mobile" readonly>
                     </div>
+                    <!-- =================== नया बदलाव शुरू =================== -->
                     <div class="form-group">
                         <label for="profile-address">Address</label>
-                        <textarea id="profile-address" rows="3" readonly></textarea>
+                        <div class="address-container">
+                            <textarea id="profile-address" rows="3" readonly></textarea>
+                            <a href="#" target="_blank" id="view-map-btn" class="map-btn" style="display: none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"></path></svg>
+                            </a>
+                        </div>
                     </div>
+                    <!-- =================== नया बदलाव खत्म =================== -->
                     <div class="form-group">
                         <label>Location</label>
                         <div id="profile-location-status" class="location-status">Loading...</div>
@@ -666,7 +707,7 @@
             if (navigator.geolocation) {
                 alert("आपकी सबसे सटीक लोकेशन ढूंढी जा रही है... कृपया GPS चालू रखें और कुछ सेकंड इंतज़ार करें।");
                 
-                navigator.geolocation.getCurrentPosition(async(position) => { // <-- यहाँ async जोड़ा गया है
+                navigator.geolocation.getCurrentPosition(async(position) => {
                     const accuracy = position.coords.accuracy;
                     alert(`लोकेशन मिल गई! सटीकता: ${accuracy.toFixed(2)} मीटर।`);
                     
@@ -674,11 +715,8 @@
                     const lon = position.coords.longitude;
                     const locationData = { lat: lat, lng: lon };
                     
-                    // पुराना और ज़रूरी कोड, इसे नहीं हटाया गया है
                     document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
                     
-                    // =================== नया बदलाव शुरू ===================
-                    // बैकएंड से पता लाने के लिए
                     try {
                         const addressTextarea = document.getElementById('user-address');
                         addressTextarea.placeholder = "पता ढूंढा जा रहा है...";
@@ -687,7 +725,7 @@
                         if (response.ok) {
                             const data = await response.json();
                             if (data.address) {
-                                addressTextarea.value = data.address; // पता ऑटो-फिल करें
+                                addressTextarea.value = data.address;
                             } else {
                                 addressTextarea.placeholder = "पता नहीं मिला, कृपया खुद भरें।";
                             }
@@ -698,7 +736,6 @@
                         console.error("Error fetching address:", error);
                         document.getElementById('user-address').placeholder = "पता लाने में त्रुटि, कृपया खुद भरें।";
                     }
-                    // =================== नया बदलाव खत्म ===================
 
                 }, (error) => {
                     let errorMessage = "लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है।";
@@ -709,7 +746,7 @@
                     console.error("Geolocation error:", error);
                 }, {
                     enableHighAccuracy: true,
-                    timeout: 20000, // Increased timeout to 20 seconds for a better chance to get a GPS lock
+                    timeout: 20000,
                     maximumAge: 0
                 });
             } else {
@@ -927,11 +964,18 @@
                 document.getElementById('profile-name').value = currentUserData.name || '';
                 document.getElementById('profile-mobile').value = currentUserData.mobile || '';
                 document.getElementById('profile-address').value = currentUserData.address || '';
+                
+                // =================== नया बदलाव शुरू ===================
+                const mapButton = document.getElementById('view-map-btn');
                 if (currentUserData.location && currentUserData.location.lat) {
                     locationStatusDiv.textContent = 'Location Saved';
+                    mapButton.href = `https://www.google.com/maps?q=${currentUserData.location.lat},${currentUserData.location.lng}`;
+                    mapButton.style.display = 'inline-flex'; // बटन को दिखाएँ
                 } else {
                     locationStatusDiv.textContent = 'No Location Saved';
+                    mapButton.style.display = 'none'; // बटन को छिपाएँ
                 }
+                // =================== नया बदलाव खत्म ===================
             }
             temporaryLocation = null; // Reset temp location on load
         }
@@ -947,19 +991,16 @@
             if (navigator.geolocation) {
                 locationStatusDiv.textContent = 'आपकी सबसे सटीक लोकेशन ढूंढी जा रही है...';
                 
-                navigator.geolocation.getCurrentPosition(async(position) => { // <-- यहाँ async जोड़ा गया है
+                navigator.geolocation.getCurrentPosition(async(position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // पुराना और ज़रूरी कोड, इसे नहीं हटाया गया है
                     temporaryLocation = { lat: lat, lng: lon };
                     
                     const accuracy = position.coords.accuracy;
                     locationStatusDiv.textContent = `नई लोकेशन मिल गई है! (सटीकता: ${accuracy.toFixed(2)} मीटर)`;
                     alert(`नई लोकेशन मिल गई है! अब "बदलाव सेव करें" पर क्लिक करें।`);
                     
-                    // =================== नया बदलाव शुरू ===================
-                    // बैकएंड से पता लाने के लिए
                     try {
                         const addressTextarea = document.getElementById('profile-address');
                         const originalAddress = addressTextarea.value;
@@ -969,9 +1010,9 @@
                         if (response.ok) {
                             const data = await response.json();
                             if (data.address) {
-                                addressTextarea.value = data.address; // पता ऑटो-फिल करें
+                                addressTextarea.value = data.address;
                             } else {
-                                addressTextarea.value = originalAddress; // अगर पता न मिले तो पुराना पता वापस दिखाएँ
+                                addressTextarea.value = originalAddress;
                             }
                         } else {
                             addressTextarea.value = originalAddress;
@@ -980,7 +1021,6 @@
                         console.error("Error fetching address for profile:", error);
                         document.getElementById('profile-address').value = originalAddress;
                     }
-                    // =================== नया बदलाव खत्म ===================
                     
                 }, (error) => {
                     let errorMessage = "लोकेशन प्राप्त नहीं हो सकी।";
@@ -992,7 +1032,7 @@
                     console.error("Geolocation error on profile update:", error);
                 }, {
                     enableHighAccuracy: true,
-                    timeout: 20000, // Increased timeout
+                    timeout: 20000,
                     maximumAge: 0
                 });
             } else {
@@ -1016,6 +1056,8 @@
                 const userDocRef = doc(db, "users", currentUserId);
                 await updateDoc(userDocRef, updatedData);
 
+                // currentUserData को लोकल में अपडेट करें ताकि UI तुरंत रिफ्रेश हो सके
+                // Firestore से दोबारा पढ़ने की ज़रूरत नहीं है
                 currentUserData = { ...currentUserData, ...updatedData };
                 alert("Profile safaltapoorvak update ho gayi!");
 
@@ -1023,7 +1065,7 @@
                 saveProfileBtn.style.display = 'none';
                 updateLocationProfileBtn.style.display = 'none';
                 editProfileBtn.style.display = 'block';
-                loadUserProfile();
+                loadUserProfile(); // UI को अपडेटेड डेटा के साथ फिर से लोड करें
 
             } catch (error) {
                 console.error("Error updating profile: ", error);
