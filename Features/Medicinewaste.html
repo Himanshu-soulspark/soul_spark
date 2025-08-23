@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,17 @@
 
         /* --- New Cyan-Green Color Theme --- */
         :root {
-            --primary-green: #00897b; /* Main Theme Color (Teal/Green) */
-            --primary-cyan: #00acc1; /* Accent Color (Cyan) */
+            --primary-green: #00897b;
+            /* Main Theme Color (Teal/Green) */
+            --primary-cyan: #00acc1;
+            /* Accent Color (Cyan) */
             --dark-text: #004d40;
             --medium-text: #4db6ac;
-            --background-color: #e0f2f1; /* Light Teal Background */
+            --background-color: #e0f2f1;
+            /* Light Teal Background */
             --light-shadow: #ffffff;
-            --dark-shadow: #b2dfdb;     /* Softer shadow for the theme */
+            --dark-shadow: #b2dfdb;
+            /* Softer shadow for the theme */
             --success-green: #2e7d32;
             --danger-red: #c62828;
             --pending-yellow: #f9a825;
@@ -32,9 +37,10 @@
             font-family: 'Poppins', sans-serif;
             background-color: var(--background-color);
             color: var(--dark-text);
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 80px;
+            /* Space for bottom nav */
         }
-        
+
         /* --- App Header --- */
         .app-header {
             background-color: var(--background-color);
@@ -47,7 +53,7 @@
             z-index: 1000;
             box-shadow: 3px 3px 7px var(--dark-shadow), -3px -3px 7px var(--light-shadow);
         }
-        
+
         .app-header .logo-icon svg {
             width: 32px;
             height: 32px;
@@ -58,20 +64,22 @@
             font-size: 1.2em;
             color: var(--dark-text);
         }
-        
+
         /* --- Main Content & Page Management --- */
         .main-content {
             padding: 20px;
         }
-        
+
         .page {
-            display: none; /* Hide all pages by default */
+            display: none;
+            /* Hide all pages by default */
         }
-        
+
         .page.active {
-            display: block; /* Only show the active page */
+            display: block;
+            /* Only show the active page */
         }
-        
+
         /* --- Reusable 3D/Neumorphic Components --- */
         .card {
             background-color: var(--background-color);
@@ -81,7 +89,7 @@
             box-shadow: 7px 7px 15px var(--dark-shadow), -7px -7px 15px var(--light-shadow);
             transition: all 0.3s ease-in-out;
         }
-        
+
         .btn {
             display: block;
             width: 100%;
@@ -99,16 +107,16 @@
             background-color: var(--background-color);
             box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
         }
-        
+
         .btn:active {
             box-shadow: inset 5px 5px 10px var(--dark-shadow), inset -5px -5px 10px var(--light-shadow);
             color: var(--dark-text);
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -129,13 +137,13 @@
             outline: none;
             color: var(--dark-text);
         }
-        
+
         .form-group input[readonly],
         .form-group textarea[readonly] {
             background-color: #d3e4e2;
             color: var(--medium-text);
         }
-        
+
         .location-status {
             font-size: 0.9em;
             padding: 10px;
@@ -160,6 +168,7 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+
         #page-home .search-bar {
             flex-grow: 1;
             padding: 12px;
@@ -170,6 +179,7 @@
             font-size: 1em;
             outline: none;
         }
+
         #page-home .search-button {
             padding: 12px;
             border: none;
@@ -178,14 +188,19 @@
             background-color: var(--background-color);
             box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
         }
+
         #page-home .search-button svg {
-            width: 24px; height: 24px; color: var(--primary-green);
+            width: 24px;
+            height: 24px;
+            color: var(--primary-green);
         }
+
         #donations-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 20px;
         }
+
         .donation-card-item {
             background-color: var(--background-color);
             border-radius: 15px;
@@ -196,15 +211,18 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
         .donation-card-item .med-name {
             font-weight: 600;
             font-size: 1.1em;
             color: var(--dark-text);
         }
+
         .donation-card-item .med-info {
             font-size: 0.8em;
             color: var(--primary-green);
         }
+
         .donation-card-item .open-btn {
             padding: 8px 12px;
             font-size: 0.9em;
@@ -216,6 +234,7 @@
             margin-top: 20px;
             margin-bottom: 20px;
         }
+
         .added-medicine-card {
             background: linear-gradient(145deg, #cce8e5, #f0ffff);
             border-radius: 15px;
@@ -226,35 +245,58 @@
             align-items: center;
             box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
         }
+
         .added-medicine-card .info p {
             margin: 0;
         }
+
         .added-medicine-card .info .name {
             font-weight: 600;
             color: var(--dark-text);
         }
+
         .added-medicine-card .info .details {
             font-size: 0.85em;
             color: var(--primary-green);
         }
+
         .added-medicine-card .remove-med-btn {
-             background: none; border: none; cursor: pointer; color: var(--danger-red);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--danger-red);
         }
-        
+
         /* --- Page 4: Messages --- */
         .chat-list-item {
             padding: 15px;
             border-bottom: 1px solid var(--dark-shadow);
             cursor: pointer;
         }
+
         .chat-list-item:hover {
             background-color: #d1e9e7;
         }
-        #chat-view { display: none; }
-        .chat-header {
-             display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--dark-shadow);
+
+        #chat-view {
+            display: none;
         }
-        .back-to-chats { background: none; border: none; font-size: 1.5em; cursor: pointer; margin-right: 10px;}
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--dark-shadow);
+        }
+
+        .back-to-chats {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
         .messages-container {
             height: calc(100vh - 280px);
             overflow-y: auto;
@@ -262,6 +304,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .message {
             padding: 8px 12px;
             border-radius: 15px;
@@ -269,12 +312,14 @@
             max-width: 70%;
             word-wrap: break-word;
         }
+
         .message.sent {
             background-color: var(--primary-green);
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 3px;
         }
+
         .message.received {
             background-color: #fff;
             color: var(--dark-text);
@@ -282,24 +327,31 @@
             border-bottom-left-radius: 3px;
             box-shadow: 2px 2px 5px var(--dark-shadow);
         }
+
         .chat-input-area {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-        #chat-input { flex-grow: 1; }
-        
+
+        #chat-input {
+            flex-grow: 1;
+        }
+
         /* --- Modal for Donation Details --- */
         .modal {
             display: none;
             position: fixed;
             z-index: 2000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
         }
+
         .modal-content {
             background-color: var(--background-color);
             padding: 30px;
@@ -308,22 +360,32 @@
             max-width: 400px;
             box-shadow: 7px 7px 15px #a8c7c5, -7px -7px 15px #feffff;
         }
+
         .modal-close {
             float: right;
             font-size: 1.5em;
             cursor: pointer;
             line-height: 1;
         }
-        .modal h3 { margin-bottom: 15px; color: var(--primary-green); }
-        .modal .donor-name { margin-bottom: 20px; }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: var(--primary-green);
+        }
+
+        .modal .donor-name {
+            margin-bottom: 20px;
+        }
+
         #modal-medicines-list p {
             padding: 5px 0;
             border-bottom: 1px solid #cce8e5;
         }
+
         #modal-medicines-list p:last-child {
             border-bottom: none;
         }
-        
+
         /* --- Bottom Navigation Bar --- */
         .bottom-nav {
             position: fixed;
@@ -337,7 +399,7 @@
             align-items: center;
             box-shadow: 0px -5px 15px var(--dark-shadow);
         }
-        
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -356,25 +418,26 @@
             height: 28px;
             margin-bottom: 3px;
         }
-        
+
         .nav-item span {
             font-size: 0.75em;
         }
-        
+
         .nav-item.active {
             color: var(--primary-green);
             background-color: var(--background-color);
             box-shadow: inset 3px 3px 7px var(--dark-shadow), inset -3px -3px 7px var(--light-shadow);
         }
-        
     </style>
 </head>
+
 <body>
 
     <!-- App Header -->
     <header class="app-header">
         <div class="logo-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="24" viewBox="0 96 960 960" width="24"><path d="M480 896q-165 0-282.5-117.5T80 496q0-165 117.5-282.5T480 96q165 0 282.5 117.5T880 496q0 165-117.5 282.5T480 896ZM433 736h94V596l103-103-66-66-87 87V416h-94v204l-87-87-66 66 103 103v140Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="24" viewBox="0 96 960 960" width="24">
+                <path d="M480 896q-165 0-282.5-117.5T80 496q0-165 117.5-282.5T480 96q165 0 282.5 117.5T880 496q0 165-117.5 282.5T480 896ZM433 736h94V596l103-103-66-66-87 87V416h-94v204l-87-87-66 66 103 103v140Z" /></svg>
         </div>
         <h1>Dawai Seva</h1>
     </header>
@@ -410,7 +473,9 @@
             <div class="home-header">
                 <input type="text" id="search-bar" class="search-bar" placeholder="Dawai khojein...">
                 <button class="search-button" id="search-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                    </svg>
                 </button>
             </div>
             <div id="donations-grid">
@@ -420,7 +485,7 @@
 
         <!-- Page 3: Donate Medicine Form -->
         <section id="page-donate" class="page">
-             <div class="card">
+            <div class="card">
                 <h2>Dawai Ki Jaankari Jodein</h2>
                 <form id="add-medicine-form">
                     <div class="form-group">
@@ -447,23 +512,23 @@
         <!-- Page 4: Messages -->
         <section id="page-messages" class="page">
             <div class="card" id="chat-list-view">
-                 <h2>Aapki Chats</h2>
-                 <div id="chats-list">
-                     <p>Aapki koi chat nahi hai.</p>
-                 </div>
+                <h2>Aapki Chats</h2>
+                <div id="chats-list">
+                    <p>Aapki koi chat nahi hai.</p>
+                </div>
             </div>
             <div class="card" id="chat-view">
-                 <div class="chat-header">
-                     <button class="back-to-chats">&larr;</button>
-                     <h3 id="chat-with-name"></h3>
-                 </div>
-                 <div class="messages-container" id="messages-container">
+                <div class="chat-header">
+                    <button class="back-to-chats">&larr;</button>
+                    <h3 id="chat-with-name"></h3>
+                </div>
+                <div class="messages-container" id="messages-container">
                     <!-- Messages will be loaded here -->
-                 </div>
-                 <form id="message-form" class="chat-input-area">
+                </div>
+                <form id="message-form" class="chat-input-area">
                     <input type="text" id="chat-input" placeholder="Message likhein..." class="form-group" required>
                     <button type="submit" class="btn">Bhejein</button>
-                 </form>
+                </form>
             </div>
         </section>
 
@@ -484,7 +549,7 @@
                         <label for="profile-address">Address</label>
                         <textarea id="profile-address" rows="3" readonly></textarea>
                     </div>
-                     <div class="form-group">
+                    <div class="form-group">
                         <label>Location</label>
                         <div id="profile-location-status" class="location-status">Loading...</div>
                     </div>
@@ -500,23 +565,38 @@
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-page="page-home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+            </svg>
             <span>Home</span>
         </div>
         <div class="nav-item" data-page="page-donate">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"></path>
+            </svg>
             <span>Donate</span>
         </div>
         <div class="nav-item" data-page="page-messages">
-            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="currentColor"><g><rect fill="none" height="24" width="24"></rect></g><g><g><path d="M20,2H4C2.9,2,2,2.9,2,4v18l4-4h14c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M17,11h-4v4h-2v-4H7V9h4V5h2v4h4V11z"></path></g></g></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="currentColor">
+                <g>
+                    <rect fill="none" height="24" width="24"></rect>
+                </g>
+                <g>
+                    <g>
+                        <path d="M20,2H4C2.9,2,2,2.9,2,4v18l4-4h14c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M17,11h-4v4h-2v-4H7V9h4V5h2v4h4V11z"></path>
+                    </g>
+                </g>
+            </svg>
             <span>Messages</span>
         </div>
         <div class="nav-item" data-page="page-profile">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+            </svg>
             <span>Profile</span>
         </div>
     </nav>
-    
+
     <!-- Modal for Donation Details (UPDATED) -->
     <div id="donation-details-modal" class="modal">
         <div class="modal-content">
@@ -528,7 +608,7 @@
             <button class="btn" id="modal-message-btn" style="display:none;">Message Karein</button>
         </div>
     </div>
-    
+
     <!-- Firebase SDK Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
@@ -555,7 +635,7 @@
         let currentUserId = null;
         let currentUserData = null;
         let medicinesToDonate = [];
-        let unsubscribeChats = null; 
+        let unsubscribeChats = null;
         let unsubscribeMessages = null;
         let temporaryLocation = null; // To hold new location before saving profile
 
@@ -565,17 +645,17 @@
 
         function showPage(pageId) {
             pages.forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId)?.classList.add('active');
+            document.getElementById(pageId) ? .classList.add('active');
 
             navItems.forEach(nav => {
                 nav.classList.toggle('active', nav.getAttribute('data-page') === pageId);
             });
-            
+
             if (pageId === 'page-home') loadAllDonations();
             if (pageId === 'page-profile') loadUserProfile();
             if (pageId === 'page-messages') loadUserChats(currentUserId);
         }
-        
+
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 const pageId = item.getAttribute('data-page');
@@ -584,7 +664,7 @@
         });
 
         // --- 1. Authentication & User Onboarding ---
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, async(user) => {
             if (user) {
                 currentUserId = user.uid;
                 const userDocRef = doc(db, "users", currentUserId);
@@ -601,15 +681,60 @@
             }
         });
 
-        // --- 2. User Info Form Logic ---
+        // =====================================================================
+        // --- (नया) Helper Function: कोऑर्डिनेट्स से पता प्राप्त करने के लिए ---
+        // =====================================================================
+        async function fetchAddressAndUpdateTextarea(lat, lon, textareaId) {
+            const textarea = document.getElementById(textareaId);
+            if (!textarea) return; // अगर टेक्स्टएरिया नहीं मिलता है तो बाहर निकलें
+
+            const originalPlaceholder = textarea.placeholder;
+            textarea.placeholder = 'पता ढूंढा जा रहा है...'; // यूज़र को फीडबैक दें
+
+            try {
+                // हमारे server.js में बनाए गए नए endpoint को कॉल करें
+                const response = await fetch(`/get-address-from-coords?lat=${lat}&lon=${lon}`);
+
+                if (!response.ok) {
+                    // अगर सर्वर से कोई एरर आता है
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.address) {
+                    textarea.value = data.address; // टेक्स्टएरिया में पता भरें
+                    textarea.placeholder = originalPlaceholder; // प्लेसहोल्डर को वापस ठीक करें
+                } else {
+                    // अगर सर्वर से पता नहीं मिलता है
+                    alert("इस लोकेशन के लिए पता नहीं मिला। कृपया हाथ से भरें।");
+                    textarea.placeholder = originalPlaceholder;
+                }
+            } catch (error) {
+                console.error("Error fetching address:", error);
+                alert("पता प्राप्त करने में विफल। कृपया अपना इंटरनेट कनेक्शन जांचें या पते को हाथ से भरें।");
+                textarea.placeholder = originalPlaceholder;
+            }
+        }
+
+
+        // --- 2. User Info Form Logic (बदला हुआ) ---
         document.getElementById('get-location-btn').addEventListener('click', () => {
             if (navigator.geolocation) {
                 alert("आपकी सबसे सटीक लोकेशन ढूंढी जा रही है... कृपया GPS चालू रखें और कुछ सेकंड इंतज़ार करें।");
                 navigator.geolocation.getCurrentPosition(position => {
                     const accuracy = position.coords.accuracy;
-                    alert(`लोकेशन मिल गई! सटीकता: ${accuracy.toFixed(2)} मीटर।`);
-                    const locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    alert(`लोकेशन मिल गई! सटीकता: ${accuracy.toFixed(2)} मीटर। अब आपका पता भरा जा रहा है...`);
+
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    const locationData = { lat: lat, lng: lon };
                     document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
+
+                    // --- नया बदलाव --- पता प्राप्त करने के लिए हमारे बैकएंड को कॉल करें
+                    fetchAddressAndUpdateTextarea(lat, lon, 'user-address');
+
                 }, (error) => {
                     let errorMessage = "लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है।";
                     if (error.code === error.TIMEOUT) {
@@ -626,8 +751,8 @@
                 alert("यह ब्राउज़र जियोलोकेशन को सपोर्ट नहीं करता है।");
             }
         });
-        
-        document.getElementById('user-info-form').addEventListener('submit', async (e) => {
+
+        document.getElementById('user-info-form').addEventListener('submit', async(e) => {
             e.preventDefault();
             const name = document.getElementById('user-name').value;
             const mobile = document.getElementById('user-mobile').value;
@@ -664,7 +789,7 @@
 
             const medicineData = { medicineName, quantity, expiryDate };
             medicinesToDonate.push(medicineData);
-            
+
             renderAddedMedicines();
             addMedicineForm.reset();
         });
@@ -677,16 +802,16 @@
                 const card = document.createElement('div');
                 card.className = 'added-medicine-card';
                 card.innerHTML = `
-                    <div class="info">
-                        <p class="name">${med.medicineName}</p>
-                        <p class="details">${med.quantity} | Exp: ${med.expiryDate}</p>
-                    </div>
-                    <button class="remove-med-btn" data-index="${index}">&times;</button>
-                `;
+                <div class="info">
+                    <p class="name">${med.medicineName}</p>
+                    <p class="details">${med.quantity} | Exp: ${med.expiryDate}</p>
+                </div>
+                <button class="remove-med-btn" data-index="${index}">&times;</button>
+            `;
                 addedMedicinesList.appendChild(card);
             });
         }
-        
+
         addedMedicinesList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-med-btn')) {
                 const index = e.target.dataset.index;
@@ -695,7 +820,7 @@
             }
         });
 
-        submitAllDonationsBtn.addEventListener('click', async () => {
+        submitAllDonationsBtn.addEventListener('click', async() => {
             if (medicinesToDonate.length === 0) {
                 alert("Kripya kam se kam ek dawai jodein.");
                 return;
@@ -704,7 +829,7 @@
                 alert("Aapki profile load ho rahi hai, kripya thodi der baad koshish karein.");
                 return;
             }
-            
+
             try {
                 await addDoc(collection(db, "donations"), {
                     donorId: currentUserId,
@@ -732,31 +857,31 @@
             try {
                 const q = query(collection(db, "donations"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
-                
+
                 grid.innerHTML = '';
                 if (querySnapshot.empty) {
                     grid.innerHTML = '<p>Abhi koi dawai donate nahi hui hai.</p>';
                     return;
                 }
-                
+
                 querySnapshot.forEach(doc => {
                     const donation = doc.data();
-                    if(donation.medicines && donation.medicines.length > 0) {
+                    if (donation.medicines && donation.medicines.length > 0) {
                         const firstMed = donation.medicines[0];
                         const card = document.createElement('div');
                         card.className = 'donation-card-item';
                         card.innerHTML = `
-                            <div>
-                                <p class="med-name">${firstMed.medicineName}</p>
-                                <p class="med-info">${firstMed.quantity}</p>
-                                <p class="med-info">Exp: ${firstMed.expiryDate}</p>
-                            </div>
-                            <button class="btn open-btn" data-id="${doc.id}">Open</button>
-                        `;
+                        <div>
+                            <p class="med-name">${firstMed.medicineName}</p>
+                            <p class="med-info">${firstMed.quantity}</p>
+                            <p class="med-info">Exp: ${firstMed.expiryDate}</p>
+                        </div>
+                        <button class="btn open-btn" data-id="${doc.id}">Open</button>
+                    `;
                         grid.appendChild(card);
                     }
                 });
-            } catch(error) {
+            } catch (error) {
                 console.error("Donations load karne me error:", error);
                 grid.innerHTML = '<p>Donations load nahi ho paye. Apne Firebase Rules check karein.</p>';
             }
@@ -764,8 +889,8 @@
 
         // --- 5. Donation Details Modal Logic ---
         const modal = document.getElementById('donation-details-modal');
-        document.getElementById('donations-grid').addEventListener('click', async (e) => {
-            if(e.target.classList.contains('open-btn')) {
+        document.getElementById('donations-grid').addEventListener('click', async(e) => {
+            if (e.target.classList.contains('open-btn')) {
                 const donationId = e.target.dataset.id;
                 const docRef = doc(db, "donations", donationId);
                 const docSnap = await getDoc(docRef);
@@ -773,7 +898,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     document.getElementById('modal-donor-name').innerText = data.donorName;
-                    
+
                     const medList = document.getElementById('modal-medicines-list');
                     medList.innerHTML = data.medicines.map(m => `<p>${m.medicineName} (${m.quantity})</p>`).join('');
 
@@ -782,7 +907,7 @@
                         locationBtn.href = `https://www.google.com/maps?q=${data.donorLocation.lat},${data.donorLocation.lng}`;
                         locationBtn.style.display = 'block';
                     } else {
-                         locationBtn.style.display = 'none';
+                        locationBtn.style.display = 'none';
                     }
 
                     const messageBtn = document.getElementById('modal-message-btn');
@@ -793,7 +918,7 @@
                         messageBtn.dataset.receiverId = data.donorId;
                         messageBtn.dataset.receiverName = data.donorName;
                     }
-                    
+
                     modal.style.display = 'flex';
                 }
             }
@@ -808,21 +933,22 @@
             modal.style.display = 'none';
             openChat(receiverId, receiverName);
         });
-        
+
         // --- 6. Messaging Logic ---
         async function openChat(receiverId, receiverName) {
             // Function content remains the same
         }
-        document.getElementById('message-form').addEventListener('submit', async (e) => {
+        document.getElementById('message-form').addEventListener('submit', async(e) => {
             // Function content remains the same
         });
         document.querySelector('.back-to-chats').addEventListener('click', () => {
             // Function content remains the same
         });
+
         function loadUserChats(userId) {
-             // Function content remains the same, ensure Firebase Index is created.
+            // Function content remains the same, ensure Firebase Index is created.
         }
-        
+
         // --- 7. Profile Page Logic (UPDATED) ---
         const editProfileBtn = document.getElementById('edit-profile-btn');
         const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -851,15 +977,22 @@
             updateLocationProfileBtn.style.display = 'block';
             editProfileBtn.style.display = 'none';
         });
-        
+
         updateLocationProfileBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
                 locationStatusDiv.textContent = 'आपकी सबसे सटीक लोकेशन ढूंढी जा रही है...';
                 navigator.geolocation.getCurrentPosition(position => {
-                    temporaryLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    temporaryLocation = { lat: lat, lng: lon };
                     const accuracy = position.coords.accuracy;
                     locationStatusDiv.textContent = `नई लोकेशन मिल गई है! (सटीकता: ${accuracy.toFixed(2)} मीटर)`;
-                    alert(`नई लोकेशन मिल गई है! अब "बदलाव सेव करें" पर क्लिक करें।`);
+                    alert(`नई लोकेशन मिल गई है! आपका पता अपडेट किया जा रहा है। अब "बदलाव सेव करें" पर क्लिक करें।`);
+
+                    // --- नया बदलाव --- पता प्राप्त करने के लिए हमारे बैकएंड को कॉल करें
+                    fetchAddressAndUpdateTextarea(lat, lon, 'profile-address');
+
                 }, (error) => {
                     let errorMessage = "लोकेशन प्राप्त नहीं हो सकी।";
                     if (error.code === error.TIMEOUT) {
@@ -878,14 +1011,14 @@
             }
         });
 
-        profileForm.addEventListener('submit', async (e) => {
+        profileForm.addEventListener('submit', async(e) => {
             e.preventDefault();
             const updatedData = {
                 name: document.getElementById('profile-name').value,
                 mobile: document.getElementById('profile-mobile').value,
                 address: document.getElementById('profile-address').value,
             };
-            
+
             if (temporaryLocation) {
                 updatedData.location = temporaryLocation;
             }
@@ -893,8 +1026,10 @@
             try {
                 const userDocRef = doc(db, "users", currentUserId);
                 await updateDoc(userDocRef, updatedData);
-                
-                currentUserData = { ...currentUserData, ...updatedData };
+
+                currentUserData = { ...currentUserData,
+                    ...updatedData
+                };
                 alert("Profile safaltapoorvak update ho gayi!");
 
                 profileInputs.forEach(input => input.readOnly = true);
@@ -908,7 +1043,7 @@
                 alert("Profile update karne me error hua.");
             }
         });
-
     </script>
 </body>
+
 </html>
