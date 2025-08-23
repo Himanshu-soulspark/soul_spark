@@ -604,18 +604,21 @@
         // --- 2. User Info Form Logic ---
         document.getElementById('get-location-btn').addEventListener('click', () => {
             if (navigator.geolocation) {
+                alert("आपकी ताज़ा लोकेशन प्राप्त की जा रही है... कृपया इंतज़ार करें।");
                 navigator.geolocation.getCurrentPosition(position => {
-                    alert(`Location le li gayi hai!`);
+                    alert(`नई लोकेशन सफलतापूर्वक मिल गई है!`);
                     const locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
                     document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
-                }, () => {
-                    alert("Location ki anumati nahi di gayi. Kripya address manual roop se dalein.");
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("सटीक लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है और आप खुली जगह पर हैं।");
                 }, {
                     enableHighAccuracy: true,
+                    timeout: 15000,
                     maximumAge: 0
                 });
             } else {
-                alert("Geolocation is browser dwara support nahi kiya jaata hai.");
+                alert("यह ब्राउज़र जियोलोकेशन को सपोर्ट नहीं करता है।");
             }
         });
         
@@ -847,20 +850,22 @@
         
         updateLocationProfileBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
-                locationStatusDiv.textContent = 'Fetching location...';
+                locationStatusDiv.textContent = 'ताज़ा लोकेशन प्राप्त की जा रही है... इसमें कुछ समय लग सकता है।';
                 navigator.geolocation.getCurrentPosition(position => {
                     temporaryLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    locationStatusDiv.textContent = 'New location captured! Click Save to update.';
-                    alert('New location captured!');
-                }, () => {
-                    alert("Could not get location.");
+                    locationStatusDiv.textContent = 'नई लोकेशन मिल गई है! "बदलाव सेव करें" बटन दबाकर अपडेट करें।';
+                    alert('नई लोकेशन सफलतापूर्वक प्राप्त हो गई है!');
+                }, (error) => {
+                    console.error("Geolocation error on profile update:", error);
+                    alert("सटीक लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है और फिर से प्रयास करें।");
                     locationStatusDiv.textContent = currentUserData.location ? 'Location Saved' : 'No Location Saved';
                 }, {
                     enableHighAccuracy: true,
+                    timeout: 15000,
                     maximumAge: 0
                 });
             } else {
-                alert("Geolocation is not supported by this browser.");
+                alert("यह ब्राउज़र जियोलोकेशन को सपोर्ट नहीं करता है।");
             }
         });
 
