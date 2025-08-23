@@ -21,136 +21,136 @@ app.use(express.json());
 
 // --- Firebase Admin SDK को शुरू करें ---
 try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-  console.log("Firebase Admin SDK initialized successfully.");
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("Firebase Admin SDK initialized successfully.");
 } catch (error) {
-  console.error("Error initializing Firebase Admin SDK:", error);
+    console.error("Error initializing Firebase Admin SDK:", error);
 }
 const db = admin.firestore();
 
 // --- Google AI (Gemini) को शुरू करें ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 console.log("Google Generative AI initialized.");
-
 
 // --- Razorpay को शुरू करें ---
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 console.log("Razorpay initialized.");
 
 // --- YouTube API को शुरू करें ---
 const youtube = google.youtube({
-  version: 'v3',
-  auth: process.env.YOUTUBE_API_KEY
+    version: 'v3',
+    auth: process.env.YOUTUBE_API_KEY
 });
 console.log("YouTube API initialized.");
-
 
 // =================================================================
 // 3. API Endpoints (आपके सर्वर के रास्ते)
 // =================================================================
 
 // --- (सुधारा हुआ) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
-app.post('/get-food-interaction', async (req, res) => {
-  try {
-    const { medicines, token } = req.body;
-    if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
-    
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    
-    const userData = userDoc.data();
-    const COIN_COST = 2;
-    if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
+app.post('/get-food-interaction', async(req, res) => {
+    try {
+        const { medicines, token } = req.body;
+        if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
 
-    const improvedPrompt = `
-      You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
 
-      Your task is to provide a detailed food interaction guide. The response MUST be a valid JSON object ONLY, with no extra text or markdown. The entire response, including all food names and reasons, MUST be in simple Hindi (Devanagari script).
+        const userData = userDoc.data();
+        const COIN_COST = 2;
+        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
 
-      The JSON object must have three keys: "avoid", "limit", and "safe".
+        const improvedPrompt = `
+          You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
 
-      1. "avoid": An array of objects for foods to completely avoid. Each object must have "item" and "reason" keys.
-      2. "limit": An array of objects for foods to eat in limited quantity. Each object must also have "item" and "reason" keys.
-      3. "safe": An array of strings listing at least 5 examples of safe foods in Hindi.
+          Your task is to provide a detailed food interaction guide. The response MUST be a valid JSON object ONLY, with no extra text or markdown. The entire response, including all food names and reasons, MUST be in simple Hindi (Devanagari script).
 
-      For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
-    `;
+          The JSON object must have three keys: "avoid", "limit", and "safe".
 
-    const result = await aiModel.generateContent(improvedPrompt);
-    const aiAnswer = result.response.text();
+          1. "avoid": An array of objects for foods to completely avoid. Each object must have "item" and "reason" keys.
+          2. "limit": An array of objects for foods to eat in limited quantity. Each object must also have "item" and "reason" keys.
+          3. "safe": An array of strings listing at least 5 examples of safe foods in Hindi.
 
-    await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-    res.json({ answer: aiAnswer });
-  } catch (error) {
-    console.error("Error in /get-food-interaction:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+          For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
+        `;
+
+        const result = await aiModel.generateContent(improvedPrompt);
+        const aiAnswer = result.response.text();
+
+        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        res.json({ answer: aiAnswer });
+
+    } catch (error) {
+        console.error("Error in /get-food-interaction:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
 });
 
 // --- (मौजूदा) AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
-app.post('/ask-ai', async (req, res) => {
-  try {
-    const { question, token } = req.body;
-    if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
+app.post('/ask-ai', async(req, res) => {
+    try {
+        const { question, token } = req.body;
+        if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
 
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
 
-    const userData = userDoc.data();
-    const COIN_COST = 1;
-    if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
+        const userData = userDoc.data();
+        const COIN_COST = 1;
+        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
 
-    const result = await aiModel.generateContent(question);
-    const aiAnswer = result.response.text();
+        const result = await aiModel.generateContent(question);
+        const aiAnswer = result.response.text();
 
-    await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-    res.json({ answer: aiAnswer });
-  } catch (error) {
-    console.error("Error in /ask-ai:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        res.json({ answer: aiAnswer });
+
+    } catch (error) {
+        console.error("Error in /ask-ai:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
 });
 
 // --- (मौजूदा) AI डाइट प्लान बनाने वाला Endpoint ---
-app.post('/generate-diet-plan', async (req, res) => {
-  try {
-    const { prompt, token } = req.body;
-    if (!token || !prompt) return res.status(400).json({ error: "Token and prompt are required." });
-    
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    
-    const userData = userDoc.data();
-    const COIN_COST = 1; 
-    if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
-    
-    const result = await aiModel.generateContent(prompt);
-    const aiAnswer = result.response.text();
-    
-    await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-    res.json({ answer: aiAnswer });
-  } catch (error)
- {
-    console.error("Error in /generate-diet-plan:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+app.post('/generate-diet-plan', async(req, res) => {
+    try {
+        const { prompt, token } = req.body;
+        if (!token || !prompt) return res.status(400).json({ error: "Token and prompt are required." });
+
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+
+        const userData = userDoc.data();
+        const COIN_COST = 1;
+        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
+
+        const result = await aiModel.generateContent(prompt);
+        const aiAnswer = result.response.text();
+
+        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        res.json({ answer: aiAnswer });
+
+    } catch (error) {
+        console.error("Error in /generate-diet-plan:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
 });
 
 // --- (मौजूदा) YouTube वीडियो खोजने वाला Endpoint ---
-app.get('/get-youtube-videos', async (req, res) => {
+app.get('/get-youtube-videos', async(req, res) => {
     const { query } = req.query;
     if (!query) return res.status(400).json({ error: 'Search query is required.' });
     try {
@@ -168,7 +168,7 @@ app.get('/get-youtube-videos', async (req, res) => {
 });
 
 // --- (मौजूदा) मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
-app.get('/get-weather-advice', async (req, res) => {
+app.get('/get-weather-advice', async(req, res) => {
     const { city } = req.query;
     if (!city) return res.status(400).json({ error: 'City is required.' });
     try {
@@ -181,7 +181,7 @@ app.get('/get-weather-advice', async (req, res) => {
         });
         const weather = weatherResponse.data;
         const advicePrompt = `Based on this weather in ${city}: temperature is ${weather.main.temp}°C, humidity is ${weather.main.humidity}%, and condition is ${weather.weather[0].description}. Provide a short, simple health tip in Hindi.`;
-        
+
         const result = await aiModel.generateContent(advicePrompt);
         const advice = result.response.text();
         res.json({ advice });
@@ -191,8 +191,43 @@ app.get('/get-weather-advice', async (req, res) => {
     }
 });
 
+// =================================================================
+// --- (नया) LocationIQ से पता प्राप्त करने वाला Endpoint ---
+// =================================================================
+app.get('/get-address-from-coords', async(req, res) => {
+    const { lat, lon } = req.query;
+
+    // लैटीट्यूड और लॉन्गिट्यूड की जाँच करें
+    if (!lat || !lon) {
+        return res.status(400).json({ error: 'Latitude (lat) and Longitude (lon) are required.' });
+    }
+
+    try {
+        // LocationIQ API को कॉल करें
+        const response = await axios.get('https://us1.locationiq.com/v1/reverse.php', {
+            params: {
+                key: process.env.LOCATIONIQ_API_KEY, // Render एनवायरनमेंट वेरिएबल से की (key) का उपयोग करें
+                lat: lat,
+                lon: lon,
+                format: 'json'
+            }
+        });
+
+        // अगर API से जवाब मिलता है, तो पता वापस भेजें
+        if (response.data && response.data.display_name) {
+            res.json({ address: response.data.display_name });
+        } else {
+            res.status(404).json({ error: 'Could not find address for these coordinates.' });
+        }
+    } catch (error) {
+        console.error('Error fetching address from LocationIQ:', error.message);
+        res.status(500).json({ error: 'Failed to get address from location service.' });
+    }
+});
+
+
 // --- (मौजूदा) भोजन की पोषण जानकारी देने वाला Endpoint ---
-app.get('/get-nutrition-info', async (req, res) => {
+app.get('/get-nutrition-info', async(req, res) => {
     const { food } = req.query;
     if (!food) return res.status(400).json({ error: 'Food item is required.' });
     try {
@@ -227,7 +262,7 @@ app.get('/get-nutrition-info', async (req, res) => {
 });
 
 // --- (नया और अत्यंत आवश्यक) बारकोड से भोजन की जानकारी देने वाला Endpoint ---
-app.get('/get-info-by-barcode', async (req, res) => {
+app.get('/get-info-by-barcode', async(req, res) => {
     const { upc } = req.query; // UPC (बारकोड नंबर) को query से प्राप्त करें
     if (!upc) {
         return res.status(400).json({ error: 'UPC (barcode) is required.' });
@@ -256,24 +291,25 @@ app.get('/get-info-by-barcode', async (req, res) => {
         console.error('Error fetching data from Nutritionix UPC lookup:', error);
         res.status(500).json({ error: 'Failed to get data for barcode.' });
     }
-});
 
+});
 
 // --- (मौजूदा) Razorpay पेमेंट बनाने वाले Endpoints ---
-app.post('/create-payment', async (req, res) => {
+app.post('/create-payment', async(req, res) => {
     try {
-      const { amount, token } = req.body;
-      if (!token || !amount) return res.status(400).json({ error: "Amount and user token are required." });
-      await admin.auth().verifyIdToken(token);
-      const options = { amount, currency: "INR", receipt: `receipt_order_${Date.now()}` };
-      const order = await razorpay.orders.create(options);
-      res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
+        const { amount, token } = req.body;
+        if (!token || !amount) return res.status(400).json({ error: "Amount and user token are required." });
+        await admin.auth().verifyIdToken(token);
+        const options = { amount, currency: "INR", receipt: `receipt_order_${Date.now()}` };
+        const order = await razorpay.orders.create(options);
+        res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
     } catch (error) {
-      console.error("Error in /create-payment endpoint:", error);
-      res.status(500).json({ error: "Could not create payment order." });
+        console.error("Error in /create-payment endpoint:", error);
+        res.status(500).json({ error: "Could not create payment order." });
     }
 });
-app.post('/verify-payment', async (req, res) => {
+
+app.post('/verify-payment', async(req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, token } = req.body;
         const crypto = require('crypto');
@@ -308,5 +344,5 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')
 // =================================================================
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
