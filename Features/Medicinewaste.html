@@ -604,17 +604,22 @@
         // --- 2. User Info Form Logic ---
         document.getElementById('get-location-btn').addEventListener('click', () => {
             if (navigator.geolocation) {
-                alert("आपकी ताज़ा लोकेशन प्राप्त की जा रही है... कृपया इंतज़ार करें।");
+                alert("आपकी सबसे सटीक लोकेशन ढूंढी जा रही है... कृपया GPS चालू रखें और कुछ सेकंड इंतज़ार करें।");
                 navigator.geolocation.getCurrentPosition(position => {
-                    alert(`नई लोकेशन सफलतापूर्वक मिल गई है!`);
+                    const accuracy = position.coords.accuracy;
+                    alert(`लोकेशन मिल गई! सटीकता: ${accuracy.toFixed(2)} मीटर।`);
                     const locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
                     document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
                 }, (error) => {
+                    let errorMessage = "लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है।";
+                    if (error.code === error.TIMEOUT) {
+                        errorMessage = "लोकेशन प्राप्त करने में अधिक समय लग रहा है। कृपया सुनिश्चित करें कि आप खुली जगह पर हैं और आपका GPS पूरी क्षमता पर काम कर रहा है।";
+                    }
+                    alert(errorMessage);
                     console.error("Geolocation error:", error);
-                    alert("सटीक लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है और आप खुली जगह पर हैं।");
                 }, {
                     enableHighAccuracy: true,
-                    timeout: 15000,
+                    timeout: 20000, // Increased timeout to 20 seconds for a better chance to get a GPS lock
                     maximumAge: 0
                 });
             } else {
@@ -704,7 +709,7 @@
                 await addDoc(collection(db, "donations"), {
                     donorId: currentUserId,
                     donorName: currentUserData.name,
-                    donorLocation: currentUserData.location || null, // FIX: Ensure location from currentUserData is saved
+                    donorLocation: currentUserData.location || null,
                     medicines: medicinesToDonate,
                     status: "Available",
                     createdAt: serverTimestamp()
@@ -773,7 +778,6 @@
                     medList.innerHTML = data.medicines.map(m => `<p>${m.medicineName} (${m.quantity})</p>`).join('');
 
                     const locationBtn = document.getElementById('modal-location-btn');
-                    // FIX: This condition will now work because donorLocation is being saved correctly
                     if (data.donorLocation && data.donorLocation.lat) {
                         locationBtn.href = `https://www.google.com/maps?q=${data.donorLocation.lat},${data.donorLocation.lng}`;
                         locationBtn.style.display = 'block';
@@ -844,24 +848,29 @@
         editProfileBtn.addEventListener('click', () => {
             profileInputs.forEach(input => input.readOnly = false);
             saveProfileBtn.style.display = 'block';
-            updateLocationProfileBtn.style.display = 'block'; // Show update location button
+            updateLocationProfileBtn.style.display = 'block';
             editProfileBtn.style.display = 'none';
         });
         
         updateLocationProfileBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
-                locationStatusDiv.textContent = 'ताज़ा लोकेशन प्राप्त की जा रही है... इसमें कुछ समय लग सकता है।';
+                locationStatusDiv.textContent = 'आपकी सबसे सटीक लोकेशन ढूंढी जा रही है...';
                 navigator.geolocation.getCurrentPosition(position => {
                     temporaryLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    locationStatusDiv.textContent = 'नई लोकेशन मिल गई है! "बदलाव सेव करें" बटन दबाकर अपडेट करें।';
-                    alert('नई लोकेशन सफलतापूर्वक प्राप्त हो गई है!');
+                    const accuracy = position.coords.accuracy;
+                    locationStatusDiv.textContent = `नई लोकेशन मिल गई है! (सटीकता: ${accuracy.toFixed(2)} मीटर)`;
+                    alert(`नई लोकेशन मिल गई है! अब "बदलाव सेव करें" पर क्लिक करें।`);
                 }, (error) => {
-                    console.error("Geolocation error on profile update:", error);
-                    alert("सटीक लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है और फिर से प्रयास करें।");
+                    let errorMessage = "लोकेशन प्राप्त नहीं हो सकी।";
+                    if (error.code === error.TIMEOUT) {
+                        errorMessage = "लोकेशन प्राप्त करने में अधिक समय लग रहा है। कृपया खुली जगह पर जाकर प्रयास करें।";
+                    }
+                    alert(errorMessage);
                     locationStatusDiv.textContent = currentUserData.location ? 'Location Saved' : 'No Location Saved';
+                    console.error("Geolocation error on profile update:", error);
                 }, {
                     enableHighAccuracy: true,
-                    timeout: 15000,
+                    timeout: 20000, // Increased timeout
                     maximumAge: 0
                 });
             } else {
@@ -877,7 +886,6 @@
                 address: document.getElementById('profile-address').value,
             };
             
-            // If a new location was fetched, add it to the update object
             if (temporaryLocation) {
                 updatedData.location = temporaryLocation;
             }
@@ -886,16 +894,14 @@
                 const userDocRef = doc(db, "users", currentUserId);
                 await updateDoc(userDocRef, updatedData);
                 
-                // Update local data with new changes
                 currentUserData = { ...currentUserData, ...updatedData };
-
                 alert("Profile safaltapoorvak update ho gayi!");
 
                 profileInputs.forEach(input => input.readOnly = true);
                 saveProfileBtn.style.display = 'none';
                 updateLocationProfileBtn.style.display = 'none';
                 editProfileBtn.style.display = 'block';
-                loadUserProfile(); // Reload profile to show new status
+                loadUserProfile();
 
             } catch (error) {
                 console.error("Error updating profile: ", error);
