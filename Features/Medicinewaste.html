@@ -604,11 +604,25 @@
         // --- 2. User Info Form Logic ---
         document.getElementById('get-location-btn').addEventListener('click', () => {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    alert(`Location le li gayi hai!`);
-                    const locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
-                }, () => alert("Location ki anumati nahi di gayi. Kripya address manual roop se dalein."));
+                // YEH BADLAV KIYA GAYA HAI: High accuracy ke liye options set kiye gaye hain
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        alert(`Location le li gayi hai!`);
+                        const locationData = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
+                    }, 
+                    (err) => {
+                        // Error ke liye behtar message
+                        alert(`LOCATION ERROR(${err.code}): ${err.message}. Kripya address manual roop se dalein.`);
+                    }, 
+                    options
+                );
             } else {
                 alert("Geolocation is browser dwara support nahi kiya jaata hai.");
             }
@@ -843,14 +857,26 @@
         updateLocationProfileBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
                 locationStatusDiv.textContent = 'Fetching location...';
-                navigator.geolocation.getCurrentPosition(position => {
-                    temporaryLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    locationStatusDiv.textContent = 'New location captured! Click Save to update.';
-                    alert('New location captured!');
-                }, () => {
-                    alert("Could not get location.");
-                    locationStatusDiv.textContent = currentUserData.location ? 'Location Saved' : 'No Location Saved';
-                });
+                // YEH BADLAV KIYA GAYA HAI: High accuracy ke liye options set kiye gaye hain
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        temporaryLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        locationStatusDiv.textContent = 'New location captured! Click Save to update.';
+                        alert('New location captured!');
+                    }, 
+                    (err) => {
+                        // Error ke liye behtar message
+                        alert(`LOCATION ERROR(${err.code}): ${err.message}. Location update nahi ho saki.`);
+                        locationStatusDiv.textContent = currentUserData.location ? 'Location Saved' : 'No Location Saved';
+                    }, 
+                    options
+                );
             } else {
                 alert("Geolocation is not supported by this browser.");
             }
