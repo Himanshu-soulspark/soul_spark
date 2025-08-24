@@ -96,6 +96,7 @@ app.post('/get-food-interaction', async(req, res) => {
 });
 
 // --- (मौजूदा) AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
+// *** यह Endpoint जैसा था वैसा ही है, इसमें कोई बदलाव नहीं किया गया है ***
 app.post('/ask-ai', async(req, res) => {
     try {
         const { question, token } = req.body;
@@ -121,6 +122,56 @@ app.post('/ask-ai', async(req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 });
+
+// =================================================================
+// --- (नया) AI MEDICAL ASSISTANT के लिए विशेष ENDPOINT ---
+// =================================================================
+app.post('/assistant-chat', async(req, res) => {
+    try {
+        // फ्रंटएंड से सवाल, टोकन, और रिक्वेस्ट की गिनती (requestCount) प्राप्त करें
+        const { question, token, requestCount } = req.body;
+        if (!token || !question || requestCount === undefined) {
+            return res.status(400).json({ error: "Token, question, and requestCount are required." });
+        }
+
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+
+        const userData = userDoc.data();
+        const COIN_COST = 1;
+
+        // *** सिक्के काटने का नया नियम ***
+        // सिर्फ तभी सिक्के काटें जब यह तीसरी, छठी, नौवीं... रिक्वेस्ट हो।
+        if (requestCount > 0 && requestCount % 3 === 0) {
+            if (userData.coins < COIN_COST) {
+                return res.status(403).json({ answer: "आपके पास पर्याप्त सिक्के नहीं हैं। कृपया और सिक्के खरीदें।" });
+            }
+            // सिक्के अपडेट करें
+            await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        }
+
+        // AI के लिए विशेष निर्देश
+        const assistantPrompt = `
+          You are a caring and empathetic female AI medical assistant. 
+          Your name is 'Shubh'. 
+          You must respond in the same language as the user's question.
+          Keep your response warm, helpful, and strictly under 250 characters.
+          The user's question is: "${question}"
+        `;
+
+        const result = await aiModel.generateContent(assistantPrompt);
+        const aiAnswer = result.response.text();
+
+        res.json({ answer: aiAnswer });
+
+    } catch (error) {
+        console.error("Error in /assistant-chat:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
+
 
 // --- (मौजूदा) AI डाइट प्लान बनाने वाला Endpoint ---
 app.post('/generate-diet-plan', async(req, res) => {
