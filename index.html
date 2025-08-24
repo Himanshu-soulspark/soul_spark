@@ -137,10 +137,12 @@
         animation: card-appear 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) 1.2s forwards;
     }
     
-    #model-canvas {
-        width: 100% !important;
-        height: 100% !important;
-        display: block; /* remove default canvas margin */
+    /* MODIFIED: Styling for the new welcome image */
+    #welcome-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
     
     @keyframes card-appear {
@@ -739,7 +741,8 @@
     <div id="welcome-text" class="splash-text">Welcome</div>
     <div id="shubhmed-text" class="splash-text">Shubhmed</div>
     <div class="model-card">
-        <canvas id="model-canvas"></canvas>
+        <!-- MODIFICATION: Replaced canvas with img tag -->
+        <img src="image/Welcome.png" alt="Welcome Image" id="welcome-image">
     </div>
     <div id="tagline" class="splash-text">See Your Health<br>Shape Your Future</div>
     <div id="buffer-loader"></div>
@@ -839,7 +842,8 @@
                     <img src="image/dental care .jpg" alt="Dental Care">
                     <button class="care-3d-btn">Dental Care</button>
                 </div>
-                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                <!-- MODIFICATION: Changed onclick to navigate to Features/Eye.html -->
+                <div class="care-card-wrapper" onclick="window.location.href='Features/Eye.html'">
                     <img src="image/eye care .jpg" alt="Eye Care">
                     <button class="care-3d-btn">Eye Care</button>
                 </div>
@@ -1119,9 +1123,10 @@
 </nav>
 
 <script type="module">
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    // MODIFICATION: Removed 3D model related imports as they are no longer used
+    // import * as THREE from 'three';
+    // import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // =================================================================================
     // ===== START: FIREBASE SDK SETUP =====
@@ -1264,55 +1269,13 @@
         }
     }
     
-    // --- 3D Model Setup ---
+    // --- 3D Model Setup (REMOVED) ---
+    // The setup3DModel function is no longer needed as we are using a static image.
+    /*
     function setup3DModel() {
-        const canvas = document.getElementById('model-canvas');
-        if (!canvas) return;
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-        camera.position.set(0, 1.2, 2.5);
-
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-        directionalLight.position.set(5, 10, 7.5);
-        scene.add(directionalLight);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.enableZoom = false;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 2.0;
-        controls.target.set(0, 0.9, 0);
-
-        const gltfLoader = new GLTFLoader();
-        gltfLoader.load('image/doctor_-_sketchfab_weekly_-_13_mar23.glb', (gltf) => {
-            const model = gltf.scene;
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            model.position.sub(center);
-            scene.add(model);
-        }, undefined, (error) => console.error(error));
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-        
-        window.addEventListener('resize', () => {
-            const card = canvas.parentElement;
-            camera.aspect = card.clientWidth / card.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(card.clientWidth, card.clientHeight);
-        });
+        // ... Original 3D model code was here ...
     }
+    */
     
     // --- Side Menu Logic ---
     function showSideMenu() {
@@ -1690,7 +1653,8 @@
 
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
-        setup3DModel();
+        // MODIFICATION: Removed call to setup3DModel()
+        // setup3DModel();
         initializeWelcomeSequence();
         loadProfileImage();
 
