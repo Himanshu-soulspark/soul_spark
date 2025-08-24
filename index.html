@@ -759,7 +759,8 @@
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
         <div class="search-container">
             <input type="text" class="search-bar" placeholder="Search for anything...">
-            <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
+            <!-- MODIFICATION: Changed onclick to performSearch() -->
+            <button class="search-button" onclick="performSearch()">&#128269;</button>
         </div>
         <div class="coin-display">
             <!-- Updated Coin SVG for a solid yellow circle with white inner circle -->
@@ -925,7 +926,8 @@
             <!-- Card 8 -->
             <div class="tracker-card-item">
                 <img src="image/meditation.jpg" alt="Meditation">
-                <button class="tracker-btn" onclick="showFuturePlan()">Meditation</button>
+                <!-- MODIFICATION: Changed onclick to navigate to Meditation.html -->
+                <button class="tracker-btn" onclick="window.location.href='Features/Meditation.html'">Meditation</button>
             </div>
             <!-- Card 9 -->
             <div class="tracker-card-item">
@@ -1645,6 +1647,47 @@
         alert('Future plan');
     }
 
+    // --- NEW: Search Function ---
+    window.performSearch = function() {
+        const searchInput = document.querySelector('#home-page .search-bar');
+        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        if (searchTerm === "") {
+            alert("Please enter a search term.");
+            return;
+        }
+
+        // Keywords for specific pages within the app
+        if (searchTerm.includes("care") || searchTerm.includes("skin") || searchTerm.includes("dental") || searchTerm.includes("eye")) {
+            switchPage(carePage);
+            updateActiveNav(navCare);
+        } else if (searchTerm.includes("tracker") || searchTerm.includes("water") || searchTerm.includes("sleep") || searchTerm.includes("growth")) {
+            switchPage(trackerPage);
+            updateActiveNav(navTracker);
+        } else if (searchTerm.includes("consultant") || searchTerm.includes("doctor")) {
+            switchPage(consultantPage);
+            updateActiveNav(navConsultant);
+        } else if (searchTerm.includes("profile") || searchTerm.includes("wallet") || searchTerm.includes("logout")) {
+            switchPage(profilePage);
+            updateActiveNav(navProfile);
+        }
+        // Keywords for navigating to separate HTML files
+        else if (searchTerm.includes("meditation")) {
+            window.location.href = 'Features/Meditation.html';
+        } else if (searchTerm.includes("diet")) {
+            window.location.href = 'Features/Diet.html';
+        } else if (searchTerm.includes("health habit")) {
+            window.location.href = 'Features/Health.html';
+        } else if (searchTerm.includes("medicine waste")) {
+            window.location.href = 'Features/Medicinewaste.html';
+        }
+        // Default case if no keyword matches
+        else {
+            alert(`No results found for "${searchInput.value}". This feature is expanding.`);
+        }
+    }
+
+
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
         setup3DModel();
@@ -1654,20 +1697,33 @@
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 if(button.classList.contains('water-tracker-link')) return; 
-                event.preventDefault(); 
 
-                const targetPage = button.getAttribute('data-target-page');
-                if (targetPage === 'disease-prediction') {
-                    switchPage(diseasePredictionPage);
-                } else if (targetPage === 'disease-info') {
-                    switchPage(diseaseInfoPage);
-                } else {
-                    showFuturePlan();
+                const pageTarget = button.getAttribute('data-target-page');
+                if (pageTarget) {
+                    event.preventDefault(); 
+                    if (pageTarget === 'disease-prediction') {
+                        switchPage(diseasePredictionPage);
+                    } else if (pageTarget === 'disease-info') {
+                        switchPage(diseaseInfoPage);
+                    }
                 }
+                // The meditation button with a direct onclick will not be affected by this.
+                // Other buttons without 'data-target-page' will trigger their own onclicks (e.g., showFuturePlan).
             });
         });
         
-        // MODIFIED: Re-wired profile button event listeners
+        // Add keypress event for the search bar
+        const homeSearchInput = document.querySelector('#home-page .search-bar');
+        if (homeSearchInput) {
+            homeSearchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent default form submission
+                    performSearch();
+                }
+            });
+        }
+        
+        // Re-wired profile button event listeners
         document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
         document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
         document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
