@@ -1,1 +1,491 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Assistant</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: linear-gradient(to right, #4dd0e1, #4db6ac, #42a5f5);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scrolling */
+        }
 
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .top-bar-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .assistant-icon {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .assistant-icon img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        /* Options menu is now hidden as per your request */
+        .options-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            overflow: hidden;
+            z-index: 1002;
+        }
+
+        .options-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .options-menu button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .floating-video-card {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: calc(100vw - 220px);
+            width: 180px;
+            height: 320px;
+            background-color: #333;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        .video-card-header {
+            padding: 8px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            text-align: center;
+            font-size: 0.8em;
+            cursor: move;
+            position: relative; /* For positioning the close button */
+            height: 20px; /* Adjust height for better alignment */
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 4px;
+            right: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+        .close-btn:hover {
+            color: #ffbdbd;
+        }
+
+
+        .video-container {
+            width: 100%;
+            height: calc(100% - 30px);
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            scroll-snap-align: start;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            padding: 80px 20px 80px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            white-space: pre-wrap; /* To render newlines in text */
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: #f1f1f1;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        .chat-input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .send-button {
+            border: none;
+            background: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-title">Ai Medical Assistant</div>
+        <div class="assistant-icon" id="assistantIcon">
+            <!-- Icon image path changed -->
+            <img src="Assistant.jpg" alt="Assistant Icon">
+            <!-- Male/Female options menu is no longer needed and will be hidden by CSS -->
+        </div>
+    </div>
+
+    <div class="floating-video-card" id="videoCard">
+        <!-- "Drag Me" text has been removed as requested -->
+        <div class="video-card-header" id="videoCardHeader">
+            <span class="close-btn" id="closeVideoCard">&times;</span>
+        </div>
+        <div class="video-container" id="videoContainer">
+            <!-- Video will be dynamically added here by JavaScript -->
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will be appended here -->
+    </div>
+
+    <div class="chat-input-container">
+        <input type="text" class="chat-input" id="userInput" placeholder="Type your message...">
+        <button class="send-button" id="sendButton">Send</button>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
+          authDomain: "shubhmed-9f05d.firebaseapp.com",
+          databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
+          projectId: "shubhmed-9f05d",
+          storageBucket: "shubhmed-9f05d.appspot.com",
+          messagingSenderId: "42179676197",
+          appId: "1:42179676197:web:1796559543fb869c5297cc",
+          measurementId: "G-VD9YFFECTC"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+
+        const assistantIcon = document.getElementById('assistantIcon');
+        const videoCard = document.getElementById('videoCard');
+        const videoCardHeader = document.getElementById('videoCardHeader');
+        const videoContainer = document.getElementById('videoContainer');
+        const closeVideoCard = document.getElementById('closeVideoCard');
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+
+        let videos = videoContainer.getElementsByTagName('video');
+        let femaleVoice = null;
+
+
+        // --- Voice Synthesis Logic ---
+        function loadVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            // Find a Hindi female voice
+            femaleVoice = voices.find(voice => voice.lang === 'hi-IN' && (voice.name.includes('Female') || voice.gender === 'female'));
+            if (!femaleVoice) {
+                 // Fallback to the first available Hindi voice
+                femaleVoice = voices.find(voice => voice.lang === 'hi-IN');
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+        } else {
+            console.error("Sorry, your browser does not support text-to-speech.");
+        }
+
+
+        // --- Menu Logic Changed ---
+        // Icon click now directly toggles the female assistant video card
+        assistantIcon.addEventListener('click', () => {
+            const isCardVisible = videoCard.style.display === 'block';
+            if (isCardVisible) {
+                videoCard.style.display = 'none';
+                stopAllVideos();
+                window.speechSynthesis.cancel(); // Stop speech when closing
+            } else {
+                setupAssistant();
+                videoCard.style.display = 'block';
+            }
+        });
+
+        function setupAssistant() {
+            updateVideoSource();
+        }
+
+        closeVideoCard.addEventListener('click', () => {
+            videoCard.style.display = 'none';
+            stopAllVideos();
+            window.speechSynthesis.cancel(); // Stop speech when closing
+        });
+
+
+        // --- Dynamic Video Loading Changed ---
+        // Now loads only a single female video
+        function updateVideoSource() {
+            // You can add more female videos here if you want them to scroll,
+            // but for a single video, this is perfect.
+            const videoPaths = ['1female.mp4'];
+
+            videoContainer.innerHTML = ''; // Clear existing videos
+
+            videoPaths.forEach(src => {
+                const video = document.createElement('video');
+                video.src = src;
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true;
+                videoContainer.appendChild(video);
+            });
+
+            videos = videoContainer.getElementsByTagName('video');
+        }
+
+
+        // --- Video Player Logic (Unchanged) ---
+        function playCurrentVideo() {
+            const currentVideo = findCurrentVideo();
+            if (currentVideo) {
+                setTimeout(() => currentVideo.play().catch(e => console.error("Video play failed:", e)), 50);
+            }
+        }
+
+        function stopAllVideos() {
+            for (let video of videos) {
+                video.pause();
+                video.currentTime = 0;
+            }
+        }
+
+        function findCurrentVideo() {
+            // Simplified for a single video
+            return videos.length > 0 ? videos[0] : null;
+        }
+
+        let scrollTimeout;
+        videoContainer.addEventListener('scroll', () => {
+            stopAllVideos();
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                // This logic remains in case you add more videos later
+            }, 150);
+        });
+
+
+        // --- Draggable Floating Video Card Logic (Unchanged) ---
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        videoCardHeader.addEventListener('mousedown', (e) => {
+            if (e.target === closeVideoCard) return;
+            isDragging = true;
+            offsetX = e.clientX - videoCard.getBoundingClientRect().left;
+            offsetY = e.clientY - videoCard.getBoundingClientRect().top;
+            videoCardHeader.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const newX = e.clientX - offsetX;
+            const newY = e.clientY - offsetY;
+            videoCard.style.left = `${newX}px`;
+            videoCard.style.top = `${newY}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if(isDragging) {
+                isDragging = false;
+                videoCardHeader.style.cursor = 'move';
+            }
+        });
+
+
+        // --- Chat Logic ---
+        function addMessage(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', sender + '-message');
+            messageElement.innerText = message;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageElement; // Return the element to allow updating it later
+        }
+
+        // --- Text-to-Speech Function Changed ---
+        // Now always uses female voice if available
+        function speak(text) {
+            if (!('speechSynthesis' in window)) {
+                console.error("Cannot speak: Speech Synthesis not supported.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'hi-IN';
+
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            } else {
+                console.log("Hindi female voice not found, using default.");
+            }
+
+            utterance.onstart = () => {
+                console.log("Speech started...");
+                if (videoCard.style.display === 'block') {
+                    playCurrentVideo();
+                }
+            };
+            utterance.onend = () => {
+                console.log("Speech ended.");
+                stopAllVideos();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- AI Response Function ---
+        // This function will call your backend on Render to get the AI response.
+        async function getAIResponse(prompt) {
+            // IMPORTANT: This URL MUST point to your backend endpoint.
+            // When you deploy on Render, you'll create a small backend (e.g., in Node.js/Express)
+            // that receives requests at this URL, calls the Gemini API using your GEMINI_API_KEY,
+            // and then sends back the response.
+            // For now, this is a placeholder URL.
+            const apiUrl = '/api/generate-response';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // Send the user's message to the backend
+                    body: JSON.stringify({
+                        userMessage: prompt
+                    })
+                });
+
+                if (!response.ok) {
+                    // This will happen if your backend isn't set up or has an error
+                    throw new Error(`Backend error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.reply; // Assuming your backend returns { "reply": "..." }
+
+            } catch (error) {
+                console.error("Could not fetch AI response:", error);
+                // Fallback response if the backend call fails
+                return "माफ़ कीजिए, मैं अभी जवाब नहीं दे पा रही हूँ। कृपया थोड़ी देर बाद फिर से प्रयास करें।";
+            }
+        }
+
+
+        // --- Main Send Logic Changed ---
+        // Now calls the AI and speaks the response.
+        async function handleSend() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                userInput.value = '';
+
+                // Add a temporary "thinking" message for better user experience
+                const thinkingMessage = addMessage("सोच रही हूँ...", 'bot');
+
+                // Get the actual response from the AI backend
+                const botResponse = await getAIResponse(message);
+                
+                // Update the "thinking" message with the real response
+                thinkingMessage.innerText = botResponse;
+
+                // Speak the AI's response
+                speak(botResponse);
+            }
+        }
+
+        sendButton.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+    </script>
+</body>
+</html>
