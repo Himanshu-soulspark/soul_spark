@@ -13,7 +13,9 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden; /* Prevent body scrolling */
+            overflow: hidden;
+            /* 3D इफ़ेक्ट के लिए perspective ज़रूरी है */
+            perspective: 1200px;
         }
 
         .top-bar {
@@ -46,33 +48,6 @@
             border-radius: 50%;
         }
 
-        .options-menu {
-            display: none;
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            overflow: hidden;
-            z-index: 1002;
-        }
-
-        .options-menu button {
-            display: block;
-            width: 100%;
-            padding: 12px 20px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .options-menu button:hover {
-            background-color: #f0f0f0;
-        }
-
         .floating-video-card {
             display: none;
             position: fixed;
@@ -82,9 +57,17 @@
             height: 320px;
             background-color: #333;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             z-index: 1001;
             overflow: hidden;
+            /* 3D इफ़ेक्ट के लिए Transform और Transition */
+            transform: rotateY(-10deg) translateZ(80px);
+            transition: transform 0.5s ease;
+        }
+
+        .floating-video-card:hover {
+            /* माउस ले जाने पर कार्ड सीधा और थोड़ा आगे आएगा */
+            transform: rotateY(0deg) translateZ(100px);
         }
 
         .video-card-header {
@@ -94,8 +77,8 @@
             text-align: center;
             font-size: 0.8em;
             cursor: move;
-            position: relative; /* For positioning the close button */
-            height: 20px; /* Header को थोड़ी जगह देने के लिए */
+            position: relative;
+            height: 20px;
         }
 
         .close-btn {
@@ -111,19 +94,15 @@
             color: #ffbdbd;
         }
 
-
         .video-container {
             width: 100%;
             height: calc(100% - 30px);
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
         }
 
         .video-container video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            scroll-snap-align: start;
         }
 
         .chat-container {
@@ -138,7 +117,15 @@
             max-width: 80%;
             padding: 10px 15px;
             border-radius: 18px;
-            margin-bottom: 10px;
+            margin-bottom: 15px; /* थोड़ी ज़्यादा जगह */
+            /* 3D इफ़ेक्ट के लिए */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateZ(40px);
+            transition: transform 0.3s ease;
+        }
+        
+        .chat-message:hover {
+            transform: translateZ(50px) scale(1.02);
         }
 
         .user-message {
@@ -162,6 +149,8 @@
             padding: 10px;
             background-color: rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
+            /* 3D इफ़ेक्ट */
+            transform: translateZ(20px);
         }
 
         .chat-input {
@@ -187,18 +176,17 @@
     <div class="top-bar">
         <div class="top-bar-title">Ai Medical Assistant</div>
         <div class="assistant-icon" id="assistantIcon">
-            <img src="Assistant.jpg" alt="Assistant Icon">
-            <!-- Male/Female का मेन्यू अब इस्तेमाल नहीं होगा -->
+            <!-- *** बदला हुआ फ़ाइल पाथ *** -->
+            <img src="../image/Assistant.jpg" alt="Assistant Icon">
         </div>
     </div>
 
     <div class="floating-video-card" id="videoCard">
         <div class="video-card-header" id="videoCardHeader">
-            <!-- "Drag Me" टेक्स्ट हटा दिया गया है -->
             <span class="close-btn" id="closeVideoCard">&times;</span>
         </div>
         <div class="video-container" id="videoContainer">
-            <!-- वीडियो अब जावास्क्रिप्ट द्वारा डाला जाएगा -->
+            <!-- वीडियो जावास्क्रिप्ट द्वारा डाला जाएगा -->
         </div>
     </div>
 
@@ -219,7 +207,6 @@
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-        // आपकी Firebase कॉन्फ़िगरेशन
         const firebaseConfig = {
           apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
           authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -231,9 +218,8 @@
           measurementId: "G-VD9YFFECTC"
         };
 
-        // Firebase को शुरू करें
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app); // Authentication सर्विस को शुरू करें
+        const auth = getAuth(app);
         const analytics = getAnalytics(app);
         // =================================================================
         // ===== END: FIREBASE SDK SETUP =====
@@ -251,16 +237,14 @@
         let videos = videoContainer.getElementsByTagName('video');
         let femaleVoice = null;
         
-        // सर्वर को भेजने के लिए रिक्वेस्ट की गिनती का काउंटर
-        // sessionStorage का उपयोग करने से पेज रीलोड होने पर भी गिनती बनी रहती है
-        let requestCount = parseInt(sessionStorage.getItem('assistantRequestCount')) || 0;
+        // अब requestCount की ज़रूरत नहीं है, क्योंकि सर्वर जवाब की लंबाई के आधार पर सिक्के काटेगा।
 
         // --- Voice Synthesis Logic ---
         function loadVoices() {
             const voices = window.speechSynthesis.getVoices();
             femaleVoice = voices.find(voice => voice.lang === 'hi-IN' && (voice.name.includes('Female') || voice.gender === 'female'));
             if (!femaleVoice) {
-                femaleVoice = voices.find(voice => voice.lang === 'hi-IN'); // Fallback
+                femaleVoice = voices.find(voice => voice.lang === 'hi-IN');
             }
         }
         
@@ -271,16 +255,14 @@
             console.error("Sorry, your browser does not support text-to-speech.");
         }
 
-
-        // --- Assistant Icon Logic (बदला हुआ) ---
-        // आइकन पर क्लिक करने से अब सीधे वीडियो कार्ड खुलता/बंद होता है
+        // --- Assistant Icon Logic ---
         assistantIcon.addEventListener('click', () => {
             const isCardVisible = videoCard.style.display === 'block';
             if (isCardVisible) {
                 videoCard.style.display = 'none';
                 stopAllVideos();
             } else {
-                setupAssistant(); // असिस्टेंट को सेट करें
+                setupAssistant();
                 videoCard.style.display = 'block';
             }
         });
@@ -294,13 +276,12 @@
             stopAllVideos();
         });
 
-
-        // --- Dynamic Video Loading (बदला हुआ) ---
-        // अब सिर्फ़ एक फीमेल वीडियो लोड होता है
+        // --- Dynamic Video Loading ---
         function updateVideoSource() {
-            const videoPath = '1female.mp4'; // सिर्फ एक वीडियो
+            // *** बदला हुआ वीडियो फ़ाइल पाथ ***
+            const videoPath = '../image/Female.mp4'; 
 
-            videoContainer.innerHTML = ''; // पुराने वीडियो हटाएँ
+            videoContainer.innerHTML = '';
 
             const video = document.createElement('video');
             video.src = videoPath;
@@ -312,10 +293,8 @@
             videos = videoContainer.getElementsByTagName('video');
         }
 
-
         // --- Video Player Logic (कोई बदलाव नहीं) ---
         function playCurrentVideo() {
-            // क्योंकि अब एक ही वीडियो है, यह हमेशा उसी को चलाएगा
             const currentVideo = videos.length > 0 ? videos[0] : null;
             if (currentVideo) {
                 setTimeout(() => currentVideo.play().catch(e => console.error("Video play failed:", e)), 50);
@@ -357,21 +336,19 @@
             }
         });
 
-
-        // --- Chat Logic (बदला हुआ) ---
+        // --- Chat Logic ---
         function addMessage(message, sender) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('chat-message', sender + '-message');
             messageElement.innerText = message;
             chatContainer.appendChild(messageElement);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            return messageElement; // बाद में टेक्स्ट बदलने के लिए एलिमेंट लौटाएँ
+            return messageElement;
         }
 
-        // --- Text-to-Speech Function (बदला हुआ) ---
+        // --- Text-to-Speech Function ---
         function speak(text) {
             if (!('speechSynthesis' in window)) {
-                console.error("Cannot speak: Speech Synthesis not supported.");
                 return;
             }
             window.speechSynthesis.cancel();
@@ -380,8 +357,6 @@
 
             if (femaleVoice) {
                 utterance.voice = femaleVoice;
-            } else {
-                console.log("Hindi female voice not found, using default.");
             }
 
             utterance.onstart = () => {
@@ -396,10 +371,10 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // --- Main Send Logic (पूरी तरह से नया) ---
+        // --- Main Send Logic ---
         async function handleSend() {
             const message = userInput.value.trim();
-            if (!message) return; // अगर संदेश खाली है तो कुछ न करें
+            if (!message) return;
 
             const user = auth.currentUser;
             if (!user) {
@@ -410,36 +385,29 @@
             addMessage(message, 'user');
             userInput.value = '';
             
-            // AI का जवाब आने तक एक "सोच रही हूँ..." संदेश दिखाएँ
             const thinkingMessage = addMessage("सोच रही हूँ...", 'bot');
 
             try {
                 const idToken = await user.getIdToken();
                 
-                // रिक्वेस्ट भेजने से पहले काउंटर को बढ़ाएँ
-                requestCount++;
-                sessionStorage.setItem('assistantRequestCount', requestCount); // सेशन में सेव करें
-                
-                // सर्वर पर AI से जवाब माँगें
+                // अब requestCount भेजने की ज़रूरत नहीं है
                 const response = await fetch('/assistant-chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         question: message,
-                        token: idToken,
-                        requestCount: requestCount // काउंटर को सर्वर पर भेजें
+                        token: idToken
                     })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.answer || "Server error occurred.");
-                }
-
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.answer || data.error || "Server error occurred.");
+                }
+                
                 const botResponse = data.answer;
                 
-                // "सोच रही हूँ..." संदेश को AI के असली जवाब से बदलें
                 thinkingMessage.innerText = botResponse;
                 speak(botResponse);
 
@@ -452,11 +420,9 @@
         // --- Authentication Check ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // यूज़र लॉग इन है, चैट शुरू कर सकते हैं
                 console.log("User is authenticated:", user.uid);
                 addMessage("नमस्ते! मैं आपकी AI मेडिकल असिस्टेंट शुभ हूँ। मैं आपकी क्या मदद कर सकती हूँ?", 'bot');
                 
-                // इवेंट लिस्टनर्स को प्रमाणीकरण के बाद ही सेट करें
                 sendButton.addEventListener('click', handleSend);
                 userInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
@@ -465,9 +431,9 @@
                 });
                 sendButton.disabled = false;
                 userInput.disabled = false;
+                userInput.placeholder = "Type your message...";
 
             } else {
-                // यूज़र लॉग इन नहीं है, गुमनाम रूप से साइन इन करें
                 console.log("No user found, signing in anonymously...");
                 sendButton.disabled = true;
                 userInput.disabled = true;
