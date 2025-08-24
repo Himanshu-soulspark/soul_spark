@@ -124,14 +124,14 @@ app.post('/ask-ai', async(req, res) => {
 });
 
 // =================================================================
-// --- (नया) AI MEDICAL ASSISTANT के लिए विशेष ENDPOINT ---
+// --- (नया और अपडेट किया गया) AI MEDICAL ASSISTANT के लिए विशेष ENDPOINT ---
 // =================================================================
 app.post('/assistant-chat', async(req, res) => {
     try {
-        // फ्रंटएंड से सवाल, टोकन, और रिक्वेस्ट की गिनती (requestCount) प्राप्त करें
-        const { question, token, requestCount } = req.body;
-        if (!token || !question || requestCount === undefined) {
-            return res.status(400).json({ error: "Token, question, and requestCount are required." });
+        // फ्रंटएंड से अब सिर्फ सवाल और टोकन आएगा
+        const { question, token } = req.body;
+        if (!token || !question) {
+            return res.status(400).json({ error: "Token and question are required." });
         }
 
         const decodedToken = await admin.auth().verifyIdToken(token);
@@ -140,30 +140,45 @@ app.post('/assistant-chat', async(req, res) => {
         if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
 
         const userData = userDoc.data();
-        const COIN_COST = 1;
 
-        // *** सिक्के काटने का नया नियम ***
-        // सिर्फ तभी सिक्के काटें जब यह तीसरी, छठी, नौवीं... रिक्वेस्ट हो।
-        if (requestCount > 0 && requestCount % 3 === 0) {
-            if (userData.coins < COIN_COST) {
-                return res.status(403).json({ answer: "आपके पास पर्याप्त सिक्के नहीं हैं। कृपया और सिक्के खरीदें।" });
-            }
-            // सिक्के अपडेट करें
-            await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-        }
-
-        // AI के लिए विशेष निर्देश
+        // *** AI के लिए नए, विस्तृत निर्देश ***
         const assistantPrompt = `
-          You are a caring and empathetic female AI medical assistant. 
-          Your name is 'Shubh'. 
-          You must respond in the same language as the user's question.
-          Keep your response warm, helpful, and strictly under 250 characters.
-          The user's question is: "${question}"
+          You are a caring and empathetic female AI medical assistant named 'Shubh'. 
+          Respond in the same language as the user's question. 
+          You can generate a detailed response, up to 4500 characters if needed.
+
+          When a user mentions a medical symptom or illness (like 'पेट दर्द', 'fever', 'headache', etc.), you MUST follow this three-part structure in your response:
+          1.  **Immediate Relief:** Start by suggesting some simple, safe home remedies or general advice for initial comfort. For example, for a stomach ache, suggest warm water, ginger tea, or avoiding spicy food.
+          2.  **General Medication:** Suggest ONLY common, general-purpose, over-the-counter (OTC) medicines that are typically used for the symptom. For a stomach ache, you could mention an antacid. Be very generic.
+          3.  **Crucial Disclaimer:** ALWAYS end your response with a strong, clear disclaimer. You must state: 'यह सलाह केवल शुरुआती राहत के लिए है। किसी भी दवा को लेने से पहले कृपया डॉक्टर से सलाह ज़रूर लें। आपकी सही स्थिति का मूल्यांकन एक योग्य चिकित्सक ही कर सकते हैं।' (This advice is for initial relief only. Please consult a doctor before taking any medication. Only a qualified physician can properly evaluate your condition.)
+
+          User's question is: "${question}"
         `;
 
         const result = await aiModel.generateContent(assistantPrompt);
         const aiAnswer = result.response.text();
 
+        // *** सिक्के काटने का नया नियम (जवाब की लंबाई के आधार पर) ***
+        const responseLength = aiAnswer.length;
+        // हर 1000 अक्षर के लिए 2 सिक्के। Math.ceil सुनिश्चित करता है कि 1 अक्षर पर भी 2 सिक्के कटें।
+        const coinCost = Math.ceil(responseLength / 1000) * 2;
+
+        // अगर जवाब खाली है, तो कोई सिक्का न काटें
+        if (coinCost === 0 && responseLength > 0) {
+             // यह एक सुरक्षा उपाय है, सामान्यतः cost 2 से शुरू होगी
+             coinCost = 2;
+        }
+        
+        if (coinCost > 0) {
+            if (userData.coins < coinCost) {
+                // अगर सिक्के कम हैं तो जवाब न भेजें और त्रुटि दें
+                return res.status(403).json({ answer: `इस जवाब के लिए ${coinCost} सिक्कों की ज़रूरत है, लेकिन आपके पास पर्याप्त सिक्के नहीं हैं।` });
+            }
+            // सिक्के अपडेट करें
+            await userRef.update({ coins: admin.firestore.FieldValue.increment(-coinCost) });
+        }
+
+        // सिक्के काटने के बाद ही जवाब भेजें
         res.json({ answer: aiAnswer });
 
     } catch (error) {
