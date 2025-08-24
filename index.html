@@ -259,10 +259,8 @@
         color: #333;
         flex-shrink: 0; /* Prevent shrinking */
     }
-    .coin-display svg {
-        width: 24px;
-        height: 24px;
-        fill: gold; /* Gold color for coin */
+    .coin-display .coin-icon-emoji {
+        font-size: 24px;
         margin-right: 5px;
     }
     /* Specific styling for the profile page header elements */
@@ -452,6 +450,7 @@
         z-index: 40;
         transition: transform 0.1s ease; /* Smooth hover but quick drag */
         text-align: center;
+        overflow: hidden; /* To ensure the image corners are clipped */
     }
     #medical-assistant-float:hover {
         transform: translateY(-5px) scale(1.05);
@@ -460,17 +459,13 @@
     #medical-assistant-float:active {
         cursor: grabbing;
     }
-    #medical-assistant-float svg {
-        width: 35px;
-        height: 35px;
-        fill: white;
-        margin-bottom: 3px;
-        filter: drop-shadow(0 0 5px rgba(0,255,255,0.7)); /* 3D sticker effect for Medical Assistant */
+    #medical-assistant-float img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
     #medical-assistant-float span {
-        font-size: 0.7em;
-        font-weight: bold;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        display: none; /* Hide the text as the image is self-explanatory */
     }
 
     /* Side Menu */
@@ -766,11 +761,7 @@
             <button class="search-button" onclick="performSearch()">&#128269;</button>
         </div>
         <div class="coin-display">
-            <!-- Updated Coin SVG for a solid yellow circle with white inner circle -->
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="header-coin-balance">0</span>
         </div>
     </header>
@@ -809,10 +800,11 @@
 </div>
 
 <!-- Floating Medical Assistant -->
-<div id="medical-assistant-float">
-    <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,7A3,3 0 0,0 9,10A3,3 0 0,0 12,13A3,3 0 0,0 15,10A3,3 0 0,0 12,7M7.5,16.5C7.5,14.67 9.83,13 12,13C14.17,13 16.5,14.67 16.5,16.5V17H7.5V16.5Z"></path></svg>
+<div id="medical-assistant-float" onclick="window.location.href='Assistant.html'">
+    <img src="image/Assistant.jpg" alt="Medical Assistant">
     <span>Medical Assistant</span>
 </div>
+
 
 <!-- CARE PAGE -->
 <div id="care-page" class="page">
@@ -823,10 +815,7 @@
             <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
         </div>
         <div class="coin-display">
-             <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="care-header-coin-balance">0</span>
         </div>
     </header>
@@ -883,10 +872,7 @@
             <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
         </div>
         <div class="coin-display">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="tracker-header-coin-balance">0</span>
         </div>
     </header>
@@ -963,10 +949,7 @@
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
         <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Disease Prediction</div>
         <div class="coin-display">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="prediction-header-coin-balance">0</span>
         </div>
     </header>
@@ -986,10 +969,7 @@
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
         <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Disease Information</div>
         <div class="coin-display">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="info-header-coin-balance">0</span>
         </div>
     </header>
@@ -1011,10 +991,7 @@
             <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
         </div>
         <div class="coin-display">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span id="consultant-header-coin-balance">0</span>
         </div>
     </header>
@@ -1035,10 +1012,7 @@
             <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
         </div>
         <div class="coin-display">
-            <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="currentColor"/>
-                <circle cx="12" cy="12" r="4" fill="white"/>
-            </svg>
+            <span class="coin-icon-emoji">🪙</span>
             <span>100</span>
         </div>
         <!-- Title for the profile page header -->
@@ -1104,7 +1078,7 @@
         </div>
         <div class="wallet-body">
             <div class="wallet-coin-card">
-                <div class="coin-icon">💰</div>
+                <div class="coin-icon">🪙</div>
                 <div class="coin-balance" id="wallet-coin-balance-display">0</div>
                 <div class="coin-label">Available Coins</div>
             </div>
@@ -1308,6 +1282,7 @@
     // --- Draggable Medical Assistant Button ---
     if (medicalAssistantFloat) {
         let isDragging = false;
+        let wasDragged = false; // Flag to distinguish drag from click
         let currentX;
         let currentY;
         let initialX;
@@ -1323,7 +1298,18 @@
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
 
+        // Modify the click handler to check the wasDragged flag
+        medicalAssistantFloat.addEventListener('click', (e) => {
+            if (wasDragged) {
+                e.preventDefault(); // Prevent navigation if it was a drag
+                wasDragged = false; // Reset flag
+            }
+            // If not dragged, the default onclick behavior will proceed.
+        });
+
+
         function dragStart(e) {
+            wasDragged = false; // Reset drag flag on new interaction
             if (e.type === "touchstart") {
                 initialX = e.touches[0].clientX - xOffset;
                 initialY = e.touches[0].clientY - yOffset;
@@ -1346,6 +1332,7 @@
         function drag(e) {
             if (isDragging) {
                 e.preventDefault();
+                wasDragged = true; // Set flag to true if moved
 
                 if (e.type === "touchmove") {
                     currentX = e.touches[0].clientX - initialX;
