@@ -14,7 +14,6 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            /* 3D इफ़ेक्ट के लिए perspective ज़रूरी है */
             perspective: 1200px;
         }
 
@@ -60,35 +59,55 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             z-index: 1001;
             overflow: hidden;
-            /* 3D इफ़ेक्ट के लिए Transform और Transition */
             transform: rotateY(-10deg) translateZ(80px);
             transition: transform 0.5s ease;
         }
 
         .floating-video-card:hover {
-            /* माउस ले जाने पर कार्ड सीधा और थोड़ा आगे आएगा */
             transform: rotateY(0deg) translateZ(100px);
         }
 
         .video-card-header {
             padding: 8px;
             background-color: rgba(0,0,0,0.5);
-            color: white;
-            text-align: center;
-            font-size: 0.8em;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
             cursor: move;
             position: relative;
             height: 20px;
         }
+        
+        /* ज़ूम बटनों के लिए स्टाइल */
+        .zoom-controls {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 5px;
+        }
+
+        .zoom-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
 
         .close-btn {
-            position: absolute;
-            top: 4px;
-            right: 10px;
             font-size: 20px;
             font-weight: bold;
             cursor: pointer;
             color: white;
+            padding: 0 5px; /* क्लिक करने के लिए थोड़ी जगह */
         }
         .close-btn:hover {
             color: #ffbdbd;
@@ -96,7 +115,7 @@
 
         .video-container {
             width: 100%;
-            height: calc(100% - 30px);
+            height: calc(100% - 36px);
         }
 
         .video-container video {
@@ -107,7 +126,7 @@
 
         .chat-container {
             flex-grow: 1;
-            padding: 80px 20px 80px 20px;
+            padding: 80px 20px 80px 20px; /* नीचे से Padding ताकि इनपुट बॉक्स न छिपे */
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -117,8 +136,7 @@
             max-width: 80%;
             padding: 10px 15px;
             border-radius: 18px;
-            margin-bottom: 15px; /* थोड़ी ज़्यादा जगह */
-            /* 3D इफ़ेक्ट के लिए */
+            margin-bottom: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transform: translateZ(40px);
             transition: transform 0.3s ease;
@@ -149,8 +167,7 @@
             padding: 10px;
             background-color: rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
-            /* 3D इफ़ेक्ट */
-            transform: translateZ(20px);
+            z-index: 10;
         }
 
         .chat-input {
@@ -176,13 +193,17 @@
     <div class="top-bar">
         <div class="top-bar-title">Ai Medical Assistant</div>
         <div class="assistant-icon" id="assistantIcon">
-            <!-- *** बदला हुआ फ़ाइल पाथ *** -->
             <img src="../image/Assistant.jpg" alt="Assistant Icon">
         </div>
     </div>
 
     <div class="floating-video-card" id="videoCard">
         <div class="video-card-header" id="videoCardHeader">
+             <!-- *** ज़ूम इन/आउट बटन यहाँ जोड़े गए हैं *** -->
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomInBtn">+</button>
+                <button class="zoom-btn" id="zoomOutBtn">-</button>
+            </div>
             <span class="close-btn" id="closeVideoCard">&times;</span>
         </div>
         <div class="video-container" id="videoContainer">
@@ -233,11 +254,13 @@
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
+        // *** ज़ूम बटनों के लिए नए रेफरेंस ***
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
 
-        let videos = videoContainer.getElementsByTagName('video');
+        let videos = [];
         let femaleVoice = null;
-        
-        // अब requestCount की ज़रूरत नहीं है, क्योंकि सर्वर जवाब की लंबाई के आधार पर सिक्के काटेगा।
+        let currentScale = 1.0; // ज़ूम लेवल को ट्रैक करने के लिए
 
         // --- Voice Synthesis Logic ---
         function loadVoices() {
@@ -276,9 +299,9 @@
             stopAllVideos();
         });
 
-        // --- Dynamic Video Loading ---
+        // --- Dynamic Video Loading (Vimeo को हटाकर लोकल वीडियो) ---
         function updateVideoSource() {
-            // *** बदला हुआ वीडियो फ़ाइल पाथ ***
+            // *** सही किया गया लोकल वीडियो पाथ ***
             const videoPath = '../image/Female.mp4'; 
 
             videoContainer.innerHTML = '';
@@ -286,25 +309,24 @@
             const video = document.createElement('video');
             video.src = videoPath;
             video.loop = true;
-            video.muted = true;
+            video.muted = true; // आवाज़ बंद रखना ज़रूरी है ताकि autoplay काम करे
             video.playsInline = true;
             videoContainer.appendChild(video);
             
-            videos = videoContainer.getElementsByTagName('video');
+            videos = [video]; // वीडियो को ऐरे में डालें
         }
 
-        // --- Video Player Logic (कोई बदलाव नहीं) ---
+        // --- Video Player Logic (बोलने पर प्ले/पॉज़) ---
         function playCurrentVideo() {
-            const currentVideo = videos.length > 0 ? videos[0] : null;
-            if (currentVideo) {
-                setTimeout(() => currentVideo.play().catch(e => console.error("Video play failed:", e)), 50);
+            if (videos.length > 0) {
+                videos[0].play().catch(e => console.error("Video play failed:", e));
             }
         }
 
         function stopAllVideos() {
-            for (let video of videos) {
-                video.pause();
-                video.currentTime = 0;
+            if (videos.length > 0) {
+                videos[0].pause();
+                videos[0].currentTime = 0;
             }
         }
 
@@ -313,7 +335,7 @@
         let offsetX, offsetY;
 
         videoCardHeader.addEventListener('mousedown', (e) => {
-            if (e.target === closeVideoCard) return;
+            if (e.target.classList.contains('zoom-btn') || e.target === closeVideoCard) return;
             isDragging = true;
             offsetX = e.clientX - videoCard.getBoundingClientRect().left;
             offsetY = e.clientY - videoCard.getBoundingClientRect().top;
@@ -336,6 +358,23 @@
             }
         });
 
+        // *** नया ज़ूम फंक्शन ***
+        function updateZoom() {
+            // 3D इफ़ेक्ट और स्केल को एक साथ लागू करें
+            videoCard.style.transform = `rotateY(-10deg) translateZ(80px) scale(${currentScale})`;
+        }
+
+        zoomInBtn.addEventListener('click', () => {
+            currentScale = Math.min(2.0, currentScale + 0.1); // अधिकतम 2x ज़ूम
+            updateZoom();
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            currentScale = Math.max(0.5, currentScale - 0.1); // न्यूनतम 0.5x ज़ूम
+            updateZoom();
+        });
+
+
         // --- Chat Logic ---
         function addMessage(message, sender) {
             const messageElement = document.createElement('div');
@@ -346,11 +385,10 @@
             return messageElement;
         }
 
-        // --- Text-to-Speech Function ---
+        // --- Text-to-Speech Function (वीडियो कंट्रोल के साथ) ---
         function speak(text) {
-            if (!('speechSynthesis' in window)) {
-                return;
-            }
+            if (!('speechSynthesis' in window)) return;
+            
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'hi-IN';
@@ -360,9 +398,7 @@
             }
 
             utterance.onstart = () => {
-                if (videoCard.style.display === 'block') {
-                    playCurrentVideo();
-                }
+                playCurrentVideo();
             };
             utterance.onend = () => {
                 stopAllVideos();
@@ -390,14 +426,10 @@
             try {
                 const idToken = await user.getIdToken();
                 
-                // अब requestCount भेजने की ज़रूरत नहीं है
                 const response = await fetch('/assistant-chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        question: message,
-                        token: idToken
-                    })
+                    body: JSON.stringify({ question: message, token: idToken })
                 });
 
                 const data = await response.json();
@@ -407,9 +439,10 @@
                 }
                 
                 const botResponse = data.answer;
-                
                 thinkingMessage.innerText = botResponse;
-                speak(botResponse);
+
+                const cleanedTextForSpeech = botResponse.replace(/[*#_~`]/g, '');
+                speak(cleanedTextForSpeech);
 
             } catch (error) {
                 console.error("Error fetching AI response:", error);
@@ -420,21 +453,17 @@
         // --- Authentication Check ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("User is authenticated:", user.uid);
                 addMessage("नमस्ते! मैं आपकी AI मेडिकल असिस्टेंट शुभ हूँ। मैं आपकी क्या मदद कर सकती हूँ?", 'bot');
                 
                 sendButton.addEventListener('click', handleSend);
-                userInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        handleSend();
-                    }
+                userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleSend();
                 });
                 sendButton.disabled = false;
                 userInput.disabled = false;
                 userInput.placeholder = "Type your message...";
 
             } else {
-                console.log("No user found, signing in anonymously...");
                 sendButton.disabled = true;
                 userInput.disabled = true;
                 userInput.placeholder = "Connecting...";
