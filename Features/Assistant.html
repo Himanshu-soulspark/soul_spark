@@ -14,6 +14,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            /* 3D इफ़ेक्ट के लिए perspective ज़रूरी है */
             perspective: 1200px;
         }
 
@@ -59,11 +60,13 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             z-index: 1001;
             overflow: hidden;
+            /* 3D इफ़ेक्ट के लिए Transform और Transition */
             transform: rotateY(-10deg) translateZ(80px);
             transition: transform 0.5s ease;
         }
 
         .floating-video-card:hover {
+            /* माउस ले जाने पर कार्ड सीधा और थोड़ा आगे आएगा */
             transform: rotateY(0deg) translateZ(100px);
         }
 
@@ -96,17 +99,15 @@
             height: calc(100% - 30px);
         }
 
-        /* Iframe को कंटेनर में पूरी तरह फिट करने के लिए स्टाइल */
-        .video-container iframe {
+        .video-container video {
             width: 100%;
             height: 100%;
-            border: none;
+            object-fit: cover;
         }
 
         .chat-container {
             flex-grow: 1;
-            /* नीचे से Padding थोड़ी एडजस्ट की गई है ताकि इनपुट बॉक्स के लिए सही जगह बने */
-            padding: 80px 20px 70px 20px;
+            padding: 80px 20px 80px 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -116,7 +117,8 @@
             max-width: 80%;
             padding: 10px 15px;
             border-radius: 18px;
-            margin-bottom: 15px;
+            margin-bottom: 15px; /* थोड़ी ज़्यादा जगह */
+            /* 3D इफ़ेक्ट के लिए */
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transform: translateZ(40px);
             transition: transform 0.3s ease;
@@ -147,7 +149,8 @@
             padding: 10px;
             background-color: rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
-            z-index: 10;
+            /* 3D इफ़ेक्ट */
+            transform: translateZ(20px);
         }
 
         .chat-input {
@@ -173,6 +176,7 @@
     <div class="top-bar">
         <div class="top-bar-title">Ai Medical Assistant</div>
         <div class="assistant-icon" id="assistantIcon">
+            <!-- *** बदला हुआ फ़ाइल पाथ *** -->
             <img src="../image/Assistant.jpg" alt="Assistant Icon">
         </div>
     </div>
@@ -182,7 +186,7 @@
             <span class="close-btn" id="closeVideoCard">&times;</span>
         </div>
         <div class="video-container" id="videoContainer">
-            <!-- वीडियो अब iframe के रूप में जावास्क्रिप्ट द्वारा डाला जाएगा -->
+            <!-- वीडियो जावास्क्रिप्ट द्वारा डाला जाएगा -->
         </div>
     </div>
 
@@ -230,7 +234,10 @@
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
 
+        let videos = videoContainer.getElementsByTagName('video');
         let femaleVoice = null;
+        
+        // अब requestCount की ज़रूरत नहीं है, क्योंकि सर्वर जवाब की लंबाई के आधार पर सिक्के काटेगा।
 
         // --- Voice Synthesis Logic ---
         function loadVoices() {
@@ -269,32 +276,35 @@
             stopAllVideos();
         });
 
-        // --- Dynamic Video Loading (पूरी तरह से बदला हुआ) ---
+        // --- Dynamic Video Loading ---
         function updateVideoSource() {
-            // Vimeo वीडियो का एम्बेड URL
-            const vimeoEmbedUrl = "https://player.vimeo.com/video/1112762110?autoplay=1&loop=1&autopause=0&muted=1&controls=0&background=1";
+            // *** बदला हुआ वीडियो फ़ाइल पाथ ***
+            const videoPath = '../image/Female.mp4'; 
 
-            videoContainer.innerHTML = ''; // पुराने वीडियो हटाएँ
+            videoContainer.innerHTML = '';
 
-            // अब <video> की जगह <iframe> बनाएँ
-            const iframe = document.createElement('iframe');
-            iframe.src = vimeoEmbedUrl;
-            iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+            const video = document.createElement('video');
+            video.src = videoPath;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+            videoContainer.appendChild(video);
             
-            videoContainer.appendChild(iframe);
+            videos = videoContainer.getElementsByTagName('video');
         }
 
-        // --- Video Player Logic (Iframe के लिए बदला हुआ) ---
+        // --- Video Player Logic (कोई बदलाव नहीं) ---
         function playCurrentVideo() {
-            // Autoplay URL पैरामीटर में है, इसलिए इस फंक्शन को कुछ करने की ज़रूरत नहीं है।
+            const currentVideo = videos.length > 0 ? videos[0] : null;
+            if (currentVideo) {
+                setTimeout(() => currentVideo.play().catch(e => console.error("Video play failed:", e)), 50);
+            }
         }
 
         function stopAllVideos() {
-            // वीडियो को रोकने का सबसे अच्छा तरीका है कि iframe को हटा दें या उसका src बदल दें।
-            const iframe = videoContainer.querySelector('iframe');
-            if (iframe) {
-                // iframe को हटाने से वीडियो पूरी तरह से बंद हो जाएगा
-                iframe.remove(); 
+            for (let video of videos) {
+                video.pause();
+                video.currentTime = 0;
             }
         }
 
@@ -350,10 +360,12 @@
             }
 
             utterance.onstart = () => {
-                // iframe वीडियो अपने आप चल रहा है, यहाँ कुछ करने की ज़रूरत नहीं।
+                if (videoCard.style.display === 'block') {
+                    playCurrentVideo();
+                }
             };
             utterance.onend = () => {
-                // iframe वीडियो को लूप पर चलते रहने दें, रोकने की ज़रूरत नहीं।
+                stopAllVideos();
             };
 
             window.speechSynthesis.speak(utterance);
@@ -378,6 +390,7 @@
             try {
                 const idToken = await user.getIdToken();
                 
+                // अब requestCount भेजने की ज़रूरत नहीं है
                 const response = await fetch('/assistant-chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -395,14 +408,8 @@
                 
                 const botResponse = data.answer;
                 
-                // जवाब को चैट में दिखाएँ (बिना बदलाव के)
                 thinkingMessage.innerText = botResponse;
-
-                // *** बोलने से पहले जवाब से चिह्न हटा दें ***
-                const cleanedTextForSpeech = botResponse.replace(/[*#_~]/g, '');
-                
-                // साफ़ किया हुआ टेक्स्ट बोलें
-                speak(cleanedTextForSpeech);
+                speak(botResponse);
 
             } catch (error) {
                 console.error("Error fetching AI response:", error);
