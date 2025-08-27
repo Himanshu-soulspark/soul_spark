@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -11,24 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Exo+2:wght@800&display=swap" rel="stylesheet">
 
 
-code
-Code
-download
-content_copy
-expand_less
+    <!-- Razorpay Script (यह पेमेंट के लिए ज़रूरी है) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<!-- Razorpay Script (यह पेमेंट के लिए ज़रूरी है) -->
-
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
         }
-    }
-</script>
+    </script>
 
 <style>
     /* Basic body styling */
@@ -762,7 +754,6 @@ expand_less
 </div>
 
 <!-- HOME PAGE -->
-
 <div id="home-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -777,66 +768,45 @@ expand_less
         </div>
     </header>
 
-<div class="main-content">
-    <div class="card-16-9" onclick="showFuturePlan()">
-        <img src="https://i.ibb.co/4gwqRdRN/Fsz7-K1w-Qn6-TMo-AZNqj-Ehg.webp" alt="Health Banner">
+    <div class="main-content">
+        <div class="card-16-9" onclick="showFuturePlan()">
+            <img src="https://i.ibb.co/4gwqRdRN/Fsz7-K1w-Qn6-TMo-AZNqj-Ehg.webp" alt="Health Banner">
+        </div>
+        <button class="action-button" onclick="window.location.href='Features/Medicinewaste.html'">Medicine Waste Change</button>
+        <div class="cards-1-1-container">
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DPC0kqZn/s-EQOZCNKT2-Cvj-NMiih4nvg.webp" alt="Pharmacy"></div>
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/LDqDXny5/5-MSTd-FGm-S1m-GCrb-Yg-z-Bg-A.webp" alt="Service 2"></div>
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DHSVkn7T/Go9-8-Wo-STXCv-AO-SIQOoiw.webp" alt="Service 3"></div>
+        </div>
+        <h2 style="text-align: center; font-size: 1.6em; color: #333; margin-bottom: 15px;">Features</h2>
+        <div class="features-container-16-9">
+            <div class="features-section">
+                <div class="features-grid">
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
+                    <!-- MODIFIED: Link to Health.html -->
+                    <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg><span>Health Habit Builder</span></div>
+                    <!-- MODIFIED: Link to Diet.html -->
+                    <div class="feature-item" onclick="window.location.href='Features/Diet.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <button class="action-button" onclick="window.location.href='Features/Medicinewaste.html'">Medicine Waste Change</button>
-    <div class="cards-1-1-container">
-        <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DPC0kqZn/s-EQOZCNKT2-Cvj-NMiih4nvg.webp" alt="Pharmacy"></div>
-        <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/LDqDXny5/5-MSTd-FGm-S1m-GCrb-Yg-z-Bg-A.webp" alt="Service 2"></div>
-        <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DHSVkn7T/Go9-8-Wo-STXCv-AO-SIQOoiw.webp" alt="Service 3"></div>
-    </div>
-    <h2 style="text-align: center; font-size: 1.6em; color: #333; margin-bottom: 15px;">Features</h2>
-    <div class="features-container-16-9">
-        <div class="features-section">
-            <div class="features-grid">
-                <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
-                <!-- MODIFIED: Link to Health.html -->
-                <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg><span>Health Habit Builder</span></div>
-                <!-- MODIFIED: Link to Diet.html -->
-                <div class="feature-item" onclick="window.location.href='Features/Diet.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
-
-
-code
-Code
-download
-content_copy
-expand_less
-
-
-<!-- New Features -->
-
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-<div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
-        <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
-        <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
-        <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
-        <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
-        <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
-    </div>
-</div>
-</div>
-</div>
 </div>
 
 <!-- Floating Medical Assistant -->
-
 <!-- *** यही वह ज़रूरी बदलाव है *** -->
-
 <div id="medical-assistant-float" onclick="window.location.href='Features/Assistant.html'">
     <img src="image/Assistant.jpg" alt="Medical Assistant">
     <span>Medical Assistant</span>
 </div>
 
 <!-- CARE PAGE -->
-
 <div id="care-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -868,50 +838,32 @@ IGNORE_WHEN_COPYING_END
                 </div>
             </div>
 
+            <!-- Row 2 -->
+            <div class="care-card-wrapper-16-9" onclick="showFuturePlan()">
+                <img src="image/women's health .jpg" alt="Women Health Care">
+                <button class="care-3d-btn">Women Health Care</button>
+            </div>
 
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-
-<!-- Row 2 -->
-
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-<div class="care-card-wrapper-16-9" onclick="showFuturePlan()">
-    <img src="image/women's health .jpg" alt="Women Health Care">
-    <button class="care-3d-btn">Women Health Care</button>
-</div>
-
-<!-- Row 3 -->
-<div class="care-row">
-    <div class="care-card-wrapper" onclick="showFuturePlan()">
-        <img src="image/ear.jpg" alt="Ear Care">
-        <button class="care-3d-btn">Ear Care</button>
+            <!-- Row 3 -->
+            <div class="care-row">
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/ear.jpg" alt="Ear Care">
+                    <button class="care-3d-btn">Ear Care</button>
+                </div>
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/sexual health.jpg" alt="Sexual Health Care">
+                    <button class="care-3d-btn">Sexual Health</button>
+                </div>
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/elder care .jpg" alt="Elder Care">
+                    <button class="care-3d-btn">Elder Care</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="care-card-wrapper" onclick="showFuturePlan()">
-        <img src="image/sexual health.jpg" alt="Sexual Health Care">
-        <button class="care-3d-btn">Sexual Health</button>
-    </div>
-    <div class="care-card-wrapper" onclick="showFuturePlan()">
-        <img src="image/elder care .jpg" alt="Elder Care">
-        <button class="care-3d-btn">Elder Care</button>
-    </div>
-</div>
-</div>
-</div>
 </div>
 
 <!-- TRACKER PAGE -->
-
 <div id="tracker-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -992,7 +944,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- DISEASE PREDICTION PAGE -->
-
 <div id="disease-prediction-page" class="page">
     <header id="header">
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
@@ -1013,7 +964,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- DISEASE INFO PAGE -->
-
 <div id="disease-info-page" class="page">
     <header id="header">
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
@@ -1033,7 +983,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- CONSULTANT PAGE -->
-
 <div id="consultant-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -1054,7 +1003,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- PROFILE PAGE -->
-
 <div id="profile-page" class="page">
     <header id="header">
         <!-- These elements are hidden by CSS -->
@@ -1077,57 +1025,40 @@ IGNORE_WHEN_COPYING_END
             <input type="file" id="profile-image-upload" accept="image/*">
         </div>
 
+        <form id="profile-form">
+            <div class="form-group">
+                <label for="profile-name">Name</label>
+                <input type="text" id="profile-name" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+                <label for="profile-email">Email</label>
+                <input type="email" id="profile-email" placeholder="Your Email">
+            </div>
+            <div class="form-group">
+                <label for="profile-phone">Phone Number</label>
+                <input type="tel" id="profile-phone" placeholder="Your Phone Number">
+            </div>
+            <div class="form-group">
+                <label for="profile-address">Address</label>
+                <input type="text" id="profile-address" placeholder="Your Address">
+            </div>
+        </form>
 
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
+        <!-- MODIFIED: Wrapped buttons in containers to show/hide them -->
+        <div id="profile-main-buttons" class="profile-buttons">
+            <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
+            <button class="profile-btn" id="wallet-btn">Wallet</button>
+            <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
+        </div>
 
-<form id="profile-form">
-        <div class="form-group">
-            <label for="profile-name">Name</label>
-            <input type="text" id="profile-name" placeholder="Your Name">
+        <div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
+            <button class="profile-btn" id="save-profile-btn">Save Profile</button>
+            <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
         </div>
-        <div class="form-group">
-            <label for="profile-email">Email</label>
-            <input type="email" id="profile-email" placeholder="Your Email">
-        </div>
-        <div class="form-group">
-            <label for="profile-phone">Phone Number</label>
-            <input type="tel" id="profile-phone" placeholder="Your Phone Number">
-        </div>
-        <div class="form-group">
-            <label for="profile-address">Address</label>
-            <input type="text" id="profile-address" placeholder="Your Address">
-        </div>
-    </form>
-
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-<!-- MODIFIED: Wrapped buttons in containers to show/hide them -->
-<div id="profile-main-buttons" class="profile-buttons">
-    <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
-    <button class="profile-btn" id="wallet-btn">Wallet</button>
-    <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
-</div>
-
-<div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
-    <button class="profile-btn" id="save-profile-btn">Save Profile</button>
-    <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
-</div>
-</div>
+    </div>
 </div>
 
 <!-- SIDE MENU -->
-
 <div id="side-menu">
     <div class="menu-header">Menu <span class="close-menu" onclick="hideSideMenu()">&times;</span></div>
     <div class="menu-options">
@@ -1139,7 +1070,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- WALLET MODAL (New) -->
-
 <div id="wallet-modal">
     <div class="wallet-content">
         <div class="wallet-header">
