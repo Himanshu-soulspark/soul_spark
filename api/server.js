@@ -1,38 +1,70 @@
-api/server.js
+// =================================================================
+// DEBUGGING BLOCK - कौन सी API Key मिसिंग है, यह पता लगाने के लिए
+// =================================================================
+console.log("--- Starting Server: Checking Environment Variables ---");
 
+// सारी ज़रूरी Keys की लिस्ट
+const requiredKeys = [
+  'GEMINI_API_KEY',
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_KEY_SECRET',
+  'YOUTUBE_API_KEY',
+  'WEATHER_API_KEY',
+  'LOCATIONIQ_API_KEY',
+  'NUTRITIONIX_APP_ID',
+  'NUTRITIONIX_API_KEY',
+  'USDA_API_KEY'
+];
+
+let allKeysFound = true;
+
+// एक-एक करके सभी Keys को जाँचे
+requiredKeys.forEach(key => {
+  if (process.env[key]) {
+    console.log(`✅ ${key} ... Found`);
+  } else {
+    console.log(`❌ ${key} ... NOT FOUND!`);
+    allKeysFound = false;
+  }
+});
+
+// Firebase Service Account को अलग से जाँचे
+try {
+  // यह मानकर कि आप सीक्रेट फ़ाइल का उपयोग कर रहे हैं
+  require('/etc/secrets/serviceAccountKey.json');
+  console.log('✅ Firebase Secret File ... Found');
+} catch (e) {
+  // अगर सीक्रेट फ़ाइल नहीं है, तो एनवायरनमेंट वेरिएबल को जाँचे
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      console.log('✅ FIREBASE_SERVICE_ACCOUNT ... Found and is valid JSON.');
+    } catch(jsonError) {
+      console.log('❌ FIREBASE_SERVICE_ACCOUNT ... FOUND, BUT IS INVALID JSON!');
+      allKeysFound = false;
+    }
+  } else {
+    console.log('❌ Firebase Secret File OR Environment Variable ... NOT FOUND!');
+    allKeysFound = false;
+  }
+}
+
+console.log("--- Finished Checking Environment Variables ---");
+
+if (!allKeysFound) {
+    console.error("FATAL ERROR: One or more required environment variables are missing. Server cannot start.");
+    // प्रोसेस को यहीं रोक दें ताकि हमें पता चले कि समस्या यहीं है
+    process.exit(1); 
+}
 // =================================================================
-// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें
+// DEBUGGING BLOCK ENDS
 // =================================================================
+
+
+// बाकी का आपका server.js कोड यहाँ से शुरू होगा...
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Razorpay = require('razorpay');
-const path = require('path');
-const axios = require('axios');
-const { google } = require('googleapis');
-
-// =================================================================
-// 2. सर्वर और सर्विसेज़ को शुरू करें
-// =================================================================
-
-// Express सर्वर बनाएँ
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// --- Firebase Admin SDK को शुरू करें ---
-try {
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({
-credential: admin.credential.cert(serviceAccount)
-});
-console.log("Firebase Admin SDK initialized successfully.");
-} catch (error) {
-console.error("Error initializing Firebase Admin SDK:", error);
-}
-const db = admin.firestore();
-
+// ... और इसी तरह आगे
 // --- Google AI (Gemini) को शुरू करें ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
