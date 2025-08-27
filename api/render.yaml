@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: shubhmed # आप चाहें तो यह नाम बदल सकते हैं
-    env: node
-    buildCommand: "npm install"
-    startCommand: "npm start"
