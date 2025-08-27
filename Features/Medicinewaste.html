@@ -1,1077 +1,1550 @@
+
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dawai Seva - Medicine Waste Management</title>
+    <title>Advanced Fertility & Wellness App</title>
+    <!-- SWIPER JS for Carousels -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <style>
-        /* --- Basic Setup & Google Font --- */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
-        /* --- New Cyan-Green Color Theme --- */
         :root {
-            --primary-green: #00897b;
-            /* Main Theme Color (Teal/Green) */
-            --primary-cyan: #00acc1;
-            /* Accent Color (Cyan) */
-            --dark-text: #004d40;
-            --medium-text: #4db6ac;
-            --background-color: #e0f2f1;
-            /* Light Teal Background */
-            --light-shadow: #ffffff;
-            --dark-shadow: #b2dfdb;
-            /* Softer shadow for the theme */
-            --success-green: #2e7d32;
-            --danger-red: #c62828;
-            --pending-yellow: #f9a825;
-        }
+            /* Refined Theme: Vibrant Cyan, Green, and Blue */
+            --primary-blue: #007bff;
+            --dark-blue: #0056b3;
+            --accent-cyan: #17a2b8; /* A slightly deeper cyan */
+            --dark-cyan: #117a8b;
+            --secondary-green: #28a745;
+            --dark-green: #1e7e34;
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            /* Assessment Section Multi-Color Palette */
+            --assess-red: #ef5350;
+            --assess-skyblue: #29b6f6;
+            --assess-green: #66bb6a;
+            --assess-yellow: #ffee58;
+            --assess-pink: #ec407a;
+            
+            --score-green: #28a745;
+            --score-yellow: #ffc107;
+            --score-red: #dc3545;
+            
+            --light-bg: #f0f4f8; /* A softer light background */
+            --text-color: #343a40;
+            --border-color: #dee2e6;
+            --header-gradient: linear-gradient(90deg, var(--primary-blue), var(--accent-cyan));
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--background-color);
-            color: var(--dark-text);
-            padding-bottom: 80px;
-            /* Space for bottom nav */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            color: var(--text-color);
         }
 
-        /* --- App Header --- */
-        .app-header {
-            background-color: var(--background-color);
-            padding: 15px 20px;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Page Management */
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* --- Common Header for Inner Pages --- */
+        .page-header {
             display: flex;
             align-items: center;
-            gap: 15px;
+            padding: 15px;
+            background: var(--header-gradient);
+            color: white;
             position: sticky;
             top: 0;
-            z-index: 1000;
-            box-shadow: 3px 3px 7px var(--dark-shadow), -3px -3px 7px var(--light-shadow);
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        .app-header .logo-icon svg {
-            width: 32px;
-            height: 32px;
-            color: var(--primary-green);
-        }
-
-        .app-header h1 {
-            font-size: 1.2em;
-            color: var(--dark-text);
-        }
-
-        /* --- Main Content & Page Management --- */
-        .main-content {
-            padding: 20px;
-        }
-
-        .page {
-            display: none;
-            /* Hide all pages by default */
-        }
-
-        .page.active {
-            display: block;
-            /* Only show the active page */
-        }
-
-        /* --- Reusable 3D/Neumorphic Components --- */
-        .card {
-            background-color: var(--background-color);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 7px 7px 15px var(--dark-shadow), -7px -7px 15px var(--light-shadow);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            margin-top: 10px;
-            transition: all 0.3s ease-in-out;
-            color: var(--primary-green);
-            background-color: var(--background-color);
-            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
-        }
-
-        .btn:active {
-            box-shadow: inset 5px 5px 10px var(--dark-shadow), inset -5px -5px 10px var(--light-shadow);
-            color: var(--dark-text);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark-text);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            background-color: var(--background-color);
-            box-shadow: inset 4px 4px 8px var(--dark-shadow), inset -4px -4px 8px var(--light-shadow);
-            outline: none;
-            color: var(--dark-text);
-        }
-
-        .form-group input[readonly],
-        .form-group textarea[readonly] {
-            background-color: #d3e4e2;
-            color: var(--medium-text);
-        }
-        
-        /* =================== नया बदलाव शुरू =================== */
-        .address-container {
-            position: relative; /* बटन को एड्रेस बॉक्स के अंदर रखने के लिए */
-        }
-        
-        .map-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: inline-flex; /* इसे तभी इस्तेमाल करेंगे जब javascript इसे दिखाएगी */
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            background-color: var(--background-color);
-            box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
-            color: var(--primary-green);
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .map-btn:active {
-             box-shadow: inset 3px 3px 6px var(--dark-shadow), inset -3px -3px 6px var(--light-shadow);
-        }
-        
-        .map-btn svg {
-            width: 24px;
-            height: 24px;
-        }
-        /* =================== नया बदलाव खत्म =================== */
-
-        .location-status {
-            font-size: 0.9em;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #d3e4e2;
-            text-align: center;
-            margin-bottom: 15px;
-            color: var(--dark-text);
-        }
-
-        /* --- Page 1: User Info Form --- */
-        #page-user-info h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--primary-green);
-        }
-
-        /* --- Page 2: Home Feed --- */
-        #page-home .home-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        #page-home .search-bar {
-            flex-grow: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            background-color: var(--background-color);
-            box-shadow: inset 4px 4px 8px var(--dark-shadow), inset -4px -4px 8px var(--light-shadow);
-            font-size: 1em;
-            outline: none;
-        }
-
-        #page-home .search-button {
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            background-color: var(--background-color);
-            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
-        }
-
-        #page-home .search-button svg {
-            width: 24px;
-            height: 24px;
-            color: var(--primary-green);
-        }
-
-        #donations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
-        }
-
-        .donation-card-item {
-            background-color: var(--background-color);
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 7px 7px 15px var(--dark-shadow), -7px -7px 15px var(--light-shadow);
-            aspect-ratio: 1 / 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .donation-card-item .med-name {
-            font-weight: 600;
-            font-size: 1.1em;
-            color: var(--dark-text);
-        }
-
-        .donation-card-item .med-info {
-            font-size: 0.8em;
-            color: var(--primary-green);
-        }
-
-        .donation-card-item .open-btn {
-            padding: 8px 12px;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }
-
-        /* --- Page 3: Donate Medicine --- */
-        #added-medicines-list {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .added-medicine-card {
-            background: linear-gradient(145deg, #cce8e5, #f0ffff);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
-        }
-
-        .added-medicine-card .info p {
-            margin: 0;
-        }
-
-        .added-medicine-card .info .name {
-            font-weight: 600;
-            color: var(--dark-text);
-        }
-
-        .added-medicine-card .info .details {
-            font-size: 0.85em;
-            color: var(--primary-green);
-        }
-
-        .added-medicine-card .remove-med-btn {
+        .back-btn {
+            font-size: 28px;
             background: none;
             border: none;
             cursor: pointer;
-            color: var(--danger-red);
-        }
-
-        /* --- Page 4: Messages --- */
-        .chat-list-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--dark-shadow);
-            cursor: pointer;
-        }
-
-        .chat-list-item:hover {
-            background-color: #d1e9e7;
-        }
-
-        #chat-view {
-            display: none;
-        }
-
-        .chat-header {
-            display: flex;
-            align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--dark-shadow);
-        }
-
-        .back-to-chats {
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .messages-container {
-            height: calc(100vh - 280px);
-            overflow-y: auto;
-            padding: 10px 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message {
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin-bottom: 8px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
-
-        .message.sent {
-            background-color: var(--primary-green);
             color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 3px;
+            margin-right: 15px;
         }
-
-        .message.received {
-            background-color: #fff;
-            color: var(--dark-text);
-            align-self: flex-start;
-            border-bottom-left-radius: 3px;
-            box-shadow: 2px 2px 5px var(--dark-shadow);
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        #chat-input {
+        .page-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
             flex-grow: 1;
+            padding-right: 40px; /* Balance the back button */
         }
 
-        /* --- Modal for Donation Details --- */
+        /* --- Page 1: Dashboard --- */
+        .top-button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn-3d {
+            display: block; width: 100%; padding: 15px 20px;
+            font-size: 18px; font-weight: bold; color: white;
+            background-color: var(--primary-blue); border: none; border-radius: 12px;
+            box-shadow: 0 6px var(--dark-blue); outline: none; cursor: pointer;
+            text-align: center; text-decoration: none;
+            transition: all 0.1s;
+        }
+        .btn-3d:hover { background-color: #0069d9; }
+        .btn-3d:active { box-shadow: 0 3px var(--dark-blue); transform: translateY(3px); }
+
+        #results-preview-card, .results-preview-card-style {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            text-align: center; margin-bottom: 25px;
+        }
+        
+        .chart-container {
+            position: relative; width: 180px; height: 180px;
+            margin: 0 auto 15px;
+        }
+        .chart-progress {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--score-green) var(--percentage, 0%), var(--border-color) 0%);
+            transition: background 1s ease-out;
+            transform: rotate(-90deg); /* Start from top */
+        }
+        .chart-progress.score-green { background: conic-gradient(var(--score-green) var(--percentage, 0%), #e9ecef 0%); }
+        .chart-progress.score-yellow { background: conic-gradient(var(--score-yellow) var(--percentage, 0%), #e9ecef 0%); }
+        .chart-progress.score-red { background: conic-gradient(var(--score-red) var(--percentage, 0%), #e9ecef 0%); }
+
+        .chart-inner-circle {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%; height: 80%;
+            background: white; border-radius: 50%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        .score-percentage-style { font-size: 36px; font-weight: 700; }
+        .score-percentage-style.score-green { color: var(--dark-green); }
+        .score-percentage-style.score-yellow { color: #b8860b; }
+        .score-percentage-style.score-red { color: #dc3545; }
+        
+        .score-label-style { font-size: 14px; color: #777; }
+        #placeholder-text { color: #888; }
+        
+        .action-buttons-container {
+            display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;
+        }
+        #more-answers-btn { background-color: var(--accent-cyan); box-shadow: 0 6px var(--dark-cyan); font-size: 16px; }
+        #more-answers-btn:active { box-shadow: 0 3px var(--dark-cyan); transform: translateY(3px); }
+        #reset-btn { background-color: #6c757d; box-shadow: 0 6px #494f54; font-size: 16px;}
+        #reset-btn:active { box-shadow: 0 3px #323639; transform: translateY(3px); }
+
+        .feature-grid {
+            margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+        }
+        .icon-button-3d {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: white; border: none; border-radius: 15px; padding: 20px;
+            text-decoration: none; color: var(--text-color); box-shadow: 0 8px #dcdcdc;
+            transition: all 0.15s ease-in-out; cursor: pointer; text-align: center;
+        }
+        .icon-button-3d:active { box-shadow: 0 3px #c0c0c0; transform: translateY(5px); }
+        .icon-button-3d svg { margin-bottom: 10px; color: var(--accent-cyan); width: 32px; height: 32px; }
+        .icon-button-3d span { font-weight: 500; font-size: 14px; line-height: 1.3; }
+
+        /* --- Page 2: Questionnaire --- */
+        .question-card {
+            background: white; border-radius: 20px; padding: 25px; margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+        }
+        .lang-toggle { text-align: right; margin-bottom: 20px; }
+        .lang-btn { padding: 6px 12px; border: 1px solid var(--primary-blue); background: white; border-radius: 8px; cursor: pointer; color: var(--primary-blue); }
+        .lang-btn.active { background: var(--primary-blue); color: white; }
+
+        .question-fieldset { border: none; padding: 0; margin: 0; display: none; }
+        .question-fieldset.active { display: block; animation: fadeIn 0.5s; }
+        .fieldset-title {
+            font-size: 20px; font-weight: 600; margin-bottom: 25px;
+            padding-bottom: 10px; border-bottom: 2px solid var(--secondary-green);
+        }
+        .form-group { margin-bottom: 22px; }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 500; font-size: 16px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 14px; border: 1px solid var(--border-color);
+            border-radius: 10px; box-sizing: border-box; font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
+        .form-navigation { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn {
+            padding: 14px 35px; background-color: var(--secondary-green);
+            color: white; border: none; border-radius: 10px; cursor: pointer;
+            font-size: 16px; font-weight: 500; transition: background-color 0.2s;
+        }
+        .nav-btn:hover { background-color: var(--dark-green); }
+        #submit-btn { background-color: var(--primary-blue); }
+        #submit-btn:hover { background-color: var(--dark-blue); }
+        
+        /* --- Hub Pages (3, 3b, 6) --- */
+        .awareness-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding-top: 20px;
+        }
+        .feature-card {
+            background: white; border-radius: 15px; padding: 20px; text-align: center;
+            font-size: 16px; font-weight: 500; color: var(--text-color); box-shadow: 0 8px #dcdcdc;
+            cursor: pointer; transition: all 0.15s ease-in-out; border: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;
+        }
+        .feature-card:active { box-shadow: 0 3px #c0c0c0; transform: translateY(5px); }
+        
+        .animated-btn-color {
+            background: linear-gradient(135deg, var(--secondary-green), var(--primary-blue), var(--accent-cyan), var(--secondary-green));
+            background-size: 300% 300%; color: white;
+            box-shadow: 0 8px rgba(0, 0, 0, 0.2); border: none;
+            animation: gradient-animation 4s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+        .animated-btn-color:active { box-shadow: 0 3px rgba(0, 0, 0, 0.2); transform: translateY(5px); }
+
+        /* --- Page 4: Video List Page --- */
+        .video-card-list { padding-top: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .video-card {
+            background: #fff; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08); padding: 15px;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .video-thumbnail { width: 100%; border-radius: 10px; }
+        .open-video-btn {
+            width: 100%; background-color: var(--secondary-green); box-shadow: 0 6px var(--dark-green); font-size: 16px;
+        }
+        .open-video-btn:active { box-shadow: 0 3px var(--dark-green); transform: translateY(3px); }
+
+        /* --- Page 5: Dedicated Video Player Page --- */
+        #dedicated-player-page .container { padding-top: 0; }
+        .dedicated-player-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0;
+            background: #000; border-radius: 15px; overflow: hidden; margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+        .dedicated-player-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .player-controls {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;
+        }
+        .player-controls .btn-3d { font-size: 14px; padding: 12px; }
+
+        /* --- Self Assessment Forms & Result Pages --- */
+        .assessment-form-card { margin-top: 20px; }
+        .result-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        .result-card-16-9 {
+            position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            color: white; overflow: hidden;
+        }
+        .result-card-content {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            padding: 20px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .result-card-content h3 { margin: 0 0 10px 0; font-size: 20px; }
+        .result-card-content p { margin: 0; font-size: 16px; }
+        .result-card-content ul { padding-left: 20px; margin: 10px 0 0 0; text-align: left;}
+
+        /* Individual colors for result cards */
+        .result-card-16-9.red { background: linear-gradient(135deg, var(--assess-red), var(--assess-pink)); }
+        .result-card-16-9.skyblue { background: linear-gradient(135deg, var(--assess-skyblue), var(--primary-blue)); }
+        .result-card-16-9.green { background: linear-gradient(135deg, var(--assess-green), var(--secondary-green)); }
+        .result-card-16-9.yellow { background: linear-gradient(135deg, #FFC107, #FF8F00); color: var(--text-color);}
+        .result-card-16-9.pink { background: linear-gradient(135deg, var(--assess-pink), #ba68c8); }
+        .result-page-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+
+        /* --- AI Details Modal --- */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.5);
         }
-
         .modal-content {
-            background-color: var(--background-color);
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 7px 7px 15px #a8c7c5, -7px -7px 15px #feffff;
+            background-color: #fefefe; margin: 10% auto; padding: 25px; border-radius: 15px;
+            max-width: 90%; width: 600px; animation: slideIn 0.4s;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; font-size: 22px; color: var(--primary-blue); }
+        .close-btn { color: #aaa; font-size: 32px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: black; }
+        .ai-point { margin-bottom: 20px; border-left: 3px solid var(--primary-blue); padding-left: 15px;}
+        .ai-point h3 { font-size: 18px; color: var(--dark-blue); margin: 0 0 8px 0; }
+        .ai-point p { margin: 0; line-height: 1.6; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- NEW: Breast Health Guide Specific Styles --- */
+        .safety-note-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 20px; }
+        .safety-note-card {
+            background: linear-gradient(135deg, var(--assess-pink), #c33764);
+            color: white; border-radius: 15px; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-size: 1.1em;
+            text-align: center;
         }
 
-        .modal-close {
-            float: right;
-            font-size: 1.5em;
-            cursor: pointer;
-            line-height: 1;
+        .card-16-9 {
+            position: relative; padding-bottom: 56.25%; height: 0;
+            width: 100%; background: #f0f4f8; border-radius: 15px;
+            overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.08);
         }
 
-        .modal h3 {
-            margin-bottom: 15px;
-            color: var(--primary-green);
+        .swiper-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        .swiper-slide { display: flex; justify-content: center; align-items: center; background: #eee; }
+        .swiper-slide iframe, .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .swiper-nav-btn {
+            color: var(--primary-blue); background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%; width: 40px !important; height: 40px !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+        .swiper-nav-btn::after { font-size: 20px !important; font-weight: bold; }
 
-        .modal .donor-name {
-            margin-bottom: 20px;
+        .steps-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin: 25px 0 15px 0;
         }
-
-        #modal-medicines-list p {
-            padding: 5px 0;
-            border-bottom: 1px solid #cce8e5;
+        .steps-header h3 { margin: 0; font-size: 22px; color: var(--dark-blue); }
+        #next-step-btn {
+            padding: 10px 25px; background-color: var(--secondary-green);
+            color: white; border: none; border-radius: 10px; cursor: pointer;
+            font-size: 16px; font-weight: 500;
         }
+        #next-step-btn.submit-style { background-color: var(--primary-blue); }
+        
+        .instruction-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 25px; }
+        .instruction-header h3 { margin: 0; font-size: 18px; }
 
-        #modal-medicines-list p:last-child {
-            border-bottom: none;
+        /* NEW: Scrollable Text Card Style */
+        .scrollable-text-card {
+            position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            border-radius: 15px; overflow: hidden; /* Crucial for child positioning */
+            color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-
-        /* --- Bottom Navigation Bar --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background-color: var(--background-color);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0px -5px 15px var(--dark-shadow);
+        .scrollable-text-card-content {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            padding: 20px;
+            overflow-y: auto; /* This enables scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
+        .scrollable-text-card-content h4 { margin-top: 0; }
+        .scrollable-text-card-content p { line-height: 1.6; }
+        .scrollable-text-card.bg-red { background: linear-gradient(135deg, var(--assess-red), #c33764); }
+        .scrollable-text-card.bg-skyblue { background: linear-gradient(135deg, var(--assess-skyblue), var(--primary-blue)); }
+        .scrollable-text-card.bg-green { background: linear-gradient(135deg, var(--assess-green), var(--secondary-green)); }
+        .scrollable-text-card.bg-yellow { background: linear-gradient(135deg, #FFC107, #FF8F00); color: #343a40; }
+        .scrollable-text-card.bg-pink { background: linear-gradient(135deg, var(--assess-pink), #ba68c8); }
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--medium-text);
-            transition: all 0.3s;
-            width: 70px;
-            height: 60px;
-            border-radius: 15px;
-        }
 
-        .nav-item svg {
-            width: 28px;
-            height: 28px;
-            margin-bottom: 3px;
-        }
-
-        .nav-item span {
-            font-size: 0.75em;
-        }
-
-        .nav-item.active {
-            color: var(--primary-green);
-            background-color: var(--background-color);
-            box-shadow: inset 3px 3px 7px var(--dark-shadow), inset -3px -3px 7px var(--light-shadow);
+        @media (max-width: 600px) {
+            .btn-3d { font-size: 14px; padding: 15px 10px; }
+            .feature-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .awareness-grid { gap: 15px; }
+            .icon-button-3d span { font-size: 12px; }
+            .feature-card { font-size: 14px; padding: 15px; min-height: 100px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- App Header -->
-    <header class="app-header">
-        <div class="logo-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="24" viewBox="0 96 960 960" width="24"><path d="M480 896q-165 0-282.5-117.5T80 496q0-165 117.5-282.5T480 96q165 0 282.5 117.5T880 496q0 165-117.5 282.5T480 896ZM433 736h94V596l103-103-66-66-87 87V416h-94v204l-87-87-66 66 103 103v140Z"/></svg>
+<!-- ========= PAGE 1: DASHBOARD ========= -->
+<div id="page1" class="page active">
+    <div class="container">
+        <div class="top-button-grid">
+            <button class="btn-3d" onclick="showPage('page2')">Submit Your Information</button>
+            <button class="btn-3d" onclick="alert('Partner Sync feature is coming soon!')" style="background-color: #6c757d; box-shadow: 0 6px #494f54;">Partner Sync</button>
         </div>
-        <h1>Dawai Seva</h1>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-
-        <!-- Page 1: User Info Form (For first-time users) -->
-        <section id="page-user-info" class="page">
-            <div class="card">
-                <h2>Aapki Jaankari</h2>
-                <form id="user-info-form">
-                    <div class="form-group">
-                        <label for="user-name">Poora Naam</label>
-                        <input type="text" id="user-name" placeholder="Apna naam likhein" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="user-mobile">Mobile Number</label>
-                        <input type="tel" id="user-mobile" placeholder="10-digit mobile number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="user-address">Address</label>
-                        <textarea id="user-address" rows="3" placeholder="Ghar ka poora pata" required></textarea>
-                    </div>
-                    <button type="button" class="btn" id="get-location-btn">GPS se Location lein</button>
-                    <button type="submit" class="btn">Jaankari Save Karein</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Page 2: Home/Dashboard -->
-        <section id="page-home" class="page">
-            <div class="home-header">
-                <input type="text" id="search-bar" class="search-bar" placeholder="Dawai khojein...">
-                <button class="search-button" id="search-button">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
-            </button>
-            </div>
-            <div id="donations-grid">
-                <!-- Donation cards will be loaded here dynamically -->
-            </div>
-        </section>
-
-        <!-- Page 3: Donate Medicine Form -->
-        <section id="page-donate" class="page">
-            <div class="card">
-                <h2>Dawai Ki Jaankari Jodein</h2>
-                <form id="add-medicine-form">
-                    <div class="form-group">
-                        <label for="medicine-name">Dawai Ka Naam</label>
-                        <input type="text" id="medicine-name" placeholder="Jaise, Paracetamol 500mg" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="quantity">Kitni hai? (Strips/Tablets)</label>
-                        <input type="text" id="quantity" placeholder="Jaise, 2 Strips" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="expiry-date">Expiry Date</label>
-                        <input type="month" id="expiry-date" required>
-                    </div>
-                    <button type="submit" class="btn">Yeh Dawai Jodein</button>
-                </form>
-            </div>
-            <div id="added-medicines-list">
-                <!-- Dynamically added medicine cards will show here -->
-            </div>
-            <button id="submit-all-donations-btn" class="btn" style="display: none;">Sabhi Dawaiyan Donate Karein</button>
-        </section>
-
-        <!-- Page 4: Messages -->
-        <section id="page-messages" class="page">
-            <div class="card" id="chat-list-view">
-                <h2>Aapki Chats</h2>
-                <div id="chats-list">
-                    <p>Aapki koi chat nahi hai.</p>
+        <div id="results-preview-card">
+            <div class="chart-container">
+                <div class="chart-progress" id="chart-progress"></div>
+                <div class="chart-inner-circle">
+                    <div id="results-content" style="display:none;"><div id="score-percentage" class="score-percentage-style">0%</div><div id="score-label" class="score-label-style">Fertility Score</div></div>
+                    <p id="placeholder-text">Submit your info to see your score.</p>
                 </div>
             </div>
-            <div class="card" id="chat-view">
-                <div class="chat-header">
-                    <button class="back-to-chats">&larr;</button>
-                    <h3 id="chat-with-name"></h3>
-                </div>
-                <div class="messages-container" id="messages-container">
-                    <!-- Messages will be loaded here -->
-                </div>
-                <form id="message-form" class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Message likhein..." class="form-group" required>
-                    <button type="submit" class="btn">Bhejein</button>
-                </form>
+            <p id="dashboard-message">Your personalized fertility insights will appear here.</p>
+            <div class="action-buttons-container" id="action-buttons">
+                <button class="btn-3d" id="more-answers-btn" onclick="openModal()">More Answers</button>
+                <button class="btn-3d" id="reset-btn" onclick="resetApp()">Reset</button>
             </div>
-        </section>
-
-        <!-- Page 5: Profile (UPDATED with location feature) -->
-        <section id="page-profile" class="page">
-            <div class="card">
-                <h2>Aapki Profile</h2>
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label for="profile-name">Poora Naam</label>
-                        <input type="text" id="profile-name" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-mobile">Mobile Number</label>
-                        <input type="tel" id="profile-mobile" readonly>
-                    </div>
-                    <!-- =================== नया बदलाव शुरू =================== -->
-                    <div class="form-group">
-                        <label for="profile-address">Address</label>
-                        <div class="address-container">
-                            <textarea id="profile-address" rows="3" readonly></textarea>
-                            <a href="#" target="_blank" id="view-map-btn" class="map-btn" style="display: none;">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"></path></svg>
-                            </a>
-                        </div>
-                    </div>
-                    <!-- =================== नया बदलाव खत्म =================== -->
-                    <div class="form-group">
-                        <label>Location</label>
-                        <div id="profile-location-status" class="location-status">Loading...</div>
-                    </div>
-                    <button type="button" class="btn" id="edit-profile-btn">Edit Karein</button>
-                    <button type="button" class="btn" id="update-location-profile-btn" style="display:none;">Update Location</button>
-                    <button type="submit" class="btn" id="save-profile-btn" style="display:none;">Badlaav Save Karein</button>
-                </form>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" data-page="page-home">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
-            <span>Home</span>
         </div>
-        <div class="nav-item" data-page="page-donate">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"></path></svg>
-            <span>Donate</span>
-        </div>
-        <div class="nav-item" data-page="page-messages">
-            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="currentColor"><g><rect fill="none" height="24" width="24"></rect></g><g><g><path d="M20,2H4C2.9,2,2,2.9,2,4v18l4-4h14c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M17,11h-4v4h-2v-4H7V9h4V5h2v4h4V11z"></path></g></g></svg>
-            <span>Messages</span>
-        </div>
-        <div class="nav-item" data-page="page-profile">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
-            <span>Profile</span>
-        </div>
-    </nav>
-
-    <!-- Modal for Donation Details (UPDATED) -->
-    <div id="donation-details-modal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h3>Donation Details</h3>
-            <p class="donor-name"><strong>Donor:</strong> <span id="modal-donor-name"></span></p>
-            <div id="modal-medicines-list"></div>
-            <a href="#" target="_blank" class="btn" id="modal-location-btn" style="display:none;">Location Dekhein</a>
-            <button class="btn" id="modal-message-btn" style="display:none;">Message Karein</button>
+        <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr);">
+             <button class="icon-button-3d" onclick="showPage('page3')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 8v4l2 2"></path></svg><span>Miscarriage Awareness</span></button>
+             <button class="icon-button-3d" onclick="showPage('page_bone_density_hub')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="M8 17h8"></path></svg><span>Bone Density Tracker</span></button>
+             <button class="icon-button-3d" onclick="showPage('page_breast_health_hub')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"></path><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span>Breast Health Guide</span></button>
         </div>
     </div>
+</div>
 
-    <!-- Firebase SDK Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, getDocs, query, where, orderBy, serverTimestamp, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+<!-- ========= PAGE 2: QUESTIONNAIRE ========= -->
+<div id="page2" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page1')">❮</button><h2 id="questionnaire-title">Submit Your Information</h2></header>
+    <div class="container"><div class="question-card"><div class="lang-toggle"><button id="lang-en" class="lang-btn active" onclick="changeLanguage('en')">English</button><button id="lang-hi" class="lang-btn" onclick="changeLanguage('hi')">हिंदी</button></div><form id="fertilityForm"></form></div></div>
+</div>
 
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
-            authDomain: "shubhmed-9f05d.firebaseapp.com",
-            databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
-            projectId: "shubhmed-9f05d",
-            storageBucket: "shubhmed-9f05d.firebasestorage.app",
-            messagingSenderId: "42179676197",
-            appId: "1:42179676197:web:1796559543fb869c5297cc",
-            measurementId: "G-VD9YFFECTC"
+<!-- ========= PAGE 3: MISCARRIAGE AWARENESS (MAIN HUB) ========= -->
+<div id="page3" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page1')">❮</button><h2>Miscarriage Awareness</h2></header>
+    <div class="container"><div class="awareness-grid">
+        <button class="feature-card animated-btn-color" onclick="showPage('page3_education_hub')">Education Hub</button>
+        <button class="feature-card animated-btn-color" onclick="showPage('page6')">Self-Assessment & Tracking</button>
+        <button class="feature-card animated-btn-color" onclick="alert('Ask an Expert feature coming soon!')">Ask an Expert</button>
+        <button class="feature-card animated-btn-color" onclick="alert('Personal Stories feature coming soon!')">Personal Stories</button>
+    </div></div>
+</div>
+
+<!-- ========= PAGE 3b: EDUCATION HUB (VIDEO CATEGORIES) ========= -->
+<div id="page3_education_hub" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page3')">❮</button><h2>Education Hub</h2></header>
+    <div class="container"><div class="awareness-grid" id="awareness-feature-grid"></div></div>
+</div>
+
+<!-- ========= PAGE 4: VIDEO LIST PAGE ========= -->
+<div id="page4" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page3_education_hub')">❮</button><h2 id="video-list-title">Videos</h2></header>
+    <div class="container"><div class="video-card-list" id="video-card-list-container"></div></div>
+</div>
+
+<!-- ========= PAGE 5: DEDICATED VIDEO PLAYER ========= -->
+<div id="page5" class="page" data-previous-page="">
+    <header class="page-header"><button class="back-btn" onclick="closePlayer()">❮</button><h2>Video Player</h2></header>
+    <div class="container">
+        <div id="dedicated-player-wrapper" class="dedicated-player-wrapper"></div>
+        <div class="player-controls">
+            <button class="btn-3d" onclick="handleRotate()">Rotate (Fullscreen)</button>
+            <button class="btn-3d" onclick="handleZoomIn()">Zoom In</button>
+            <button class="btn-3d" onclick="handleZoomOut()">Zoom Out</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========= PAGE 6: SELF-ASSESSMENT & TRACKING (HUB) ========= -->
+<div id="page6" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page3')">❮</button><h2>Self-Assessment & Tracking</h2></header>
+    <div class="container">
+        <div class="awareness-grid">
+            <button class="feature-card animated-btn-color" onclick="showPage('page7_form')">Symptom Checker</button>
+            <button class="feature-card animated-btn-color" onclick="showPage('page8_form')">Lifestyle Risk Score</button>
+            <button class="feature-card animated-btn-color" onclick="showPage('page9_form')">Daily Wellness Tracker</button>
+            <button class="feature-card animated-btn-color" onclick="showPage('page10_form')">Medication & Reminders</button>
+        </div>
+        <div class="awareness-grid" style="grid-template-columns: 1fr; margin-top: 15px;">
+             <button class="feature-card animated-btn-color" onclick="showPage('page11_form')">Pregnancy Milestone Tracker</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========= ASSESSMENT FORM & RESULT PAGES (7-11) ========= -->
+<!-- PAGE 7: Symptom Checker -->
+<div id="page7_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page6')">❮</button><h2>Symptom Checker</h2></header>
+    <div class="container">
+        <form id="symptomForm" class="question-card assessment-form-card">
+            <div class="form-group"><label>Kya aaj aapko vaginal bleeding hui?</label><select name="bleeding" class="form-control"><option value="Nahi">Nahi</option><option value="Spotting">Halki Spotting</option><option value="Light">Kam (Light)</option><option value="Heavy">Zyada (Heavy)</option></select></div>
+            <div class="form-group"><label>Dard ya cramps ka level kaisa hai?</label><select name="cramps" class="form-control"><option value="Nahi">Nahi</option><option value="Mild">Halka (Mild)</option><option value="Moderate">Madhyam (Moderate)</option><option value="Severe">Tez (Severe)</option></select></div>
+            <div class="form-group"><label>Thakaan (Fatigue) ka level kaisa hai? (1 = Bilkul nahi, 10 = Bahut zyada)</label><input type="range" name="fatigue" min="1" max="10" value="5" class="form-control"></div>
+            <div class="form-group"><label>Kya aapko anya lakshan hain?</label><div><input type="checkbox" name="other_symptoms" value="Fever"> Bukhar (Fever)</div><div><input type="checkbox" name="other_symptoms" value="Nausea"> Ji machalna (Nausea)</div><div><input type="checkbox" name="other_symptoms" value="Dizziness"> Chakkar aana (Dizziness)</div></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Submit</button>
+        </form>
+    </div>
+</div>
+<div id="page7_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page7_form')">❮</button><h2>Symptom Analysis</h2></header>
+    <div class="container">
+        <div id="symptomResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page7_form')">Back</button><button class="btn-3d" onclick="resetSymptomForm()">Reset</button></div>
+    </div>
+</div>
+<!-- PAGE 8: Lifestyle Risk Score -->
+<div id="page8_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page6')">❮</button><h2>Lifestyle Risk Score</h2></header>
+    <div class="container">
+        <form id="lifestyleForm" class="question-card assessment-form-card">
+            <div class="form-group"><label>Aapki age kya hai?</label><input type="number" name="age" placeholder="e.g., 28" required></div>
+            <div class="form-group"><label>Kya aapko inmein se koi medical condition hai?</label><div><input type="checkbox" name="conditions" value="PCOS"> PCOS/PCOD</div><div><input type="checkbox" name="conditions" value="Diabetes"> Diabetes</div><div><input type="checkbox" name="conditions" value="Thyroid"> Thyroid</div><div><input type="checkbox" name="conditions" value="High BP"> High BP</div></div>
+            <div class="form-group"><label>Aap rozana kitne ghante soti hain?</label><input type="number" name="sleep" placeholder="e.g., 7" required></div>
+            <div class="form-group"><label>Aapka Stress Level kaisa rehta hai? (1 = Bilkul nahi, 10 = Bahut zyada)</label><input type="range" name="stress" min="1" max="10" value="5"></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Calculate Score</button>
+        </form>
+    </div>
+</div>
+ <div id="page8_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page8_form')">❮</button><h2>Lifestyle Analysis</h2></header>
+    <div class="container">
+        <div id="lifestyleResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page8_form')">Back</button><button class="btn-3d" onclick="resetLifestyleForm()">Reset</button></div>
+    </div>
+</div>
+<!-- PAGE 9: Daily Wellness Tracker -->
+<div id="page9_form" class="page">
+     <header class="page-header"><button class="back-btn" onclick="showPage('page6')">❮</button><h2>Daily Wellness Tracker</h2></header>
+     <div class="container">
+        <form id="wellnessForm" class="question-card assessment-form-card">
+            <div class="form-group"><label>Aaj aapka mood kaisa tha?</label><select name="mood"><option>Happy</option><option>Calm</option><option>Anxious</option><option>Sad</option><option>Irritated</option></select></div>
+            <div class="form-group"><label>Energy Level (1 se 10)</label><input type="range" name="energy" min="1" max="10" value="7"></div>
+            <div class="form-group"><label>Aaj kitna paani piya (liters mein)?</label><input type="number" step="0.5" name="water" placeholder="e.g., 2.5"></div>
+            <div class="form-group"><label>Diet ke baare mein kuch notes likhein:</label><textarea name="diet_notes" placeholder="Aapne aaj kya khaas khaya..."></textarea></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Log Today's Wellness</button>
+        </form>
+    </div>
+</div>
+<div id="page9_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page9_form')">❮</button><h2>Today's Wellness Log</h2></header>
+    <div class="container">
+        <div id="wellnessResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page9_form')">Back</button><button class="btn-3d" onclick="resetWellnessForm()">Reset</button></div>
+    </div>
+</div>
+<!-- PAGE 10: Medication & Appointment Reminders -->
+<div id="page10_form" class="page">
+     <header class="page-header"><button class="back-btn" onclick="showPage('page6')">❮</button><h2>Add a Reminder</h2></header>
+     <div class="container">
+        <form id="reminderForm" class="question-card assessment-form-card">
+            <div class="form-group"><label>Reminder ka prakaar chunein:</label><select name="reminder_type"><option>Medication</option><option>Appointment</option></select></div>
+            <div class="form-group"><label>Title (e.g., Folic Acid ya Dr. Sharma Visit)</label><input type="text" name="title" required></div>
+            <div class="form-group"><label>Tithi aur Samay</label><input type="datetime-local" name="datetime" required></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Set Reminder</button>
+        </form>
+    </div>
+</div>
+<div id="page10_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page10_form')">❮</button><h2>Reminder Set</h2></header>
+    <div class="container">
+        <div id="reminderResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page10_form')">Back</button><button class="btn-3d" onclick="resetReminderForm()">Reset</button></div>
+    </div>
+</div>
+<!-- PAGE 11: Pregnancy Milestone Tracker -->
+<div id="page11_form" class="page">
+     <header class="page-header"><button class="back-btn" onclick="showPage('page6')">❮</button><h2>Track Milestone</h2></header>
+     <div class="container">
+        <form id="milestoneForm" class="question-card assessment-form-card">
+             <div class="form-group"><label>Aapke aakhiri period ki pehli tarikh kya thi?</label><input type="date" name="last_period" required></div>
+             <div class="form-group"><label>Aaj ke milestone ke liye koi note ya yaadgaar baat likhein:</label><textarea name="milestone_note" placeholder="Feeling the first kick today..."></textarea></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Calculate & Save</button>
+        </form>
+    </div>
+</div>
+<div id="page11_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page11_form')">❮</button><h2>Your Pregnancy Week</h2></header>
+    <div class="container">
+        <div id="milestoneResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page11_form')">Back</button><button class="btn-3d" onclick="resetMilestoneForm()">Reset</button></div>
+    </div>
+</div>
+<!-- ========= END OF PAGES 7-11 ========= -->
+
+<!-- ========= BONE DENSITY PAGES (12-16) ========= -->
+<div id="page_bone_density_hub" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page1')">❮</button><h2>Bone Density Tracker</h2></header>
+    <div class="container">
+        <p style="text-align: center; margin-top: 20px; font-size: 16px;">कैल्शियम और विटामिन D की कमी से होने वाली समस्याओं को समय रहते पहचानें और अपनी हड्डियों को स्वस्थ रखें।</p>
+        <div class="awareness-grid">
+            <button class="feature-card animated-btn-color" onclick="showPage('page_bone_density_initial_form')">प्रारंभिक मूल्यांकन करें<br>(Initial Assessment)</button>
+            <button class="feature-card animated-btn-color" onclick="showPage('page_bone_density_ongoing_form')">नियमित ट्रैकिंग लॉग करें<br>(Ongoing Tracking)</button>
+            <button class="feature-card animated-btn-color" onclick="alert('Progress Chart feature coming soon!')">प्रगति चार्ट देखें<br>(View Progress)</button>
+            <button class="feature-card animated-btn-color" onclick="alert('Exercise Recommendations feature coming soon!')">व्यायाम सुझाव<br>(Exercise Tips)</button>
+        </div>
+    </div>
+</div>
+<div id="page_bone_density_initial_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_bone_density_hub')">❮</button><h2>Initial Assessment</h2></header>
+    <div class="container">
+        <form id="boneDensityInitialForm" class="question-card assessment-form-card">
+            <div class="form-group"><label>क्या आपके परिवार में ऑस्टियोपोरोसिस का इतिहास है?</label><select name="family_history"><option value="no">नहीं</option><option value="yes">हाँ</option></select></div>
+            <div class="form-group"><label>क्या आपने पिछले 6 महीनों में कोई बोन फ्रैक्चर झेला है?</label><select name="fracture_history"><option value="no">नहीं</option><option value="yes">हाँ</option></select></div>
+            <div class="form-group"><label>क्या आप रोजाना डेयरी या कैल्शियम युक्त भोजन लेते हैं?</label><select name="calcium_diet"><option value="yes">हाँ, नियमित रूप से</option><option value="sometimes">कभी-कभी</option><option value="no">नहीं</option></select></div>
+            <div class="form-group"><label>आप प्रतिदिन कितने समय तक धूप में रहते हैं?</label><select name="sun_exposure"><option value="more_30">30 मिनट से ज्यादा</option><option value="15_30">15-30 मिनट</option><option value="less_15">0-15 मिनट</option></select></div>
+            <div class="form-group"><label>क्या आप नियमित रूप से व्यायाम करते हैं?</label><select name="exercise"><option value="yes">हाँ, नियमित रूप से</option><option value="sometimes">कभी-कभी</option><option value="no">नहीं</option></select></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Calculate Bone Health Score</button>
+        </form>
+    </div>
+</div>
+<div id="page_bone_density_initial_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_bone_density_initial_form')">❮</button><h2>Initial Assessment Result</h2></header>
+    <div class="container">
+        <div id="boneHealthResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page_bone_density_initial_form')">Back</button><button class="btn-3d" onclick="showPage('page_bone_density_hub')">Go to Hub</button></div>
+    </div>
+</div>
+<div id="page_bone_density_ongoing_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_bone_density_hub')">❮</button><h2>Ongoing Tracking Log</h2></header>
+    <div class="container">
+        <form id="boneDensityOngoingForm" class="question-card assessment-form-card">
+             <div class="form-group"><label>क्या आपको हड्डियों या जोड़ों में दर्द महसूस होता है?</label><select name="pain_level"><option value="no">नहीं</option><option value="mild">हाँ (हल्का)</option><option value="moderate">हाँ (मध्यम)</option><option value="severe">हाँ (तेज़)</option></select></div>
+            <div class="form-group"><label>क्या आप कैल्शियम या विटामिन D सप्लीमेंट ले रहे हैं?</label><select name="supplements"><option value="no">नहीं</option><option value="yes">हाँ</option></select></div>
+             <div class="form-group"><label>आपने इस हफ्ते कितनी बार एक्सरसाइज की?</label><input type="number" name="exercise_freq" min="0" max="7" placeholder="e.g., 3"></div>
+             <div class="form-group"><label>क्या आप थकान या कमजोरी महसूस कर रहे हैं?</label><select name="fatigue"><option value="no">नहीं</option><option value="yes">हाँ</option></select></div>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Log Today's Data</button>
+        </form>
+    </div>
+</div>
+<div id="page_bone_density_ongoing_result" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_bone_density_ongoing_form')">❮</button><h2>Log Saved</h2></header>
+    <div class="container">
+        <div id="ongoingLogResultContainer" class="result-grid"></div>
+        <div class="result-page-nav"><button class="btn-3d" onclick="showPage('page_bone_density_ongoing_form')">Add Another Log</button><button class="btn-3d" onclick="showPage('page_bone_density_hub')">Go to Hub</button></div>
+    </div>
+</div>
+<!-- ========= END OF BONE DENSITY PAGES ========= -->
+
+
+<!-- ========= NEW: BREAST HEALTH GUIDE PAGES (17-21) ========= -->
+<!-- PAGE 17: BREAST HEALTH HUB -->
+<div id="page_breast_health_hub" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page1')">❮</button><h2>Breast Health Guide</h2></header>
+    <div class="container">
+        <div class="awareness-grid" style="margin-top: 20px; grid-template-columns: 1fr 1fr;">
+             <button class="feature-card animated-btn-color" onclick="showPage('page_breast_health_score_form')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px; height:32px; margin-bottom: 8px;"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                <span>Health Score & Insights</span>
+            </button>
+            <button class="feature-card animated-btn-color" onclick="showPage('page_breast_health_safety')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px; height:32px; margin-bottom: 8px;"><path d="M12 5c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"></path><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+                <span>Self-Exam Guide</span>
+            </button>
+            <button class="feature-card animated-btn-color" onclick="alert('Feature coming soon!')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px; height:32px; margin-bottom: 8px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Book a Mammogram</span>
+            </button>
+             <button class="feature-card animated-btn-color" onclick="alert('Feature coming soon!')">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px; height:32px; margin-bottom: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Risk Factors</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 18: SAFETY NOTE -->
+<div id="page_breast_health_safety" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_breast_health_hub')">❮</button><h2>Breast Health Guide</h2></header>
+    <div class="container">
+        <div class="safety-note-grid">
+            <div class="safety-note-card">
+                <h3>Safety Note</h3>
+                <p>"Check with gentle pressure. If you feel any pain or a lump, consult a doctor."</p>
+            </div>
+             <div class="safety-note-card">
+                <h3>सुरक्षा नोट</h3>
+                <p>"जांच करते समय हल्के दबाव का प्रयोग करें। यदि कोई दर्द या गांठ महसूस हो, तो डॉक्टर से सलाह लें।"</p>
+            </div>
+        </div>
+        <button class="btn-3d" onclick="showPage('page_breast_health_guide')" style="margin-top: 30px;">Ready</button>
+    </div>
+</div>
+
+<!-- PAGE 19: MAIN GUIDE -->
+<div id="page_breast_health_guide" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_breast_health_safety')">❮</button><h2>Self-Exam Guide</h2></header>
+    <div class="container">
+        <!-- Video Carousel -->
+        <div class="card-16-9" style="margin-bottom: 25px;">
+             <div class="swiper-container" id="video-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide"><iframe src="https://www.youtube.com/embed/LT9P9JK_3sw?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                    <div class="swiper-slide"><iframe src="https://www.youtube.com/embed/y-gucOBbKJA?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                    <div class="swiper-slide"><iframe src="https://www.youtube.com/embed/nkPR4ar1EQ4?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                    <div class="swiper-slide"><iframe src="https://www.youtube.com/embed/xcg7jWrlLJ8?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                    <div class="swiper-slide"><iframe src="https://www.youtube.com/embed/fDpK8z4SMhw?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+                </div>
+                <div class="swiper-button-next swiper-nav-btn"></div>
+                <div class="swiper-button-prev swiper-nav-btn"></div>
+            </div>
+        </div>
+        
+        <!-- Image Steps Carousel -->
+        <div class="steps-header">
+            <h3 id="step-title">Step 1</h3>
+            <button id="next-step-btn" onclick="breastHealthGuide.nextStep()">Next</button>
+        </div>
+        <div class="card-16-9">
+             <div class="swiper-container" id="image-swiper">
+                <div class="swiper-wrapper" id="image-swiper-wrapper">
+                    <!-- Images will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Header and Scrollable Card -->
+        <div class="instruction-header">
+            <h3>Instructions</h3>
+            <div class="lang-toggle">
+                <button id="instr-lang-en" class="lang-btn active" onclick="breastHealthGuide.changeInstructionLanguage('en')">English</button>
+                <button id="instr-lang-hi" class="lang-btn" onclick="breastHealthGuide.changeInstructionLanguage('hi')">हिंदी</button>
+            </div>
+        </div>
+        <div id="instruction-text-card" class="scrollable-text-card">
+            <div id="instruction-content" class="scrollable-text-card-content">
+                <!-- Instructions will be populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 20: AI LOGS FORM -->
+<div id="page_breast_health_ai_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_breast_health_guide')">❮</button><h2>Log Your Self-Exam for AI Analysis</h2></header>
+    <div class="container">
+        <form id="breastHealthAiForm" class="question-card">
+            <!-- Questions will be populated by JS -->
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Submit Log & Get AI Reply</button>
+        </form>
+        <div id="ai-log-reply-container" style="margin-top: 20px;"></div>
+    </div>
+</div>
+
+<!-- PAGE 21: BREAST HEALTH SCORE FEATURE -->
+<div id="page_breast_health_score_form" class="page">
+    <header class="page-header"><button class="back-btn" onclick="showPage('page_breast_health_hub')">❮</button><h2 id="breast-score-form-title">Breast Health Score Assessment</h2></header>
+    <div class="container">
+        <div class="question-card">
+            <div class="lang-toggle">
+                <button id="bh-lang-en" class="lang-btn active" onclick="changeBreastHealthLanguage('en')">English</button>
+                <button id="bh-lang-hi" class="lang-btn" onclick="changeBreastHealthLanguage('hi')">हिंदी</button>
+            </div>
+            <form id="breastHealthScoreForm"></form>
+        </div>
+    </div>
+</div>
+<div id="page_breast_health_score_result" class="page">
+     <header class="page-header"><button class="back-btn" onclick="showPage('page_breast_health_score_form')">❮</button><h2 id="breast-score-result-title">Your Breast Health Score</h2></header>
+    <div class="container">
+        <div id="breast-score-card-container"></div>
+        <div id="breast-tips-card-container" class="result-grid"></div>
+        <div id="breast-insights-card-container" class="result-grid"></div>
+        <div class="result-page-nav">
+             <button class="btn-3d" onclick="showPage('page_breast_health_score_form')">Re-assess</button>
+             <button class="btn-3d" onclick="showPage('page_breast_health_hub')">Go to Hub</button>
+        </div>
+    </div>
+</div>
+<!-- ========= END OF BREAST HEALTH GUIDE PAGES ========= -->
+
+
+<!-- ========= AI DETAILS MODAL ========= -->
+<div id="ai-details-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2>Your Detailed AI Analysis</h2><span class="close-btn" onclick="closeModal()">&times;</span></div><div id="modal-body"></div></div></div>
+
+<!-- SWIPER JS SCRIPT -->
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+<!-- ================================================================= -->
+<!-- =================== FIREBASE AND APP SCRIPT =================== -->
+<!-- ================================================================= -->
+<script type="module">
+    // --- FIREBASE SDK AND INITIALIZATION ---
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
+      authDomain: "shubhmed-9f05d.firebaseapp.com",
+      databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
+      projectId: "shubhmed-9f05d",
+      storageBucket: "shubhmed-9f05d.appspot.com",
+      messagingSenderId: "42179676197",
+      appId: "1:42179676197:web:1796559543fb869c5297cc",
+      measurementId: "G-VD9YFFECTC"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    // Make db accessible globally for the script
+    window.db = db;
+    window.firestoreFunctions = { collection, addDoc, serverTimestamp };
+
+
+    // --- MULTI-LANGUAGE CONTENT ---
+    const translations = {
+        en: { 
+            // Fertility Form
+            set1_title: "1. Menstrual Cycle / Period", q1_1: "Is your menstrual cycle regular?", q1_2: "What is the average length of your period? (in days)", q1_3: "What was the date of your last period?", q1_4: "How much blood flow do you usually have?", q1_5: "How many days do you experience PMS symptoms?", 
+            set2_title: "2. Health & Lifestyle", q2_1: "Are you on hormonal medication or contraceptives?", q2_2: "Have you been diagnosed with PCOS/PCOD?", q2_3: "What is your age?", q2_4: "Your BMI (Body Mass Index)?", q2_5: "Do you smoke or consume alcohol?", 
+            set3_title: "3. Reproductive & Fertility History", q3_1: "Have you ever been pregnant before?", q3_2: "If yes, were there any complications?", q3_3: "Have you experienced any miscarriages before?", 
+            yes: "Yes", no: "No", light: "Light", medium: "Medium", heavy: "Heavy",
+            // Breast Health Score Form
+            bh_title: "Breast Health Score Assessment", bh_result_title: "Your Breast Health Score",
+            bh_set1_title: "1. Initial Data", bh_q1_1: "What is your age?", bh_q1_2: "Do you have a family history of breast cancer?", bh_q1_3: "Current hormonal stage?",
+            bh_set2_title: "2. Lifestyle Factors", bh_q2_1: "How would you rate your diet?", bh_q2_2: "How often do you exercise per week?", bh_q2_3: "How many hours do you sleep on average?", bh_q2_4: "What is your current stress level?",
+            bh_set3_title: "3. Monthly Symptoms Update", bh_q3_1: "Did you find any lumps in your recent self-check?", bh_q3_2: "Are you experiencing any breast pain?", bh_q3_3: "Have you noticed any skin changes (dimpling, redness)?",
+            // Options
+            bh_opt_menopause_pre: "Pre-menopause", bh_opt_menopause_post: "Post-menopause",
+            bh_opt_diet_good: "Good", bh_opt_diet_avg: "Average", bh_opt_diet_poor: "Poor",
+            bh_opt_exercise_0_1: "0-1 times", bh_opt_exercise_2_3: "2-3 times", bh_opt_exercise_4_plus: "4+ times",
+            bh_opt_stress_low: "Low", bh_opt_stress_med: "Medium", bh_opt_stress_high: "High",
+            bh_opt_pain_none: "None", bh_opt_pain_mild: "Mild", bh_opt_pain_severe: "Severe"
+        },
+        hi: { 
+            // Fertility Form
+            set1_title: "१. मासिक चक्र / पीरियड", q1_1: "क्या आपका मासिक चक्र नियमित है?", q1_2: "आपके पीरियड की औसत लंबाई कितनी है? (दिनों में)", q1_3: "आपकी आखिरी पीरियड की तारीख क्या थी?", q1_4: "आम तौर पर पीरियड में कितना खून आता है?", q1_5: "PMS के लक्षण आपको कितने दिन रहते हैं?", 
+            set2_title: "२. स्वास्थ्य और जीवनशैली", q2_1: "क्या आप अभी किसी हार्मोनल दवा या गर्भनिरोधक ले रही हैं?", q2_2: "क्या आपको PCOS या PCOD जैसी कोई बीमारी है?", q2_3: "आपकी उम्र क्या है?", q2_4: "आपका BMI (बॉडी मास इंडेक्स) क्या है?", q2_5: "क्या आप धूम्रपान या शराब का सेवन करती हैं?", 
+            set3_title: "३. प्रजनन और प्रजनन इतिहास", q3_1: "क्या आप पहले कभी गर्भवती हुई हैं?", q3_2: "यदि हाँ, तो कोई जटिलताएँ हुई थीं?", q3_3: "क्या आपने पहले कोई गर्भपात अनुभव किया है?", 
+            yes: "हाँ", no: "नहीं", light: "हल्का", medium: "मध्यम", heavy: "भारी",
+            // Breast Health Score Form
+            bh_title: "स्तन स्वास्थ्य स्कोर मूल्यांकन", bh_result_title: "आपका स्तन स्वास्थ्य स्कोर",
+            bh_set1_title: "१. प्रारंभिक डेटा", bh_q1_1: "आपकी उम्र क्या है?", bh_q1_2: "क्या आपके परिवार में ब्रेस्ट कैंसर का इतिहास है?", bh_q1_3: "वर्तमान हार्मोनल स्टेज?",
+            bh_set2_title: "२. जीवनशैली के कारक", bh_q2_1: "आप अपने आहार को कैसे रेट करेंगी?", bh_q2_2: "आप प्रति सप्ताह कितनी बार व्यायाम करती हैं?", bh_q2_3: "आप औसतन कितने घंटे सोती हैं?", bh_q2_4: "आपका वर्तमान तनाव स्तर क्या है?",
+            bh_set3_title: "३. मासिक लक्षण अपडेट", bh_q3_1: "क्या आपको हाल ही में सेल्फ-चेक में कोई गांठ मिली?", bh_q3_2: "क्या आप किसी स्तन दर्द का अनुभव कर रही हैं?", bh_q3_3: "क्या आपने त्वचा में कोई बदलाव देखा है (डिम्पलिंग, लालिमा)?",
+            // Options
+            bh_opt_menopause_pre: "प्री-मेनोपॉज़", bh_opt_menopause_post: "पोस्ट-मेनोपॉज़",
+            bh_opt_diet_good: "अच्छा", bh_opt_diet_avg: "औसत", bh_opt_diet_poor: "खराब",
+            bh_opt_exercise_0_1: "0-1 बार", bh_opt_exercise_2_3: "2-3 बार", bh_opt_exercise_4_plus: "4+ बार",
+            bh_opt_stress_low: "कम", bh_opt_stress_med: "मध्यम", bh_opt_stress_high: "उच्च",
+            bh_opt_pain_none: "कोई नहीं", bh_opt_pain_mild: "हल्का", bh_opt_pain_severe: "गंभीर"
+        }
+    };
+
+    // --- VIDEO DATA (With corrected video IDs) ---
+    const videoData = {
+        'miscarriage-basics': { title: 'Miscarriage Basics', videos: ['ukFL53D5EUE', 'j9peQFwW7T4', 'fKja0y17vt4', '7sRQ2MUke14', 'Xm9y7X96-FE', '0fqCfq9Gdcw', '2GuiS4dSARU', 'FUJzOhmmci0', 'MfPRBO4I8og', '4JPDNZ0jVpk'] },
+        'trimester-guide': { title: 'Trimester-Wise Pregnancy Guide', videos: ['91e2b5kO8pM', 'g-w134s5l6w', 'fA51f2G-a5c', 'CHrsvD-s3sU', 'V-s9o_y0D4I', 'uXQ61s9PZ4s', 'f7DPdGrH-1k', 'INKTNke3qK4', '4q_jA0-m6kM', 'n_QqBwz1BGo'] },
+        'myths-vs-facts': { title: 'Myths vs Facts', videos: ['JtYekjMBDI0', 'icOqp2A4wco', '7Jq-8IGp5mc', '-NYc-kazl5k', 'JAJ7T0LtqBE', '2GuiS4dSARU', '2Lx9CszPiNE', 'n70akLWuLLU', '0XyYFqQmgyo', 'xuk2d0g4ygY'] },
+        'pcos-awareness': { title: 'Medical Conditions: PCOS', videos: ['SX2syUDOsC8', 'GYQHebYAdAI', '9CVRMwdDYJU', 'DMWMGDRE0G4', 'HWgRYaJ6hhA', 'FoVPTvKrZ7U', 'k3M6sdadC64', 'xjFDHQ3SoE', 'FjesPZJlmSA', 'rDcqZfu14uo'] },
+        'safe-exercise': { title: 'Safe Pregnancy Exercise & Yoga', videos: ['BJG8AlJq2mE', 'rPLw0kk9los', 'Ia6dNwVs1M8', 'TgrBkANcHw4', 'rlfozkCy8jw', 'DzRSqMTeRhs', 'e_33jae_0-M', 'eNq_nkdAbA4', 'U3nUb2b_4c4', '7OMy-2a8s_w'] },
+        'emotional-support': { title: 'Emotional Support & Coping', videos: ['tP5HQrZOl2s', 'ID2hJYCuoeI', 'NEzwKQ50gJY', 'Gg_b-vjUIq8', '1E4C3v2S2WM', 'tA-noEpZ-wE', 'YfJwA4WGNzI', '7t0aN-d32Co', 'uF2y98tI4M8', 'X-ziD6d3oVw'] },
+        'guided-meditation': { title: 'Guided Meditation for Pregnancy', videos: ['aEqbw1zN_CE', 'pCSjhbVOdYQ', 'rR3uOfnvNwM', 'LU2qdo74_dI', 'NDYnpcCiaOE', 'hVwzjwPzAzA', 'iV3aUhbLdqs', 'Zz9A1s0W9jE', 'O34aM2E6sF4', '4wD8Hbf4JtQ'] },
+        'prevention-tips': { title: 'Miscarriage Prevention Tips', videos: ['QC8-5BNP8Uw', 'cucq2UBRcvc', 'oHHC_-vChco', 'nU7OSKG1Z18', '4JPDNZ0jVpk', 'xjFD6HQ3SoE', '7sRQ2MUke14', '0fqCfq9Gdcw', 'FUJzOhmmci0', 'MfPRBO4I8og'] },
+        'nutrition-diet': { title: 'Nutrition & Diet', videos: ['QyL7Kk_ez8Y', 'oHHC_-vChco', 'cucq2UBRcvc', 'nU7OSKG1Z18', '4JPDNZ0jVpk', 'xjFD6HQ3SoE', '0fqCfq9Gdcw', 'MfPRBO4I8og', 'FUJzOhmmci0', 'QC8-5BNP8Uw'] },
+        'fetal-development': { title: 'Fetal Development Week by Week', videos: ['g-w134s5l6w', 'IN_H-Yk4-eM', 'VktZZEeGdSs', 'tWPKoG4gAXg', 'cfb8NA-KzEw', '1l3Qx5ppv7Q', 'CHrsvD-s3sU', 'k8a-w2qcSTs', '5olEDlt0e80', 'OE-4-sVL_dM'] }
+    };
+
+    // --- CORE APP LOGIC ---
+    let currentStep = 0;
+    const totalSteps = 3;
+    let aiDetailedAdvice = '';
+    let currentZoom = 1.0;
+    
+    // --- Make functions globally accessible ---
+    window.showPage = showPage;
+    window.changeLanguage = changeLanguage;
+    window.changeBreastHealthLanguage = changeBreastHealthLanguage;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.resetApp = resetApp;
+    window.openPlayerPage = openPlayerPage;
+    window.closePlayer = closePlayer;
+    window.handleRotate = handleRotate;
+    window.handleZoomIn = handleZoomIn;
+    window.handleZoomOut = handleZoomOut;
+    window.resetSymptomForm = resetSymptomForm;
+    window.resetLifestyleForm = resetLifestyleForm;
+    window.resetWellnessForm = resetWellnessForm;
+    window.resetReminderForm = resetReminderForm;
+    window.resetMilestoneForm = resetMilestoneForm;
+    window.navigateForm = navigateForm;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        buildForm('en');
+        buildBreastHealthScoreForm('en');
+        navigateForm(0);
+        loadFormData();
+        buildEducationHubGrid();
+        
+        document.getElementById('fertilityForm').addEventListener('submit', handleFormSubmit);
+        document.getElementById('symptomForm').addEventListener('submit', handleSymptomSubmit);
+        document.getElementById('lifestyleForm').addEventListener('submit', handleLifestyleSubmit);
+        document.getElementById('wellnessForm').addEventListener('submit', handleWellnessSubmit);
+        document.getElementById('reminderForm').addEventListener('submit', handleReminderSubmit);
+        document.getElementById('milestoneForm').addEventListener('submit', handleMilestoneSubmit);
+        document.getElementById('boneDensityInitialForm').addEventListener('submit', handleBoneDensityInitialSubmit);
+        document.getElementById('boneDensityOngoingForm').addEventListener('submit', handleBoneDensityOngoingSubmit);
+        document.getElementById('breastHealthScoreForm').addEventListener('submit', handleBreastHealthScoreSubmit);
+
+        breastHealthGuide.init();
+        window.breastHealthGuide = breastHealthGuide; // Make guide object accessible
+    });
+
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        const newPage = document.getElementById(pageId);
+        if (newPage) newPage.classList.add('active');
+        window.scrollTo(0, 0);
+
+        if(pageId === 'page_breast_health_guide') {
+            if(breastHealthGuide.videoSwiper) breastHealthGuide.videoSwiper.update();
+            if(breastHealthGuide.imageSwiper) breastHealthGuide.imageSwiper.update();
+        }
+    }
+    
+    function changeLanguage(lang) {
+        currentStep = 0; buildForm(lang); navigateForm(0);
+        document.querySelectorAll('#lang-en, #lang-hi').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`lang-${lang}`).classList.add('active');
+    }
+    
+    function changeBreastHealthLanguage(lang) {
+        buildBreastHealthScoreForm(lang);
+        document.querySelectorAll('#bh-lang-en, #bh-lang-hi').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`bh-lang-${lang}`).classList.add('active');
+    }
+
+    function buildForm(lang = 'en') {
+        const form = document.getElementById('fertilityForm');
+        const t = translations[lang];
+        document.getElementById('questionnaire-title').textContent = (lang === 'hi') ? "अपनी जानकारी सबमिट करें" : "Submit Your Information";
+        form.innerHTML = `
+            <fieldset class="question-fieldset" id="step0"><h3 class="fieldset-title">${t.set1_title}</h3><div class="form-group"><label>${t.q1_1}</label><select name="cycle_regular"><option value="yes">${t.yes}</option><option value="no">${t.no}</option></select></div><div class="form-group"><label>${t.q1_2}</label><input type="number" name="period_length" placeholder="e.g., 5"></div><div class="form-group"><label>${t.q1_3}</label><input type="date" name="last_period_date"></div><div class="form-group"><label>${t.q1_4}</label><select name="flow"><option value="light">${t.light}</option><option value="medium">${t.medium}</option><option value="heavy">${t.heavy}</option></select></div><div class="form-group"><label>${t.q1_5}</label><input type="number" name="pms_days" placeholder="0-7+"></div></fieldset>
+            <fieldset class="question-fieldset" id="step1"><h3 class="fieldset-title">${t.set2_title}</h3><div class="form-group"><label>${t.q2_1}</label><select name="on_medication"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div><div class="form-group"><label>${t.q2_2}</label><select name="pcos"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div><div class="form-group"><label>${t.q2_3}</label><input type="number" name="age" placeholder="e.g., 28"></div><div class="form-group"><label>${t.q2_4}</label><input type="number" step="0.1" name="bmi" placeholder="e.g., 22.5"></div><div class="form-group"><label>${t.q2_5}</label><select name="smoke_alcohol"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div></fieldset>
+            <fieldset class="question-fieldset" id="step2"><h3 class="fieldset-title">${t.set3_title}</h3><div class="form-group"><label>${t.q3_1}</label><select name="ever_pregnant"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div><div class="form-group"><label>${t.q3_2}</label><select name="complications"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div><div class="form-group"><label>${t.q3_3}</label><select name="miscarriage"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div></fieldset>
+            <div class="form-navigation"><button type="button" class="nav-btn" id="prev-btn" onclick="navigateForm(-1)">Back</button><button type="button" class="nav-btn" id="next-btn" onclick="navigateForm(1)">Next</button><button type="submit" class="nav-btn" id="submit-btn">Submit</button></div>`;
+    }
+
+    function navigateForm(direction) {
+        const newStep = currentStep + direction;
+        if (newStep < 0 || newStep >= totalSteps) return;
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${newStep}`).classList.add('active');
+        currentStep = newStep;
+        document.getElementById('prev-btn').style.display = (currentStep > 0) ? 'inline-block' : 'none';
+        document.getElementById('next-btn').style.display = (currentStep < totalSteps - 1) ? 'inline-block' : 'none';
+        document.getElementById('submit-btn').style.display = (currentStep === totalSteps - 1) ? 'inline-block' : 'none';
+    }
+
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        const formButton = event.target.querySelector('button[type="submit"]');
+        formButton.disabled = true;
+        formButton.textContent = 'Submitting...';
+
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+        saveFormData(data);
+
+        // --- NEW: Save to Firebase ---
+        try {
+            const { collection, addDoc, serverTimestamp } = window.firestoreFunctions;
+            const docRef = await addDoc(collection(window.db, "fertilitySubmissions"), {
+                ...data,
+                submittedAt: serverTimestamp()
+            });
+            console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Could not save your data online. Please check your connection.");
+        }
+        // --- END NEW ---
+
+        document.getElementById('dashboard-message').textContent = 'Analyzing your data...';
+        showPage('page1');
+        const result = await getAIPrediction(data);
+        updateDashboard(result, data);
+        
+        formButton.disabled = false;
+        formButton.textContent = 'Submit';
+    }
+
+    // --- UPDATED AI PREDICTION FUNCTION ---
+    async function getAIPrediction(data) {
+        await new Promise(resolve => setTimeout(resolve, 1500)); 
+        let score = 85;
+        if (data.cycle_regular === 'no') score -= 15;
+        if (data.pcos === 'yes') score -= 20;
+        if (parseInt(data.age) > 35) score -= 15;
+        if (parseFloat(data.bmi) < 18.5 || parseFloat(data.bmi) > 25) score -= 10;
+        if (data.smoke_alcohol === 'yes') score -= 15;
+        if (data.miscarriage === 'yes') score -= 10;
+        
+        const finalScore = Math.max(20, Math.min(99, score));
+
+        // --- GENERATE DETAILED Q&A ---
+        const lang = document.getElementById('lang-en').classList.contains('active') ? 'en' : 'hi';
+        let qna_html = '';
+        
+        const questions = {
+            en: [
+                { q: "What does my fertility score mean?", a: `Your score of ${finalScore}% is an indicator of your fertility potential based on your inputs. It's a guide, not a medical diagnosis. A higher score suggests more favorable conditions for conception.` },
+                { q: "Based on my age, what should I be aware of?", a: parseInt(data.age) > 35 ? `At ${data.age}, fertility naturally declines and risks of complications can increase. It's advisable to consult with a specialist for personalized guidance.` : `At ${data.age}, you are in a good age range for conception. Focus on maintaining a healthy lifestyle.` },
+                { q: "How does my menstrual cycle affect fertility?", a: data.cycle_regular === 'no' ? "An irregular cycle can make it difficult to predict ovulation. Tracking your cycle and possibly consulting a doctor can help identify your fertile window." : "A regular cycle is a positive sign, making it easier to predict your most fertile days each month." },
+                { q: "I have PCOS. What are the implications?", a: data.pcos === 'yes' ? "PCOS can affect ovulation, making conception more challenging. However, many women with PCOS conceive successfully with lifestyle management and medical support. Consulting a doctor is highly recommended." : "You haven't indicated having PCOS, which is a positive factor for regular ovulation." },
+                { q: "How important is my BMI?", a: (parseFloat(data.bmi) < 18.5 || parseFloat(data.bmi) > 25) ? `Your BMI of ${data.bmi} is outside the optimal range (18.5-24.9). Both underweight and overweight can impact hormonal balance and fertility. Small, consistent changes in diet and exercise can help.` : `Your BMI of ${data.bmi} is within the healthy range, which is excellent for hormonal balance and fertility.` },
+                { q: "What are my next steps?", a: "Your next steps should include tracking your ovulation, maintaining a healthy lifestyle, and considering a pre-conception check-up with your doctor to discuss your goals." },
+                { q: "What lifestyle changes can improve my score?", a: "Focus on a balanced diet, regular moderate exercise, managing stress, getting 7-8 hours of sleep, and avoiding smoking and excessive alcohol. These changes can significantly boost fertility." },
+                { q: "When is my predicted fertile window?", a: data.last_period_date ? `Based on your last period on ${data.last_period_date}, your next fertile window is approximately around ${new Date(new Date(data.last_period_date).getTime() + 12 * 24 * 60 * 60 * 1000).toLocaleDateString()}. For more accuracy, use an ovulation tracking kit.` : "Please provide your last period date to predict your fertile window. Generally, it's about 12-16 days before your next period starts." },
+                { q: "Should I be concerned about a past miscarriage?", a: data.miscarriage === 'yes' ? "While a past miscarriage can be emotionally difficult, it does not mean you cannot have a healthy pregnancy in the future. Many women do. It's good to discuss your history with a doctor for reassurance and guidance." : "You haven't indicated a past miscarriage, which is a positive factor." },
+                { q: "What are key nutrients for fertility?", a: "Folic acid is crucial for preventing birth defects. Iron, Vitamin D, Omega-3 fatty acids, and antioxidants are also very important. A balanced diet or prenatal vitamins can help ensure you're getting enough." }
+            ],
+            hi: [
+                { q: "मेरे फर्टिलिटी स्कोर का क्या मतलब है?", a: `आपका ${finalScore}% का स्कोर आपके इनपुट के आधार पर आपकी प्रजनन क्षमता का एक संकेतक है। यह एक गाइड है, मेडिकल निदान नहीं। उच्च स्कोर गर्भधारण के लिए अधिक अनुकूल परिस्थितियों का सुझाव देता है।` },
+                { q: "मेरी उम्र के आधार पर, मुझे क्या पता होना चाहिए?", a: parseInt(data.age) > 35 ? `${data.age} साल की उम्र में, प्रजनन क्षमता स्वाभाविक रूप से कम हो जाती है और जटिलताओं का खतरा बढ़ सकता है। व्यक्तिगत मार्गदर्शन के लिए विशेषज्ञ से परामर्श करना उचित है।` : `${data.age} साल की उम्र में, आप गर्भधारण के लिए एक अच्छी आयु सीमा में हैं। एक स्वस्थ जीवन शैली बनाए रखने पर ध्यान दें।` },
+                { q: "मेरा मासिक धर्म चक्र प्रजनन क्षमता को कैसे प्रभावित करता है?", a: data.cycle_regular === 'no' ? "एक अनियमित चक्र ओव्यूलेशन की भविष्यवाणी करना मुश्किल बना सकता है। अपने चक्र को ट्रैक करने और डॉक्टर से परामर्श करने से आपको अपनी फर्टाइल विंडो की पहचान करने में मदद मिल सकती है।" : "एक नियमित चक्र एक सकारात्मक संकेत है, जिससे हर महीने आपके सबसे फर्टाइल दिनों की भविष्यवाणी करना आसान हो जाता है।" },
+                { q: "मुझे पीसीओएस है। इसके क्या निहितार्थ हैं?", a: data.pcos === 'yes' ? "पीसीओएस ओव्यूलेशन को प्रभावित कर सकता है, जिससे गर्भधारण अधिक चुनौतीपूर्ण हो जाता है। हालांकि, पीसीओएस वाली कई महिलाएं जीवनशैली प्रबंधन और चिकित्सा सहायता से सफलतापूर्वक गर्भ धारण करती हैं। डॉक्टर से परामर्श करने की अत्यधिक अनुशंसा की जाती है।" : "आपने पीसीओएस होने का संकेत नहीं दिया है, जो नियमित ओव्यूलेशन के लिए एक सकारात्मक कारक है।" },
+                { q: "मेरा बीएमआई कितना महत्वपूर्ण है?", a: (parseFloat(data.bmi) < 18.5 || parseFloat(data.bmi) > 25) ? `आपका ${data.bmi} का बीएमआई इष्टतम सीमा (18.5-24.9) से बाहर है। कम वजन और अधिक वजन दोनों ही हार्मोनल संतुलन और प्रजनन क्षमता को प्रभावित कर सकते हैं। आहार और व्यायाम में छोटे, लगातार बदलाव मदद कर सकते हैं।` : `आपका ${data.bmi} का बीएमआई स्वस्थ सीमा के भीतर है, जो हार्मोनल संतुलन और प्रजनन क्षमता के लिए उत्कृष्ट है।` },
+                { q: "मेरे अगले कदम क्या होने चाहिए?", a: "आपके अगले कदमों में आपके ओव्यूलेशन पर नज़र रखना, एक स्वस्थ जीवन शैली बनाए रखना और अपने लक्ष्यों पर चर्चा करने के लिए अपने डॉक्टर के साथ प्री-कॉन्सेप्शन चेक-अप पर विचार करना शामिल होना चाहिए।" },
+                { q: "कौन से जीवनशैली में बदलाव मेरे स्कोर में सुधार कर सकते हैं?", a: "संतुलित आहार, नियमित मध्यम व्यायाम, तनाव का प्रबंधन, 7-8 घंटे की नींद लेना, और धूम्रपान और अत्यधिक शराब से बचने पर ध्यान दें। ये परिवर्तन प्रजनन क्षमता को काफी बढ़ा सकते हैं।" },
+                { q: "मेरी अनुमानित फर्टाइल विंडो कब है?", a: data.last_period_date ? `${new Date(new Date(data.last_period_date).getTime() + 12 * 24 * 60 * 60 * 1000).toLocaleDateString('hi-IN')} के आसपास है। अधिक सटीकता के लिए, ओव्यूलेशन ट्रैकिंग किट का उपयोग करें।` : "कृपया अपनी फर्टाइल विंडो की भविष्यवाणी करने के लिए अपनी अंतिम पीरियड की तारीख प्रदान करें। आम तौर पर, यह आपकी अगली पीरियड शुरू होने से लगभग 12-16 दिन पहले होता है।" },
+                { q: "क्या मुझे पिछले गर्भपात के बारे में चिंतित होना चाहिए?", a: data.miscarriage === 'yes' ? "हालांकि पिछला गर्भपात भावनात्मक रूप से कठिन हो सकता है, इसका मतलब यह नहीं है कि आप भविष्य में एक स्वस्थ गर्भावस्था नहीं कर सकती हैं। कई महिलाएं ऐसा करती हैं। आश्वासन और मार्गदर्शन के लिए डॉक्टर के साथ अपने इतिहास पर चर्चा करना अच्छा है।" : "आपने पिछले गर्भपात का संकेत नहीं दिया है, जो एक सकारात्मक कारक है।" },
+                { q: "प्रजनन क्षमता के लिए प्रमुख पोषक तत्व क्या हैं?", a: "जन्म दोषों को रोकने के लिए फोलिक एसिड महत्वपूर्ण है। आयरन, विटामिन डी, ओमेगा -3 फैटी एसिड और एंटीऑक्सिडेंट भी बहुत महत्वपूर्ण हैं। एक संतुलित आहार या प्रसवपूर्व विटामिन यह सुनिश्चित करने में मदद कर सकते हैं कि आपको पर्याप्त मात्रा में मिल रहा है।" }
+            ]
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        questions[lang].forEach(item => {
+            qna_html += `<div class="ai-point"><h3>${item.q}</h3><p>${item.a}</p></div>`;
+        });
+        
+        aiDetailedAdvice = qna_html;
+        return { score: finalScore };
+    }
 
-        let currentUserId = null;
-        let currentUserData = null;
-        let medicinesToDonate = [];
-        let unsubscribeChats = null;
-        let unsubscribeMessages = null;
-        let temporaryLocation = null; // To hold new location before saving profile
+    function updateDashboard(result, data) {
+        const score = result.score;
+        document.getElementById('placeholder-text').style.display = 'none';
+        document.getElementById('results-content').style.display = 'flex';
+        document.getElementById('action-buttons').style.display = 'grid';
+        document.getElementById('dashboard-message').textContent = 'Here is your fertility score based on the provided data.';
+        const chartProgress = document.getElementById('chart-progress');
+        const scorePercentage = document.getElementById('score-percentage');
+        chartProgress.classList.remove('score-green', 'score-yellow', 'score-red');
+        scorePercentage.classList.remove('score-green', 'score-yellow', 'score-red');
+        let colorClass = score > 70 ? 'score-green' : score > 40 ? 'score-yellow' : 'score-red';
+        chartProgress.classList.add(colorClass);
+        scorePercentage.classList.add(colorClass);
+        chartProgress.style.setProperty('--percentage', score + '%');
+        let start = 0; const end = score; if (start === end) { scorePercentage.textContent = end + '%'; return; };
+        let timer = setInterval(() => { start++; scorePercentage.textContent = start + '%'; if (start >= end) clearInterval(timer); }, 20);
+    }
+    
+    function resetApp() {
+        document.getElementById('results-content').style.display = 'none';
+        document.getElementById('action-buttons').style.display = 'none';
+        document.getElementById('placeholder-text').style.display = 'block';
+        document.getElementById('dashboard-message').textContent = 'Your personalized fertility insights will appear here.';
+        document.getElementById('chart-progress').style.setProperty('--percentage', '0%');
+        document.getElementById('chart-progress').classList.remove('score-green', 'score-yellow', 'score-red');
+        document.getElementById('fertilityForm').reset();
+        localStorage.removeItem('fertilityFormData');
+    }
 
-        // --- GLOBAL HELPER: Page Navigation ---
-        const pages = document.querySelectorAll('.page');
-        const navItems = document.querySelectorAll('.nav-item');
-
-        function showPage(pageId) {
-            pages.forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId)?.classList.add('active');
-
-            navItems.forEach(nav => {
-                nav.classList.toggle('active', nav.getAttribute('data-page') === pageId);
+    function openModal() { document.getElementById('modal-body').innerHTML = aiDetailedAdvice; document.getElementById('ai-details-modal').style.display = 'block'; }
+    function closeModal() { document.getElementById('ai-details-modal').style.display = 'none'; }
+    window.onclick = function(event) { if (event.target == document.getElementById('ai-details-modal')) closeModal(); }
+    function saveFormData(data) { localStorage.setItem('fertilityFormData', JSON.stringify(data)); }
+    function loadFormData() {
+        const savedData = localStorage.getItem('fertilityFormData');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            Object.keys(data).forEach(key => {
+                const formElement = document.getElementById('fertilityForm').elements[key];
+                if (formElement) formElement.value = data[key];
             });
-
-            if (pageId === 'page-home') loadAllDonations();
-            if (pageId === 'page-profile') loadUserProfile();
-            if (pageId === 'page-messages') loadUserChats(currentUserId);
         }
+    }
 
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const pageId = item.getAttribute('data-page');
-                showPage(pageId);
-            });
+    function buildEducationHubGrid() {
+        const grid = document.getElementById('awareness-feature-grid');
+        grid.innerHTML = '';
+        for (const key in videoData) {
+            const feature = videoData[key];
+            const card = document.createElement('button');
+            card.className = 'feature-card';
+            card.textContent = feature.title;
+            card.onclick = () => showVideoListPage(key);
+            grid.appendChild(card);
+        }
+    }
+
+    function showVideoListPage(featureKey) {
+        const feature = videoData[featureKey];
+        document.getElementById('video-list-title').textContent = feature.title;
+        const listContainer = document.getElementById('video-card-list-container');
+        listContainer.innerHTML = ''; 
+        feature.videos.forEach(videoId => {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `<img class="video-thumbnail" src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="Video Thumbnail"><button class="btn-3d open-video-btn" onclick="openPlayerPage('${videoId}')">Open</button>`;
+            listContainer.appendChild(card);
         });
+        document.getElementById('page5').setAttribute('data-previous-page', 'page4');
+        showPage('page4');
+    }
 
-        // --- 1. Authentication & User Onboarding ---
-        onAuthStateChanged(auth, async(user) => {
-            if (user) {
-                currentUserId = user.uid;
-                const userDocRef = doc(db, "users", currentUserId);
-                const userDocSnap = await getDoc(userDocRef);
+    function openPlayerPage(videoId) {
+        const playerWrapper = document.getElementById('dedicated-player-wrapper');
+        playerWrapper.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        currentZoom = 1.0;
+        playerWrapper.style.transform = 'scale(1.0)';
+        showPage('page5');
+    }
 
-                if (userDocSnap.exists()) {
-                    currentUserData = userDocSnap.data();
-                    showPage('page-home');
-                } else {
-                    showPage('page-user-info');
-                }
-            } else {
-                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
-            }
-        });
+    function closePlayer() {
+        const playerWrapper = document.getElementById('dedicated-player-wrapper');
+        playerWrapper.innerHTML = '';
+        const previousPage = document.getElementById('page5').getAttribute('data-previous-page') || 'page4';
+        showPage(previousPage);
+    }
 
-        // --- 2. User Info Form Logic ---
-        document.getElementById('get-location-btn').addEventListener('click', () => {
-            if (navigator.geolocation) {
-                alert("आपकी सबसे सटीक लोकेशन ढूंढी जा रही है... कृपया GPS चालू रखें और कुछ सेकंड इंतज़ार करें।");
+    function handleRotate() {
+        const playerContainer = document.getElementById('dedicated-player-wrapper');
+        if (playerContainer) {
+            if (playerContainer.requestFullscreen) { playerContainer.requestFullscreen(); } 
+            else if (playerContainer.mozRequestFullScreen) { playerContainer.mozRequestFullScreen(); } 
+            else if (playerContainer.webkitRequestFullscreen) { playerContainer.webkitRequestFullscreen(); } 
+            else if (playerContainer.msRequestFullscreen) { playerContainer.msRequestFullscreen(); }
+        }
+    }
+
+    function handleZoomIn() { if (currentZoom < 2.0) { currentZoom += 0.1; document.getElementById('dedicated-player-wrapper').style.transform = `scale(${currentZoom})`; } }
+    function handleZoomOut() { if (currentZoom > 0.5) { currentZoom -= 0.1; document.getElementById('dedicated-player-wrapper').style.transform = `scale(${currentZoom})`; } }
+
+    function createResultCard(title, text, colorClass) {
+        return `<div class="result-card-16-9 ${colorClass}"><div class="result-card-content"><h3>${title}</h3><p>${text}</p></div></div>`;
+    }
+     function createResultCardWithList(title, listItems, colorClass) {
+        const listHTML = `<ul>${listItems.map(item => `<li>${item}</li>`).join('')}</ul>`;
+        return `<div class="result-card-16-9 ${colorClass}" style="padding-bottom: 70%;"><div class="result-card-content"><h3>${title}</h3>${listHTML}</div></div>`;
+    }
+
+    function handleSymptomSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('symptomResultContainer');
+        let html = '';
+        const bleeding = data.get('bleeding');
+        let advice = 'Aapne bleeding "Nahi" select kiya hai, jo ek accha sanket hai.';
+        if (bleeding === 'Spotting' || bleeding === 'Light') advice = 'Halki spotting ya bleeding kabhi-kabhi normal ho sakti hai, lekin is par nazar rakhein. Agar yeh badhti hai, to doctor se baat karein.';
+        if (bleeding === 'Heavy') advice = '<strong>Warning:</strong> Zyada bleeding ek serious sign ho sakta hai. Kripya turant apne doctor se sampark karein.';
+        html += createResultCard('Bleeding Analysis', advice, 'red');
+        const cramps = data.get('cramps');
+        advice = 'Koi dard na hona ek positive sign hai.';
+        if (cramps === 'Mild' || cramps === 'Moderate') advice = 'Halke se madhyam dard par dhyan dein. Agar yeh lagatar bana rehta hai ya tez hota hai, to salah lein.';
+        if (cramps === 'Severe') advice = '<strong>Warning:</strong> Tez dard ko andekha na karein. Yeh ek accha sanket nahi hai, jald se jald medical help lein.';
+        html += createResultCard('Cramps Analysis', advice, 'skyblue');
+        html += createResultCard('Fatigue Level', `Aapka thakaan ka level 10 mein se ${data.get('fatigue')} hai. Pregnancy mein thakaan normal hai, lekin aaram zaroori hai.`, 'green');
+        container.innerHTML = html;
+        showPage('page7_result');
+    }
+
+    function handleLifestyleSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('lifestyleResultContainer');
+        let html = '';
+        let score = 100;
+        const age = parseInt(data.get('age'), 10);
+        let ageAdvice = 'Is age group mein aamtaur par risk kam hota hai.';
+        if (age > 35) { score -= 20; ageAdvice = '35+ ki age mein extra savdhani aur niyamit check-ups zaroori hain.'; }
+        html += createResultCard('Age Factor', ageAdvice, 'pink');
+        const conditions = data.getAll('conditions');
+        let conditionAdvice = 'Aapne koi bhi major medical condition select nahi ki hai. Yeh ek accha sanket hai.';
+        if (conditions.length > 0) { score -= 25; conditionAdvice = `Aapko ${conditions.join(', ')} hai. Niyamit roop se apne doctor ke sampark mein rehna aapke liye bahut zaroori hai.`; }
+        html += createResultCard('Medical History', conditionAdvice, 'red');
+        const sleep = parseInt(data.get('sleep'), 10);
+        if (sleep < 7) { score -= 15; }
+        html += createResultCard('Sleep Habits', `${sleep} ghante ki neend. Koshish karein ki 7-8 ghante ki neend zaroor lein.`, 'skyblue');
+        html += createResultCard('Overall Awareness Score', `Aapka anumaanit awareness score ${Math.max(score, 10)}/100 hai. Is score ka matlab diagnosis nahi, balki sirf ek jaagrukta tool hai.`, 'yellow');
+        container.innerHTML = html;
+        showPage('page8_result');
+    }
+
+    function handleWellnessSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('wellnessResultContainer');
+        let html = '';
+        html += createResultCard('Aaj ka Mood', data.get('mood'), 'yellow');
+        html += createResultCard('Energy Level', `${data.get('energy')}/10`, 'green');
+        html += createResultCard('Paani Intake', `${data.get('water') || 'N/A'} liters`, 'skyblue');
+        html += createResultCard('Diet Notes', data.get('diet_notes') || 'Koi note nahi.', 'pink');
+        container.innerHTML = html;
+        showPage('page9_result');
+    }
+
+    function handleReminderSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('reminderResultContainer');
+        const dt = new Date(data.get('datetime'));
+        const readableDate = dt.toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' });
+        let html = createResultCard(`Reminder: ${data.get('reminder_type')}`, `Aapka "${data.get('title')}" ke liye reminder <strong>${readableDate}</strong> par set kar diya gaya hai.`, 'skyblue');
+        container.innerHTML = html;
+        showPage('page10_result');
+    }
+
+    function handleMilestoneSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('milestoneResultContainer');
+        const lmp = new Date(data.get('last_period'));
+        const today = new Date();
+        const diffTime = Math.abs(today - lmp);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const currentWeek = Math.floor(diffDays / 7);
+        const currentDay = diffDays % 7;
+        let html = createResultCard('Aapka Pregnancy Week', `Anumaan ke anusaar, aap abhi <strong>Week ${currentWeek}, Day ${currentDay}</strong> mein hain.`, 'pink');
+        html += createResultCard('Aapka Note', data.get('milestone_note') || 'Koi note nahi.', 'green');
+        container.innerHTML = html;
+        showPage('page11_result');
+    }
+    
+    function handleBoneDensityInitialSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('boneHealthResultContainer');
+        let html = '';
+        let score = 100; let advice = [];
+        if (data.get('family_history') === 'yes') { score -= 20; advice.push("पारिवारिक इतिहास होने पर आपको अतिरिक्त सावधानी बरतनी चाहिए।"); }
+        if (data.get('fracture_history') === 'yes') { score -= 15; advice.push("हाल ही में फ्रैक्चर होना हड्डियों की कमजोरी का संकेत हो सकता है। डॉक्टर से सलाह लें।"); }
+        if (data.get('calcium_diet') === 'no') { score -= 20; advice.push("कैल्शियम युक्त आहार की कमी हड्डियों के लिए हानिकारक है। अपनी डाइट में दूध, दही, पनीर शामिल करें।"); }
+        else if (data.get('calcium_diet') === 'sometimes') { score -= 10; }
+        if (data.get('sun_exposure') === 'less_15') { score -= 15; advice.push("विटामिन D के लिए धूप बहुत ज़रूरी है। रोज़ाना सुबह कुछ देर धूप में रहने की कोशिश करें।"); }
+        if (data.get('exercise') === 'no') { score -= 15; advice.push("नियमित व्यायाम हड्डियों को मजबूत बनाता है। हल्की सैर या योग से शुरुआत करें।"); }
+        else if (data.get('exercise') === 'sometimes') { score -= 7; }
+        score = Math.max(score, 10);
+        let scoreColor = score > 75 ? 'green' : score > 50 ? 'yellow' : 'red';
+        let overallFeedback = "आपकी हड्डियों का स्वास्थ्य अच्छा प्रतीत होता है। इसे बनाए रखें।";
+        if (score <= 75) overallFeedback = "आपको अपनी हड्डियों के स्वास्थ्य पर ध्यान देने की आवश्यकता है।";
+        if (score <= 50) overallFeedback = "आपकी हड्डियों का स्वास्थ्य चिंता का विषय हो सकता है। कृपया डॉक्टर से परामर्श लें।";
+        html += createResultCard('आपका बोन हेल्थ स्कोर', `<span style="font-size: 2em; font-weight: bold;">${score}/100</span><br>${overallFeedback}`, scoreColor);
+        html += createResultCard('व्यक्तिगत सुझाव', advice.length > 0 ? advice.join("<br>") : "कोई विशेष सुझाव नहीं। बहुत बढ़िया!", 'skyblue');
+        container.innerHTML = html;
+        showPage('page_bone_density_initial_result');
+    }
+
+    function handleBoneDensityOngoingSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const container = document.getElementById('ongoingLogResultContainer');
+        let html = createResultCard('Log Saved Successfully!', `आज का डेटा सफलतापूर्वक सेव कर लिया गया है। अपनी प्रगति को ट्रैक करते रहें।`, 'green');
+        container.innerHTML = html;
+        document.getElementById('boneDensityOngoingForm').reset();
+        showPage('page_bone_density_ongoing_result');
+    }
+    
+    function resetSymptomForm() { document.getElementById('symptomForm').reset(); showPage('page7_form'); }
+    function resetLifestyleForm() { document.getElementById('lifestyleForm').reset(); showPage('page8_form'); }
+    function resetWellnessForm() { document.getElementById('wellnessForm').reset(); showPage('page9_form'); }
+    function resetReminderForm() { document.getElementById('reminderForm').reset(); showPage('page10_form'); }
+    function resetMilestoneForm() { document.getElementById('milestoneForm').reset(); showPage('page11_form'); }
+
+    // --- NEW: BREAST HEALTH SCORE FEATURE LOGIC ---
+    function buildBreastHealthScoreForm(lang = 'en') {
+        const form = document.getElementById('breastHealthScoreForm');
+        const t = translations[lang];
+        document.getElementById('breast-score-form-title').textContent = t.bh_title;
+        document.getElementById('breast-score-result-title').textContent = t.bh_result_title;
+
+        form.innerHTML = `
+            <fieldset class="question-fieldset active">
+                <h3 class="fieldset-title">${t.bh_set1_title}</h3>
+                <div class="form-group"><label>${t.bh_q1_1}</label><input type="number" name="age" placeholder="e.g., 40" required></div>
+                <div class="form-group"><label>${t.bh_q1_2}</label><select name="family_history"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div>
+                <div class="form-group"><label>${t.bh_q1_3}</label><select name="hormonal_stage"><option value="pre">${t.bh_opt_menopause_pre}</option><option value="post">${t.bh_opt_menopause_post}</option></select></div>
                 
-                navigator.geolocation.getCurrentPosition(async(position) => {
-                    const accuracy = position.coords.accuracy;
-                    alert(`लोकेशन मिल गई! सटीकता: ${accuracy.toFixed(2)} मीटर।`);
-                    
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    const locationData = { lat: lat, lng: lon };
-                    
-                    document.getElementById('get-location-btn').dataset.location = JSON.stringify(locationData);
-                    
-                    try {
-                        const addressTextarea = document.getElementById('user-address');
-                        addressTextarea.placeholder = "पता ढूंढा जा रहा है...";
-                        
-                        const response = await fetch(`/get-address-from-coords?lat=${lat}&lon=${lon}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.address) {
-                                addressTextarea.value = data.address;
-                            } else {
-                                addressTextarea.placeholder = "पता नहीं मिला, कृपया खुद भरें।";
-                            }
-                        } else {
-                            addressTextarea.placeholder = "पता लाने में समस्या हुई, कृपया खुद भरें।";
-                        }
-                    } catch (error) {
-                        console.error("Error fetching address:", error);
-                        document.getElementById('user-address').placeholder = "पता लाने में त्रुटि, कृपया खुद भरें।";
-                    }
+                <h3 class="fieldset-title">${t.bh_set2_title}</h3>
+                <div class="form-group"><label>${t.bh_q2_1}</label><select name="diet"><option value="good">${t.bh_opt_diet_good}</option><option value="average">${t.bh_opt_diet_avg}</option><option value="poor">${t.bh_opt_diet_poor}</option></select></div>
+                <div class="form-group"><label>${t.bh_q2_2}</label><select name="exercise"><option value="4+">${t.bh_opt_exercise_4_plus}</option><option value="2-3">${t.bh_opt_exercise_2_3}</option><option value="0-1">${t.bh_opt_exercise_0_1}</option></select></div>
+                <div class="form-group"><label>${t.bh_q2_3}</label><input type="number" name="sleep" placeholder="e.g., 7" required></div>
+                <div class="form-group"><label>${t.bh_q2_4}</label><select name="stress"><option value="low">${t.bh_opt_stress_low}</option><option value="medium">${t.bh_opt_stress_med}</option><option value="high">${t.bh_opt_stress_high}</option></select></div>
 
-                }, (error) => {
-                    let errorMessage = "लोकेशन प्राप्त नहीं हो सकी। कृपया सुनिश्चित करें कि आपका GPS चालू है।";
-                    if (error.code === error.TIMEOUT) {
-                        errorMessage = "लोकेशन प्राप्त करने में अधिक समय लग रहा है। कृपया सुनिश्चित करें कि आप खुली जगह पर हैं और आपका GPS पूरी क्षमता पर काम कर रहा है।";
-                    }
-                    alert(errorMessage);
-                    console.error("Geolocation error:", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                });
+                <h3 class="fieldset-title">${t.bh_set3_title}</h3>
+                <div class="form-group"><label>${t.bh_q3_1}</label><select name="lumps"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div>
+                <div class="form-group"><label>${t.bh_q3_2}</label><select name="pain"><option value="none">${t.bh_opt_pain_none}</option><option value="mild">${t.bh_opt_pain_mild}</option><option value="severe">${t.bh_opt_pain_severe}</option></select></div>
+                <div class="form-group"><label>${t.bh_q3_3}</label><select name="skin_changes"><option value="no">${t.no}</option><option value="yes">${t.yes}</option></select></div>
+            </fieldset>
+            <button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Calculate Score</button>
+        `;
+    }
+
+    function handleBreastHealthScoreSubmit(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const lang = document.getElementById('bh-lang-en').classList.contains('active') ? 'en' : 'hi';
+        
+        // --- Score Calculation ---
+        let score = 100;
+        const age = parseInt(data.get('age'), 10) || 30;
+        if (age > 50) score -= 15; else if (age > 40) score -= 10;
+        if (data.get('family_history') === 'yes') score -= 25;
+        if (data.get('hormonal_stage') === 'post') score -= 5;
+        if (data.get('diet') === 'poor') score -= 10; else if (data.get('diet') === 'average') score -= 5;
+        if (data.get('exercise') === '0-1') score -= 10; else if (data.get('exercise') === '2-3') score -= 5;
+        const sleep = parseInt(data.get('sleep'), 10) || 7;
+        if (sleep < 6) score -= 5;
+        if (data.get('stress') === 'high') score -= 10; else if (data.get('stress') === 'medium') score -= 5;
+        if (data.get('lumps') === 'yes') score -= 20;
+        if (data.get('pain') === 'severe') score -= 10;
+        if (data.get('skin_changes') === 'yes') score -= 15;
+        score = Math.max(0, Math.min(100, score)); // Clamp score between 0-100
+
+        // --- Generate Results ---
+        let scoreLabel, tips, insights, riskPrediction;
+        let colorClass = score > 79 ? 'score-green' : score > 49 ? 'score-yellow' : 'score-red';
+
+        if (lang === 'hi') {
+            // HINDI Content
+            if (score > 79) {
+                scoreLabel = "बहुत अच्छा";
+                tips = ["फाइबर और एंटीऑक्सिडेंट से भरपूर आहार बनाए रखें।", "नियमित व्यायाम करते रहें।", "तनाव को प्रबंधित करने के लिए योग या ध्यान करें।"];
+            } else if (score > 49) {
+                scoreLabel = "ठीक है";
+                tips = ["अपने आहार में अधिक हरी सब्जियां और फल शामिल करें।", "कैफीन और प्रोसेस्ड फूड का सेवन कम करें।", "हर 6 महीने में एक क्लिनिकल जांच कराने पर विचार करें।"];
             } else {
-                alert("यह ब्राउज़र जियोलोकेशन को सपोर्ट नहीं करता है।");
+                scoreLabel = "उच्च जोखिम";
+                tips = ["तुरंत डॉक्टर से सलाह लें।", "नियमित रूप से सेल्फ-एग्जाम करें और किसी भी बदलाव को ट्रैक करें।", "स्वस्थ जीवनशैली अपनाना अब और भी महत्वपूर्ण है।"];
             }
-        });
-
-        document.getElementById('user-info-form').addEventListener('submit', async(e) => {
-            e.preventDefault();
-            const name = document.getElementById('user-name').value;
-            const mobile = document.getElementById('user-mobile').value;
-            const address = document.getElementById('user-address').value;
-            const locationBtn = document.getElementById('get-location-btn');
-            let location = null;
-            if (locationBtn.dataset.location) {
-                location = JSON.parse(locationBtn.dataset.location);
+            insights = { title: "जानकारी डैशबोर्ड", text: `आपका स्कोर पिछले महीने से स्थिर है। अपनी स्वस्थ आदतों को बनाए रखें।` };
+            riskPrediction = { title: "जोखिम पूर्वानुमान", text: `आपकी प्रोफ़ाइल के आधार पर, 40 वर्ष की आयु के बाद वार्षिक मैमोग्राम कराने की सलाह दी जाती है।` };
+        } else {
+            // ENGLISH Content
+            if (score > 79) {
+                scoreLabel = "Very Good";
+                tips = ["Maintain a diet rich in fiber and antioxidants.", "Continue your regular exercise routine.", "Practice yoga or meditation to manage stress."];
+            } else if (score > 49) {
+                scoreLabel = "Okay";
+                tips = ["Incorporate more green vegetables and fruits into your diet.", "Reduce caffeine and processed food intake.", "Consider a clinical check-up every 6 months."];
+            } else {
+                scoreLabel = "High Risk";
+                tips = ["Consult a doctor immediately.", "Perform regular self-exams and track any changes.", "Adopting a healthy lifestyle is now even more critical."];
             }
-
-            const userData = { name, mobile, address, location, createdAt: serverTimestamp() };
-
-            try {
-                await setDoc(doc(db, "users", currentUserId), userData);
-                currentUserData = userData;
-                alert("Jaankari safaltapoorvak save ho gayi hai!");
-                showPage('page-home');
-            } catch (error) {
-                console.error("Error saving user data: ", error);
-                alert("Data save karne me error hua. Kripya dobara koshish karein.");
-            }
-        });
-
-        // --- 3. Donate Page Logic ---
-        const addMedicineForm = document.getElementById('add-medicine-form');
-        const addedMedicinesList = document.getElementById('added-medicines-list');
-        const submitAllDonationsBtn = document.getElementById('submit-all-donations-btn');
-
-        addMedicineForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const medicineName = document.getElementById('medicine-name').value;
-            const quantity = document.getElementById('quantity').value;
-            const expiryDate = document.getElementById('expiry-date').value;
-
-            const medicineData = { medicineName, quantity, expiryDate };
-            medicinesToDonate.push(medicineData);
-
-            renderAddedMedicines();
-            addMedicineForm.reset();
-        });
-
-        function renderAddedMedicines() {
-            addedMedicinesList.innerHTML = '';
-            submitAllDonationsBtn.style.display = medicinesToDonate.length > 0 ? 'block' : 'none';
-
-            medicinesToDonate.forEach((med, index) => {
-                const card = document.createElement('div');
-                card.className = 'added-medicine-card';
-                card.innerHTML = `
-                <div class="info">
-                    <p class="name">${med.medicineName}</p>
-                    <p class="details">${med.quantity} | Exp: ${med.expiryDate}</p>
+            insights = { title: "Insights Dashboard", text: "Your score has been stable for the past month. Keep up your healthy habits." };
+            riskPrediction = { title: "Risk Prediction", text: "Based on your profile, a yearly mammogram is advisable after the age of 40." };
+        }
+        
+        // --- Display Results ---
+        // Score Card
+        const scoreCardContainer = document.getElementById('breast-score-card-container');
+        scoreCardContainer.innerHTML = `
+            <div class="results-preview-card-style">
+                <div class="chart-container">
+                    <div class="chart-progress ${colorClass}" style="--percentage: ${score}%;"></div>
+                    <div class="chart-inner-circle">
+                        <div class="score-percentage-style ${colorClass}">${score}%</div>
+                        <div class="score-label-style">${scoreLabel}</div>
+                    </div>
                 </div>
-                <button class="remove-med-btn" data-index="${index}">&times;</button>
-            `;
-                addedMedicinesList.appendChild(card);
+            </div>
+        `;
+
+        // Tips Card
+        const tipsContainer = document.getElementById('breast-tips-card-container');
+        tipsContainer.innerHTML = createResultCardWithList((lang === 'hi' ? 'व्यक्तिगत सुझाव' : 'Personalized Tips'), tips, 'skyblue');
+
+        // Insights Card
+        const insightsContainer = document.getElementById('breast-insights-card-container');
+        insightsContainer.innerHTML = createResultCard(insights.title, insights.text, 'pink') + createResultCard(riskPrediction.title, riskPrediction.text, 'yellow');
+
+        showPage('page_breast_health_score_result');
+    }
+
+    // --- BREAST HEALTH GUIDE LOGIC ---
+    const breastHealthGuide = {
+        currentStepIndex: 0,
+        videoSwiper: null,
+        imageSwiper: null,
+        cardColors: ['bg-red', 'bg-skyblue', 'bg-green', 'bg-yellow', 'bg-pink'],
+        // --- UPDATED: Image paths now point to a local 'images' folder ---
+        stepsData: [
+            { step: 1, images: ['images/step1A.webp', 'images/step1B.webp', 'images/step1C.jpeg'] },
+            { step: 2, images: ['images/step2A.webp'] },
+            { step: 3, images: ['images/step3A.webp', 'images/step3B.jpeg'] },
+            { step: 4, images: ['images/step4A.webp', 'images/step4B.webp', 'images/step4c.jpeg'] },
+            { step: 5, images: ['images/step5a.webp', 'images/step5b.webp', 'images/step5c.webp', 'images/step5d.webp'] }
+        ],
+        // --- UPDATED: Simplified and expanded instructions ---
+        instructions: {
+            en: {
+                step1: "<h4>Step 1: Look in the Mirror</h4><p>The first step is all about getting to know what your breasts normally look like. It's the simplest yet most important part of the exam. Stand in front of a mirror in a well-lit room with your shirt off. First, just relax your arms by your sides. Take a good look. Notice their usual size, shape, and color. It's very common for one breast to be slightly larger than the other, so don't worry about small differences. You are looking for anything that is new or unusual for you. Look for any visible changes like puckering, dimpling (like the skin of an orange), or bulging of the skin. Check if the skin has any redness, soreness, a rash, or swelling. Also, pay close attention to your nipples. Have they changed position? Is one nipple pushed inward (inverted) when it wasn't before? After this first look, raise your arms high above your head. This movement tightens your chest muscles and can make any subtle lumps or changes in the breast's outline easier to see. Look for the same changes again from this position. Finally, place your hands firmly on your hips and press down. This also flexes your chest muscles. Look again for any changes. This whole process might feel strange at first, but the more you do it, the more familiar you will become with your own body. The goal isn't to diagnose a problem, but simply to notice if something has changed. This knowledge empowers you to talk to a doctor with specific information if you ever need to. Think of it as creating a mental map of your breasts that you can refer back to each month.</p>",
+                step2: "<h4>Step 2: Check While Lying Down</h4><p>This step is about using the sense of touch to feel for any changes inside your breasts. Lying down is the best position for this because it allows your breast tissue to spread out evenly across your chest, making it much easier to feel everything clearly. Lie down on your back on a flat, comfortable surface like your bed. To check your right breast, place a small pillow or a folded towel under your right shoulder. This helps to flatten the breast tissue even more. Now, put your right arm behind your head. With the finger pads of your three middle fingers on your left hand, start to examine your right breast. Keep your fingers flat and together. Don't use your fingertips, as you might mistake normal tissue for a lump. The best way to make sure you cover the entire breast is to use a pattern. A simple and effective one is the vertical pattern. Imagine your breast has up-and-down lines. Start at your armpit and move your fingers down in a straight line to the bottom of your breast. Then, move your fingers over a little and go back up. Repeat this up-and-down motion until you've covered the entire area, from your armpit to the middle of your chest, and from your collarbone down to the top of your abdomen. In each spot, use three levels of pressure. First, use light pressure to feel the tissue just under the skin. Then, use medium pressure to feel a bit deeper. Finally, use firm pressure to feel the tissue closest to your ribs. You need all three to check all layers of the tissue. Once you are done with the right breast, switch sides. Move the pillow under your left shoulder, put your left arm behind your head, and use your right hand to check your left breast with the same pattern and pressures.</p>",
+                step3: "<h4>Step 3: Understanding Pressure</h4><p>Using the right amount of pressure is the key to a good self-exam. If the pressure is too light, you might miss something deeper, and if it's too hard, everything might feel lumpy. That's why using three levels of pressure is so important. Let's break it down. First is light pressure. This is for feeling the tissue that's closest to the surface. Imagine you are gently moving the skin without pressing down into the breast. This level helps you find any small changes that are just below the skin. Next is medium pressure. For this, you'll press a bit harder to feel what's in the middle layer of your breast tissue. It should be firm enough to feel the texture, but not painful. This is where many changes can be felt. Finally, there's firm pressure. This is to check the tissue that lies deep inside, close to your chest wall and ribs. You need to press down quite firmly with your finger pads to feel for the deep tissue. It is very important to use all three levels of pressure on every single spot you check before moving to the next one. A good way to do this is to make small circles with your fingers at each spot, applying light, then medium, then firm pressure. Remember, it's normal for breasts to feel a bit lumpy. This is often due to normal glandular tissue. The purpose of the exam is not to find these normal lumps, but to find anything that feels new, different, or harder than the rest of the tissue. By doing the exam the same way every month, you'll learn what feels normal for you and will be able to spot a change right away if it happens. This skill is your most powerful tool for early detection and peace of mind.</p>",
+                step4: "<h4>Step 4: Check in the Shower</h4><p>Many women find it easier to do the touch part of the exam in the shower. The combination of water and soap makes the skin slippery, so your fingers can glide more easily over your breasts. This can make it simpler to notice any unusual textures, lumps, or areas of thickening that you might not feel on dry skin. The technique is very similar to the one you use when lying down. First, raise one arm behind your head. For example, to check your right breast, raise your right arm. Use the flat finger pads of your opposite hand (your left hand) to do the examination. Apply some soap to your hand and breast area to create a smooth surface. Use the same vertical up-and-down pattern that we talked about in Step 2. Start from your armpit and move down to below your breast, then move over a little and go back up. Continue until you've covered the whole area from the outside to the center. Also, remember to use the three levels of pressure—light, medium, and firm—on each spot. The warm water of the shower can also help to relax you and your muscles, which can make the examination more comfortable and effective. Pay attention to anything that feels different. This could be a hard lump, like a pea or a marble, a thickened area that feels different from the surrounding tissue, or any other change. After you've thoroughly checked your right breast, switch sides. Raise your left arm and use your right hand to examine your left breast in the same way. The shower provides a convenient and private time to incorporate this important health habit into your routine. Doing it monthly will build your confidence and help you stay in tune with your body's health.</p>",
+                step5: "<h4>Step 5: Check Your Nipples</h4><p>The final step is to pay special attention to your nipples, as changes here can also be an important sign. You already looked at them in the mirror in Step 1, but this step involves a gentle physical check. You can do this right after your shower or when you are getting dressed. Gently squeeze each nipple between your thumb and index finger. You are checking to see if any fluid, or discharge, comes out. A little bit of discharge can sometimes be normal, especially if you are breastfeeding or have recently been pregnant. However, you should tell your doctor about any new discharge, especially if it is clear or bloody, and if it comes out without you squeezing the nipple. If there is any discharge, notice its color (is it milky, yellow, green, or bloody?). This is helpful information for your doctor. Besides checking for discharge, take another look at your nipples. Have they recently become inverted (turned inward)? While some women naturally have inverted nipples, a nipple that newly turns inward can be a sign of a change happening behind it. Also, notice if there is any pain when you gently squeeze. Finally, look at the skin on your nipple and the darker area around it (the areola). Check for any skin that is scaly, peeling, or looks like a rash or a sore. This focused check is a quick but vital part of a complete self-exam. The goal, like with all the steps, is to know what is normal for you so you can spot any changes. Most changes are not serious, but it's always best to be aware and get them checked out by a professional if you are concerned. This simple action completes your monthly self-exam and gives you a full picture of your breast health.</p>"
+            },
+            hi: {
+                step1: "<h4>कदम 1: शीशे में देखें</h4><p>पहला कदम यह जानना है कि आपके स्तन सामान्य रूप से कैसे दिखते हैं। यह सबसे सरल लेकिन सबसे महत्वपूर्ण हिस्सा है। अच्छी रोशनी वाले कमरे में शीशे के सामने खड़ी हो जाएं। सबसे पहले, अपनी बाहों को अपने बगल में आराम से रखें। अच्छी तरह से देखें। उनके सामान्य आकार, और रंग पर ध्यान दें। यह बहुत आम है कि एक स्तन दूसरे से थोड़ा बड़ा हो, इसलिए छोटे अंतरों के बारे में चिंता न करें। आप ऐसी किसी भी चीज़ की तलाश में हैं जो आपके लिए नई या असामान्य हो। त्वचा में किसी भी तरह के बदलाव को देखें जैसे कि सिकुड़न, डिंपल पड़ना (जैसे संतरे का छिलका), या त्वचा का उभार। जांचें कि त्वचा पर कोई लाली, दर्द, दाने या सूजन तो नहीं है। साथ ही, अपने निपल्स पर भी पूरा ध्यान दें। क्या उन्होंने अपनी स्थिति बदली है? क्या एक निप्पल अंदर की ओर धंस गया है? इस पहली नज़र के बाद, अपनी बाहों को अपने सिर के ऊपर उठाएं। यह मूवमेंट आपकी छाती की मांसपेशियों को कसता है और किसी भी गांठ या बदलाव को देखना आसान बना सकता है। अंत में, अपने हाथों को अपनी कमर पर मजबूती से रखें और नीचे दबाएं। यह भी आपकी छाती की मांसपेशियों को सिकोड़ता है। फिर से किसी भी बदलाव की तलाश करें। यह पूरी प्रक्रिया पहली बार में अजीब लग सकती है, लेकिन जितना अधिक आप इसे करेंगी, आप अपने शरीर से उतनी ही अधिक परिचित हो जाएंगी। इसका लक्ष्य किसी समस्या का पता लगाना नहीं है, बल्कि केवल यह नोटिस करना है कि क्या कुछ बदला है।</p>",
+                step2: "<h4>कदम 2: लेटकर जांच करें</h4><p>यह कदम स्पर्श की भावना का उपयोग करके आपके स्तनों के अंदर किसी भी बदलाव को महसूस करने के बारे में है। इसके लिए लेटना सबसे अच्छी स्थिति है क्योंकि यह आपके स्तन के ऊतकों को आपकी छाती पर समान रूप से फैलाने देता है, जिससे सब कुछ स्पष्ट रूप से महसूस करना बहुत आसान हो जाता है। अपनी पीठ के बल एक सपाट, आरामदायक सतह पर लेट जाएं। अपने दाहिने स्तन की जांच करने के लिए, अपने दाहिने कंधे के नीचे एक छोटा तकिया रखें। अब, अपनी दाहिनी बांह को अपने सिर के पीछे रखें। अपने बाएं हाथ की तीन बीच की उंगलियों के पोरों से, अपने दाहिने स्तन की जांच करना शुरू करें। अपनी उंगलियों को सपाट और एक साथ रखें। अपनी उंगलियों के सिरों का उपयोग न करें। यह सुनिश्चित करने का सबसे अच्छा तरीका है कि आप पूरे स्तन को कवर करती हैं, एक पैटर्न का उपयोग करना है। एक सरल और प्रभावी तरीका वर्टिकल पैटर्न है। अपनी कांख से शुरू करें और अपनी उंगलियों को एक सीधी रेखा में अपने स्तन के नीचे तक ले जाएं। फिर, अपनी उंगलियों को थोड़ा बगल में ले जाएं और वापस ऊपर जाएं। इस ऊपर-नीचे की गति को तब तक दोहराएं जब तक कि आप पूरे क्षेत्र को कवर न कर लें। प्रत्येक स्थान पर, तीन स्तरों के दबाव का उपयोग करें। पहले, त्वचा के ठीक नीचे के ऊतक को महसूस करने के लिए हल्के दबाव का उपयोग करें। फिर, थोड़ा गहरा महसूस करने के लिए मध्यम दबाव का उपयोग करें। अंत में, अपनी पसलियों के सबसे करीब के ऊतक को महसूस करने के लिए दृढ़ दबाव का उपयोग करें। एक बार जब आप दाहिने स्तन की जांच कर लें, तो दूसरी तरफ भी ऐसा ही करें।</p>",
+                step3: "<h4>कदम 3: दबाव को समझें</h4><p>सही मात्रा में दबाव का उपयोग करना एक अच्छी आत्म-परीक्षा की कुंजी है। यदि दबाव बहुत हल्का है, तो आप कुछ गहरा चूक सकती हैं, और यदि यह बहुत कठिन है, तो सब कुछ गांठदार महसूस हो सकता है। इसीलिए तीन स्तरों के दबाव का उपयोग करना इतना महत्वपूर्ण है। पहला है हल्का दबाव। यह सतह के सबसे करीब के ऊतक को महसूस करने के लिए है। कल्पना कीजिए कि आप त्वचा को स्तन में नीचे दबाए बिना धीरे-धीरे घुमा रही हैं। अगला है मध्यम दबाव। इसके लिए, आप अपने स्तन के ऊतक की बीच की परत में महसूस करने के लिए थोड़ा जोर से दबाएंगी। यह इतना दृढ़ होना चाहिए कि बनावट महसूस हो, लेकिन दर्दनाक नहीं। अंत में, दृढ़ दबाव है। यह उस ऊतक की जांच करने के लिए है जो आपकी छाती की दीवार और पसलियों के करीब गहराई में स्थित है। आपको अपनी उंगलियों के पोरों से काफी मजबूती से नीचे दबाने की जरूरत है। यह बहुत महत्वपूर्ण है कि आप अगले स्थान पर जाने से पहले आपके द्वारा जांचे जाने वाले प्रत्येक स्थान पर तीनों स्तरों के दबाव का उपयोग करें। ऐसा करने का एक अच्छा तरीका है कि आप प्रत्येक स्थान पर अपनी उंगलियों से छोटे घेरे बनाएं, हल्का, फिर मध्यम, फिर दृढ़ दबाव डालें। याद रखें, स्तनों का थोड़ा गांठदार महसूस होना सामान्य है। परीक्षा का उद्देश्य इन सामान्य गांठों को ढूंढना नहीं है, बल्कि ऐसा कुछ भी ढूंढना है जो नया, अलग या बाकी ऊतकों से सख्त महसूस हो।</p>",
+                step4: "<h4>कदम 4: शॉवर में जांच करें</h4><p>कई महिलाओं को शॉवर में परीक्षा का स्पर्श वाला हिस्सा करना आसान लगता है। पानी और साबुन का संयोजन त्वचा को फिसलन भरा बना देता है, इसलिए आपकी उंगलियां आपके स्तनों पर अधिक आसानी से फिसल सकती हैं। इससे किसी भी असामान्य बनावट, गांठ या मोटे क्षेत्रों को नोटिस करना आसान हो सकता है जो आपको सूखी त्वचा पर महसूस नहीं हो सकता है। तकनीक बहुत कुछ वैसी ही है जैसी आप लेटते समय इस्तेमाल करती हैं। सबसे पहले, एक हाथ को अपने सिर के पीछे उठाएं। उदाहरण के लिए, अपने दाहिने स्तन की जांच करने के लिए, अपनी दाहिनी बांह उठाएं। जांच करने के लिए अपने विपरीत हाथ (बाएं हाथ) के सपाट उंगली के पोरों का उपयोग करें। एक चिकनी सतह बनाने के लिए अपने हाथ और स्तन क्षेत्र पर कुछ साबुन लगाएं। उसी वर्टिकल ऊपर-नीचे पैटर्न का उपयोग करें जिसके बारे में हमने चरण 2 में बात की थी। अपनी कांख से शुरू करें और अपने स्तन के नीचे तक जाएं, फिर थोड़ा आगे बढ़ें और वापस ऊपर जाएं। प्रत्येक स्थान पर तीन स्तरों के दबाव - हल्का, मध्यम और दृढ़ - का उपयोग करना भी याद रखें। शॉवर का गर्म पानी आपको और आपकी मांसपेशियों को आराम देने में भी मदद कर सकता है, जो परीक्षा को अधिक आरामदायक और प्रभावी बना सकता है। किसी भी ऐसी चीज़ पर ध्यान दें जो अलग महसूस हो। शॉवर इस महत्वपूर्ण स्वास्थ्य आदत को अपनी दिनचर्या में शामिल करने के लिए एक सुविधाजनक और निजी समय प्रदान करता है।</p>",
+                step5: "<h4>कदम 5: अपने निपल्स की जांच करें</h4><p>अंतिम चरण अपने निपल्स पर विशेष ध्यान देना है, क्योंकि यहां परिवर्तन भी एक महत्वपूर्ण संकेत हो सकते हैं। आपने उन्हें पहले ही चरण 1 में शीशे में देखा है, लेकिन इस चरण में एक कोमल शारीरिक जांच शामिल है। आप इसे अपने शॉवर के ठीक बाद या जब आप कपड़े पहन रही हों तब कर सकती हैं। प्रत्येक निप्पल को अपने अंगूठे और तर्जनी के बीच धीरे से निचोड़ें। आप यह जांच रही हैं कि कोई तरल पदार्थ या डिस्चार्ज तो नहीं निकलता है। थोड़ा सा डिस्चार्ज कभी-कभी सामान्य हो सकता है, खासकर यदि आप स्तनपान करा रही हैं। हालांकि, आपको अपने डॉक्टर को किसी भी नए डिस्चार्ज के बारे में बताना चाहिए, खासकर यदि वह साफ या खूनी हो, और यदि वह आपके निप्पल को निचोड़े बिना निकलता है। यदि कोई डिस्चार्ज होता है, तो उसके रंग पर ध्यान दें। डिस्चार्ज की जांच के अलावा, अपने निपल्स पर एक और नज़र डालें। क्या वे हाल ही में अंदर की ओर धंस गए हैं? साथ ही, ध्यान दें कि जब आप धीरे से निचोड़ती हैं तो कोई दर्द तो नहीं होता है। अंत में, अपने निप्पल और उसके आसपास के गहरे क्षेत्र (एरिओला) की त्वचा को देखें। किसी भी ऐसी त्वचा की जांच करें जो पपड़ीदार, छिल रही हो, या दाने या घाव की तरह दिख रही हो। यह केंद्रित जांच एक पूर्ण आत्म-परीक्षा का एक त्वरित लेकिन महत्वपूर्ण हिस्सा है। लक्ष्य, सभी चरणों की तरह, यह जानना है कि आपके लिए क्या सामान्य है ताकि आप किसी भी बदलाव को देख सकें।</p>"
+            }
+        },
+        logQuestions: [
+            { section: "Step 1: Mirror Check", questions: [ { id: 'log_q1a', text: "Kya dono breasts size aur shape me same lag rahe hain?", type: 'yes_no' }, { id: 'log_q1b', text: "Kya skin me koi dimpling ya indentation dikha?", type: 'yes_no' }, { id: 'log_q1c', text: "Kya nipple me koi inversion ya unusual change hai?", type: 'yes_no' } ] },
+            { section: "Step 2: Arm Positions", questions: [ { id: 'log_q2a', text: "Kya dono breasts ka contour normal lag raha hai?", type: 'yes_no' }, { id: 'log_q2b', text: "Kya swelling ya asymmetry notice ki?", type: 'yes_no' } ] },
+            { section: "Step 3: Lying Down Check", questions: [ { id: 'log_q3a', text: "Kya aapne entire breast area touch kiya?", type: 'yes_no' }, { id: 'log_q3b', text: "Kya koi lump ya thickening feel hua?", type: 'yes_no_describe' }, { id: 'log_q3c', text: "Kya tenderness ya pain feel hua?", type: 'yes_no_scale' } ] },
+            { section: "Step 4: Nipple Check", questions: [ { id: 'log_q4a', text: "Kya nipple discharge notice kiya?", type: 'yes_no_describe' }, { id: 'log_q4b', text: "Kya nipple ka texture ya shape abnormal lag raha hai?", type: 'yes_no' } ] },
+            { section: "Step 5: Touch & Pressure", questions: [ { id: 'log_q5a', text: "Kya aapne light, medium aur firm pressure try kiya?", type: 'yes_no' }, { id: 'log_q5b', text: "Kya aapne breast ke sare areas check kiye (top, bottom, inner, outer, armpit)?", type: 'yes_no' } ] }
+        ],
+
+        init: function() {
+            this.videoSwiper = new Swiper('#video-swiper', {
+                navigation: { nextEl: '#video-swiper .swiper-button-next', prevEl: '#video-swiper .swiper-button-prev' },
+                on: { slideChange: () => this.handleVideoSlideChange() }
             });
-        }
+            this.imageSwiper = new Swiper('#image-swiper', {});
+            
+            document.getElementById('breastHealthAiForm').addEventListener('submit', (e) => this.handleAiFormSubmit(e));
+            
+            this.buildAiForm();
+            this.updateStep(0);
+        },
 
-        addedMedicinesList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remove-med-btn')) {
-                const index = e.target.dataset.index;
-                medicinesToDonate.splice(index, 1);
-                renderAddedMedicines();
-            }
-        });
+        handleVideoSlideChange: function() {
+            const allIframes = document.querySelectorAll('#video-swiper iframe');
+            allIframes.forEach((iframe) => {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+                }
+            });
+        },
+        
+        updateStep: function(index) {
+            this.currentStepIndex = index;
+            const stepData = this.stepsData[this.currentStepIndex];
+            
+            document.getElementById('step-title').textContent = `Step ${stepData.step}`;
+            
+            const imageWrapper = document.getElementById('image-swiper-wrapper');
+            imageWrapper.innerHTML = stepData.images.map(img => `<div class="swiper-slide"><img src="${img}" alt="Step ${stepData.step} illustration"></div>`).join('');
+            
+            this.imageSwiper.update(); this.imageSwiper.slideTo(0);
 
-        submitAllDonationsBtn.addEventListener('click', async() => {
-            if (medicinesToDonate.length === 0) {
-                alert("Kripya kam se kam ek dawai jodein.");
+            const nextBtn = document.getElementById('next-step-btn');
+            const isLastStep = this.currentStepIndex === this.stepsData.length - 1;
+            nextBtn.textContent = isLastStep ? 'Log Findings' : 'Next';
+            nextBtn.classList.toggle('submit-style', isLastStep);
+
+            this.changeInstructionLanguage(document.querySelector('#instr-lang-en').classList.contains('active') ? 'en' : 'hi');
+        },
+
+        nextStep: function() {
+            if (this.currentStepIndex === this.stepsData.length - 1) {
+                showPage('page_breast_health_ai_form');
                 return;
             }
-            if (!currentUserData || !currentUserData.name) {
-                alert("Aapki profile load ho rahi hai, kripya thodi der baad koshish karein.");
-                return;
-            }
+            let nextIndex = this.currentStepIndex + 1;
+            this.updateStep(nextIndex);
+        },
+        
+        changeInstructionLanguage: function(lang) {
+            document.querySelectorAll('#instr-lang-en, #instr-lang-hi').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`instr-lang-${lang}`).classList.add('active');
+            
+            const contentDiv = document.getElementById('instruction-content');
+            const stepKey = `step${this.currentStepIndex + 1}`;
+            contentDiv.innerHTML = this.instructions[lang][stepKey];
 
-            try {
-                await addDoc(collection(db, "donations"), {
-                    donorId: currentUserId,
-                    donorName: currentUserData.name,
-                    donorLocation: currentUserData.location || null,
-                    medicines: medicinesToDonate,
-                    status: "Available",
-                    createdAt: serverTimestamp()
+            const textCard = document.getElementById('instruction-text-card');
+            textCard.className = 'scrollable-text-card'; // Reset classes
+            textCard.classList.add(this.cardColors[this.currentStepIndex % this.cardColors.length]);
+        },
+
+        buildAiForm: function() {
+            const form = document.getElementById('breastHealthAiForm');
+            let formHTML = '';
+            this.logQuestions.forEach(section => {
+                formHTML += `<h3 class="fieldset-title">${section.section}</h3>`;
+                section.questions.forEach(q => {
+                    formHTML += `<div class="form-group"><label for="${q.id}">${q.text}</label>`;
+                    switch(q.type) {
+                        case 'yes_no': formHTML += `<select id="${q.id}" name="${q.id}"><option value="no">No</option><option value="yes">Yes</option></select>`; break;
+                        case 'yes_no_describe': formHTML += `<select id="${q.id}" name="${q.id}" onchange="document.getElementById('${q.id}_desc').style.display=this.value==='yes'?'block':'none'"><option value="no">No</option><option value="yes">Yes</option></select><textarea name="${q.id}_desc" id="${q.id}_desc" style="display:none; margin-top:10px;" placeholder="Describe..."></textarea>`; break;
+                        case 'yes_no_scale': formHTML += `<select id="${q.id}" name="${q.id}" onchange="document.getElementById('${q.id}_scale').style.display=this.value==='yes'?'block':'none'"><option value="no">No</option><option value="yes">Yes</option></select><input type="range" name="${q.id}_scale" id="${q.id}_scale" min="1" max="10" value="5" style="display:none; margin-top:10px;">`; break;
+                    }
+                    formHTML += `</div>`;
                 });
-
-                alert("Aapke daan ke liye dhanyavaad!");
-                medicinesToDonate = [];
-                renderAddedMedicines();
-                showPage('page-home');
-            } catch (e) {
-                console.error("Error submitting donation: ", e);
-                alert("Donation save karne me error hua. Kripya dobara koshish karein.");
-            }
-        });
-
-        // --- 4. Home Page Logic ---
-        async function loadAllDonations() {
-            const grid = document.getElementById('donations-grid');
-            grid.innerHTML = '<p>Donations load ho rahe hain...</p>';
-            try {
-                const q = query(collection(db, "donations"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-
-                grid.innerHTML = '';
-                if (querySnapshot.empty) {
-                    grid.innerHTML = '<p>Abhi koi dawai donate nahi hui hai.</p>';
-                    return;
-                }
-
-                querySnapshot.forEach(doc => {
-                    const donation = doc.data();
-                    if (donation.medicines && donation.medicines.length > 0) {
-                        const firstMed = donation.medicines[0];
-                        const card = document.createElement('div');
-                        card.className = 'donation-card-item';
-                        card.innerHTML = `
-                        <div>
-                            <p class="med-name">${firstMed.medicineName}</p>
-                            <p class="med-info">${firstMed.quantity}</p>
-                            <p class="med-info">Exp: ${firstMed.expiryDate}</p>
-                        </div>
-                        <button class="btn open-btn" data-id="${doc.id}">Open</button>
-                    `;
-                        grid.appendChild(card);
-                    }
-                });
-            } catch (error) {
-                console.error("Donations load karne me error:", error);
-                grid.innerHTML = '<p>Donations load nahi ho paye. Apne Firebase Rules check karein.</p>';
-            }
-        }
-
-        // --- 5. Donation Details Modal Logic ---
-        const modal = document.getElementById('donation-details-modal');
-        document.getElementById('donations-grid').addEventListener('click', async(e) => {
-            if (e.target.classList.contains('open-btn')) {
-                const donationId = e.target.dataset.id;
-                const docRef = doc(db, "donations", donationId);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    document.getElementById('modal-donor-name').innerText = data.donorName;
-
-                    const medList = document.getElementById('modal-medicines-list');
-                    medList.innerHTML = data.medicines.map(m => `<p>${m.medicineName} (${m.quantity})</p>`).join('');
-
-                    const locationBtn = document.getElementById('modal-location-btn');
-                    if (data.donorLocation && data.donorLocation.lat) {
-                        locationBtn.href = `https://www.google.com/maps?q=${data.donorLocation.lat},${data.donorLocation.lng}`;
-                        locationBtn.style.display = 'block';
-                    } else {
-                        locationBtn.style.display = 'none';
-                    }
-
-                    const messageBtn = document.getElementById('modal-message-btn');
-                    if (data.donorId === currentUserId) {
-                        messageBtn.style.display = 'none';
-                    } else {
-                        messageBtn.style.display = 'block';
-                        messageBtn.dataset.receiverId = data.donorId;
-                        messageBtn.dataset.receiverName = data.donorName;
-                    }
-
-                    modal.style.display = 'flex';
-                }
-            }
-        });
-
-        document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; }
-        window.onclick = (event) => { if (event.target == modal) { modal.style.display = "none"; } }
-
-        document.getElementById('modal-message-btn').addEventListener('click', (e) => {
-            const receiverId = e.target.dataset.receiverId;
-            const receiverName = e.target.dataset.receiverName;
-            modal.style.display = 'none';
-            openChat(receiverId, receiverName);
-        });
-
-        // --- 6. Messaging Logic ---
-        async function openChat(receiverId, receiverName) {
-            // Function content remains the same
-        }
-        document.getElementById('message-form').addEventListener('submit', async(e) => {
-            // Function content remains the same
-        });
-        document.querySelector('.back-to-chats').addEventListener('click', () => {
-            // Function content remains the same
-        });
-
-        function loadUserChats(userId) {
-            // Function content remains the same, ensure Firebase Index is created.
-        }
-
-        // --- 7. Profile Page Logic (UPDATED) ---
-        const editProfileBtn = document.getElementById('edit-profile-btn');
-        const saveProfileBtn = document.getElementById('save-profile-btn');
-        const updateLocationProfileBtn = document.getElementById('update-location-profile-btn');
-        const profileForm = document.getElementById('profile-form');
-        const profileInputs = profileForm.querySelectorAll('input, textarea');
-        const locationStatusDiv = document.getElementById('profile-location-status');
-
-        function loadUserProfile() {
-            if (currentUserData) {
-                document.getElementById('profile-name').value = currentUserData.name || '';
-                document.getElementById('profile-mobile').value = currentUserData.mobile || '';
-                document.getElementById('profile-address').value = currentUserData.address || '';
-                
-                // =================== नया बदलाव शुरू ===================
-                const mapButton = document.getElementById('view-map-btn');
-                if (currentUserData.location && currentUserData.location.lat) {
-                    locationStatusDiv.textContent = 'Location Saved';
-                    mapButton.href = `https://www.google.com/maps?q=${currentUserData.location.lat},${currentUserData.location.lng}`;
-                    mapButton.style.display = 'inline-flex'; // बटन को दिखाएँ
-                } else {
-                    locationStatusDiv.textContent = 'No Location Saved';
-                    mapButton.style.display = 'none'; // बटन को छिपाएँ
-                }
-                // =================== नया बदलाव खत्म ===================
-            }
-            temporaryLocation = null; // Reset temp location on load
-        }
-
-        editProfileBtn.addEventListener('click', () => {
-            profileInputs.forEach(input => input.readOnly = false);
-            saveProfileBtn.style.display = 'block';
-            updateLocationProfileBtn.style.display = 'block';
-            editProfileBtn.style.display = 'none';
-        });
-
-        updateLocationProfileBtn.addEventListener('click', () => {
-            if (navigator.geolocation) {
-                locationStatusDiv.textContent = 'आपकी सबसे सटीक लोकेशन ढूंढी जा रही है...';
-                
-                navigator.geolocation.getCurrentPosition(async(position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    
-                    temporaryLocation = { lat: lat, lng: lon };
-                    
-                    const accuracy = position.coords.accuracy;
-                    locationStatusDiv.textContent = `नई लोकेशन मिल गई है! (सटीकता: ${accuracy.toFixed(2)} मीटर)`;
-                    alert(`नई लोकेशन मिल गई है! अब "बदलाव सेव करें" पर क्लिक करें।`);
-                    
-                    try {
-                        const addressTextarea = document.getElementById('profile-address');
-                        const originalAddress = addressTextarea.value;
-                        addressTextarea.value = "नया पता ढूंढा जा रहा है...";
-                        
-                        const response = await fetch(`/get-address-from-coords?lat=${lat}&lon=${lon}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.address) {
-                                addressTextarea.value = data.address;
-                            } else {
-                                addressTextarea.value = originalAddress;
-                            }
-                        } else {
-                            addressTextarea.value = originalAddress;
-                        }
-                    } catch (error) {
-                        console.error("Error fetching address for profile:", error);
-                        document.getElementById('profile-address').value = originalAddress;
-                    }
-                    
-                }, (error) => {
-                    let errorMessage = "लोकेशन प्राप्त नहीं हो सकी।";
-                    if (error.code === error.TIMEOUT) {
-                        errorMessage = "लोकेशन प्राप्त करने में अधिक समय लग रहा है। कृपया खुली जगह पर जाकर प्रयास करें।";
-                    }
-                    alert(errorMessage);
-                    locationStatusDiv.textContent = currentUserData.location ? 'Location Saved' : 'No Location Saved';
-                    console.error("Geolocation error on profile update:", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                });
+            });
+            const submitButton = form.querySelector('button[type="submit"]');
+            if(submitButton){
+                form.innerHTML = formHTML;
+                form.appendChild(submitButton);
             } else {
-                alert("यह ब्राउज़र जियोलोकेशन को सपोर्ट नहीं करता है।");
+                 form.innerHTML = formHTML + '<button type="submit" class="btn-3d" style="width:100%; margin-top: 20px;">Submit Log & Get AI Reply</button>';
             }
-        });
+        },
 
-        profileForm.addEventListener('submit', async(e) => {
-            e.preventDefault();
-            const updatedData = {
-                name: document.getElementById('profile-name').value,
-                mobile: document.getElementById('profile-mobile').value,
-                address: document.getElementById('profile-address').value,
-            };
+        async handleAiFormSubmit(event) {
+            event.preventDefault();
+            const replyContainer = document.getElementById('ai-log-reply-container');
+            replyContainer.innerHTML = createResultCard('AI Analysis', 'Analyzing your log with Gemini AI...', 'skyblue');
 
-            if (temporaryLocation) {
-                updatedData.location = temporaryLocation;
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Create a detailed prompt for the AI
+            let prompt = "Analyze the following breast self-exam log for potential risks. Provide a reassuring but clear analysis. If there are high-risk signs (lump, discharge), strongly recommend seeing a doctor. If there are moderate-risk signs (skin changes), recommend monitoring and a routine check-up. If no signs, provide positive reinforcement. The user's log is as follows:\n";
+            for (const key in data) {
+                if (data[key]) {
+                    prompt += `- ${key.replace(/_/g, ' ')}: ${data[key]}\n`;
+                }
             }
-
+            
             try {
-                const userDocRef = doc(db, "users", currentUserId);
-                await updateDoc(userDocRef, updatedData);
-
-                // currentUserData को लोकल में अपडेट करें ताकि UI तुरंत रिफ्रेश हो सके
-                // Firestore से दोबारा पढ़ने की ज़रूरत नहीं है
-                currentUserData = { ...currentUserData, ...updatedData };
-                alert("Profile safaltapoorvak update ho gayi!");
-
-                profileInputs.forEach(input => input.readOnly = true);
-                saveProfileBtn.style.display = 'none';
-                updateLocationProfileBtn.style.display = 'none';
-                editProfileBtn.style.display = 'block';
-                loadUserProfile(); // UI को अपडेटेड डेटा के साथ फिर से लोड करें
-
+                // Get the AI response
+                const aiReply = await getAIResponseFromGemini(prompt);
+                let cardColor = 'green';
+                if (aiReply.toLowerCase().includes('urgent') || aiReply.toLowerCase().includes('immediately')) {
+                    cardColor = 'red';
+                } else if (aiReply.toLowerCase().includes('monitor') || aiReply.toLowerCase().includes('attention')) {
+                    cardColor = 'yellow';
+                }
+                
+                replyContainer.innerHTML = createResultCard('AI Analysis of Your Log', aiReply, cardColor);
             } catch (error) {
-                console.error("Error updating profile: ", error);
-                alert("Profile update karne me error hua.");
+                console.error("Error getting AI response:", error);
+                replyContainer.innerHTML = createResultCard('Error', 'Could not get an AI response. Please try again later.', 'red');
             }
+        }
+    };
+    
+    /**
+     * --- GEMINI API INTEGRATION PLACEHOLDER ---
+     * IMPORTANT: This is a placeholder function. The logic inside should be
+     * moved to your backend server (e.g., running on Render). Your frontend
+     * should make a 'fetch' request to your server's endpoint.
+     * Your server will then securely use the GEMINI_API_KEY to call the
+     * actual Gemini API and handle the coin/token logic.
+     */
+    async function getAIResponseFromGemini(prompt) {
+        console.log("--- Sending this prompt to AI (simulation) ---");
+        console.log(prompt);
+        
+        // --- THIS IS A SIMULATION. REPLACE WITH ACTUAL BACKEND CALL ---
+        // Example of what your REAL frontend code might look like:
+        /*
+        const response = await fetch('https://your-render-app-url.onrender.com/api/get-ai-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: prompt, userId: 'some_user_id' }) // Send prompt and user ID for coin logic
         });
-    </script>
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data.analysis;
+        */
+
+        // Simulating network delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Simulating different AI responses based on prompt content
+        if (prompt.includes("lumps: yes") || prompt.includes("discharge: yes")) {
+            return "<strong>Urgent Attention Recommended.</strong> Your log indicates findings such as a lump or nipple discharge. While not all lumps are serious, it is highly recommended to consult a doctor as soon as possible for a professional examination. Early detection is very important for your peace of mind and health.";
+        } else if (prompt.includes("skin_changes: yes") || prompt.includes("asymmetry: yes")) {
+             return "<strong>Attention Needed.</strong> Your log notes some changes like skin dimpling or asymmetry. These are worth paying attention to. We recommend monitoring these changes closely and scheduling a routine check-up with your doctor to discuss these findings and ensure everything is okay.";
+        } else {
+            return "<strong>Good Report.</strong> Based on your log, your self-exam shows no immediate signs for concern. This is great news! Continuing to perform regular monthly self-exams is a powerful way to stay aware of your breast health. Keep up the great work!";
+        }
+    }
+
+</script>
+
 </body>
 </html>
