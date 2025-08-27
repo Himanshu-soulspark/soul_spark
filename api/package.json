@@ -2,9 +2,9 @@
   "name": "shubhmed-api-server",
   "version": "1.0.0",
   "description": "Backend server for Shubhmed app to handle AI, payments, and Firebase logic.",
-  "main": "server.js",
+  "main": "api/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node api/server.js"
   },
   "author": "Shubhmed",
   "license": "ISC",
