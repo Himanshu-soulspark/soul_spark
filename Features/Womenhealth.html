@@ -746,10 +746,11 @@
 <!-- ================================================================= -->
 <script type="module">
     // --- FIREBASE SDK AND INITIALIZATION ---
-    // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+    // ज़रूरी बदलाव: Firebase Auth को इम्पोर्ट करें
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -767,6 +768,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const analytics = getAnalytics(app);
+    // ज़रूरी बदलाव: Auth सर्विस को शुरू करें
+    const auth = getAuth(app);
 
     // Make db accessible globally for the script
     window.db = db;
@@ -853,6 +856,18 @@
     window.navigateForm = navigateForm;
 
     document.addEventListener('DOMContentLoaded', () => {
+        // ज़रूरी बदलाव: Auth state को सुनें और अगर यूज़र लॉग इन नहीं है तो गुमनाम रूप से करें
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("User is authenticated:", user.uid);
+            } else {
+                console.log("No user. Signing in anonymously.");
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Anonymous sign-in failed:", error);
+                });
+            }
+        });
+
         buildForm('en');
         buildBreastHealthScoreForm('en');
         navigateForm(0);
@@ -1350,15 +1365,14 @@
         videoSwiper: null,
         imageSwiper: null,
         cardColors: ['bg-red', 'bg-skyblue', 'bg-green', 'bg-yellow', 'bg-pink'],
-        // --- UPDATED: Image paths now point to a local 'images' folder ---
+        // --- ज़रूरी बदलाव: इमेज के पाथ को ठीक किया गया है ---
         stepsData: [
-            { step: 1, images: ['images/step1A.webp', 'images/step1B.webp', 'images/step1C.jpeg'] },
-            { step: 2, images: ['images/step2A.webp'] },
-            { step: 3, images: ['images/step3A.webp', 'images/step3B.jpeg'] },
-            { step: 4, images: ['images/step4A.webp', 'images/step4B.webp', 'images/step4c.jpeg'] },
-            { step: 5, images: ['images/step5a.webp', 'images/step5b.webp', 'images/step5c.webp', 'images/step5d.webp'] }
+            { step: 1, images: ['../image/step1A.webp', '../image/step1B.webp', '../image/step1C.jpeg'] },
+            { step: 2, images: ['../image/step2A.webp'] },
+            { step: 3, images: ['../image/step3A.webp', '../image/step3B.jpeg'] },
+            { step: 4, images: ['../image/step4A.webp', '../image/step4B.webp', '../image/step4c.jpeg'] },
+            { step: 5, images: ['../image/step5a.webp', '../image/step5b.webp', '../image/step5c.webp', '../image/step5d.webp'] }
         ],
-        // --- UPDATED: Simplified and expanded instructions ---
         instructions: {
             en: {
                 step1: "<h4>Step 1: Look in the Mirror</h4><p>The first step is all about getting to know what your breasts normally look like. It's the simplest yet most important part of the exam. Stand in front of a mirror in a well-lit room with your shirt off. First, just relax your arms by your sides. Take a good look. Notice their usual size, shape, and color. It's very common for one breast to be slightly larger than the other, so don't worry about small differences. You are looking for anything that is new or unusual for you. Look for any visible changes like puckering, dimpling (like the skin of an orange), or bulging of the skin. Check if the skin has any redness, soreness, a rash, or swelling. Also, pay close attention to your nipples. Have they changed position? Is one nipple pushed inward (inverted) when it wasn't before? After this first look, raise your arms high above your head. This movement tightens your chest muscles and can make any subtle lumps or changes in the breast's outline easier to see. Look for the same changes again from this position. Finally, place your hands firmly on your hips and press down. This also flexes your chest muscles. Look again for any changes. This whole process might feel strange at first, but the more you do it, the more familiar you will become with your own body. The goal isn't to diagnose a problem, but simply to notice if something has changed. This knowledge empowers you to talk to a doctor with specific information if you ever need to. Think of it as creating a mental map of your breasts that you can refer back to each month.</p>",
@@ -1478,7 +1492,6 @@
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
             
-            // Create a detailed prompt for the AI
             let prompt = "Analyze the following breast self-exam log for potential risks. Provide a reassuring but clear analysis. If there are high-risk signs (lump, discharge), strongly recommend seeing a doctor. If there are moderate-risk signs (skin changes), recommend monitoring and a routine check-up. If no signs, provide positive reinforcement. The user's log is as follows:\n";
             for (const key in data) {
                 if (data[key]) {
@@ -1487,60 +1500,61 @@
             }
             
             try {
-                // Get the AI response
+                // Get the AI response from the backend
                 const aiReply = await getAIResponseFromGemini(prompt);
                 let cardColor = 'green';
-                if (aiReply.toLowerCase().includes('urgent') || aiReply.toLowerCase().includes('immediately')) {
+                if (aiReply.toLowerCase().includes('urgent') || aiReply.toLowerCase().includes('immediately') || aiReply.toLowerCase().includes('तुरंत')) {
                     cardColor = 'red';
-                } else if (aiReply.toLowerCase().includes('monitor') || aiReply.toLowerCase().includes('attention')) {
+                } else if (aiReply.toLowerCase().includes('monitor') || aiReply.toLowerCase().includes('attention') || aiReply.toLowerCase().includes('ध्यान दें')) {
                     cardColor = 'yellow';
                 }
                 
                 replyContainer.innerHTML = createResultCard('AI Analysis of Your Log', aiReply, cardColor);
             } catch (error) {
                 console.error("Error getting AI response:", error);
-                replyContainer.innerHTML = createResultCard('Error', 'Could not get an AI response. Please try again later.', 'red');
+                replyContainer.innerHTML = createResultCard('Error', error.message, 'red');
             }
         }
     };
     
+    // --- ज़रूरी बदलाव: असली AI कॉल के लिए फंक्शन को अपडेट किया गया ---
     /**
-     * --- GEMINI API INTEGRATION PLACEHOLDER ---
-     * IMPORTANT: This is a placeholder function. The logic inside should be
-     * moved to your backend server (e.g., running on Render). Your frontend
-     * should make a 'fetch' request to your server's endpoint.
-     * Your server will then securely use the GEMINI_API_KEY to call the
-     * actual Gemini API and handle the coin/token logic.
+     * यह फंक्शन अब आपके सर्वर पर असली AI से जवाब मांगता है।
      */
     async function getAIResponseFromGemini(prompt) {
-        console.log("--- Sending this prompt to AI (simulation) ---");
-        console.log(prompt);
-        
-        // --- THIS IS A SIMULATION. REPLACE WITH ACTUAL BACKEND CALL ---
-        // Example of what your REAL frontend code might look like:
-        /*
-        const response = await fetch('https://your-render-app-url.onrender.com/api/get-ai-analysis', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: prompt, userId: 'some_user_id' }) // Send prompt and user ID for coin logic
-        });
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error("You are not logged in. Please refresh the page.");
         }
-        const data = await response.json();
-        return data.analysis;
-        */
 
-        // Simulating network delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Simulating different AI responses based on prompt content
-        if (prompt.includes("lumps: yes") || prompt.includes("discharge: yes")) {
-            return "<strong>Urgent Attention Recommended.</strong> Your log indicates findings such as a lump or nipple discharge. While not all lumps are serious, it is highly recommended to consult a doctor as soon as possible for a professional examination. Early detection is very important for your peace of mind and health.";
-        } else if (prompt.includes("skin_changes: yes") || prompt.includes("asymmetry: yes")) {
-             return "<strong>Attention Needed.</strong> Your log notes some changes like skin dimpling or asymmetry. These are worth paying attention to. We recommend monitoring these changes closely and scheduling a routine check-up with your doctor to discuss these findings and ensure everything is okay.";
-        } else {
-            return "<strong>Good Report.</strong> Based on your log, your self-exam shows no immediate signs for concern. This is great news! Continuing to perform regular monthly self-exams is a powerful way to stay aware of your breast health. Keep up the great work!";
+        try {
+            const token = await user.getIdToken();
+            
+            // यह आपके server.js में दिए गए रास्ते '/assistant-chat' पर रिक्वेस्ट भेजेगा
+            const response = await fetch('/assistant-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: prompt, // हम prompt को question के रूप में भेज रहे हैं
+                    token: token
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // सर्वर से मिली एरर को दिखाएं (जैसे, 'Not enough coins')
+                throw new Error(data.error || 'Failed to get AI response from server.');
+            }
+
+            return data.answer; // सर्वर से मिला जवाब वापस करें
+
+        } catch (error) {
+            console.error("API Call failed:", error);
+            // यूज़र को समझने योग्य एरर दिखाएं
+            throw new Error(error.message || "Could not connect to the AI service.");
         }
     }
 
