@@ -268,6 +268,7 @@
         .meter-gauge { width: 250px; height: 250px; border-radius: 50%; border-bottom: 125px solid var(--card-bg-color); }
         #originalMeter .meter-gauge { background: conic-gradient(var(--green) 0deg 60deg, var(--yellow) 60deg 120deg, var(--red) 120deg 180deg); }
         #oilDrynessMeter .meter-gauge { background: conic-gradient(#F44336 0deg 36deg, #FFC107 36deg 72deg, #4CAF50 72deg 108deg, #FFC107 108deg 144deg, #F44336 144deg 180deg); }
+        #aiMeter .meter-gauge { background: conic-gradient(var(--red) 0deg, var(--yellow) 90deg, var(--green) 180deg); }
         .meter-needle { position: absolute; bottom: 0; left: 50%; width: 4px; height: 110px; background-color: var(--text-color); transform-origin: bottom center; transition: transform 1s ease-out; border-radius: 5px; transform: rotate(0deg); }
         .meter-needle::after { content: ''; position: absolute; bottom: -10px; left: -8px; width: 20px; height: 20px; background-color: var(--text-color); border-radius: 50%; }
         .result-score { font-size: 2.5rem; font-weight: bold; color: var(--secondary-color); margin-bottom: 0.5rem; }
@@ -311,7 +312,7 @@
         #lightIcon { font-size: 1.5rem; }
         
         /* --- Photo Review Page Styles --- */
-        #photoReviewPage { justify-content: center; gap: 1rem; padding: 1rem; }
+        #photoReviewPage { justify-content: center; gap: 1.5rem; padding: 1rem; }
         #photoPreview { width: 100%; max-width: 400px; aspect-ratio: 9/16; border-radius: 15px; object-fit: cover; border: 3px solid white; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         #retakeBtn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
         .action-button { display: flex; align-items: center; gap: 1rem; width: 100%; max-width: 400px; background-color: rgba(255,255,255,0.95); padding: 1rem; border-radius: 15px; cursor: pointer; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.2); transition: transform 0.2s ease; }
@@ -321,7 +322,7 @@
         .action-button .text-content strong { font-size: 1.1rem; color: var(--secondary-color); }
         .action-button .text-content span { font-size: 0.8rem; color: var(--text-color); }
         
-        /* --- NEW: AI Result Page Styles --- */
+        /* --- AI Result Page Styles --- */
         #aiResultPage {
             gap: 1.5rem;
             justify-content: flex-start;
@@ -368,16 +369,12 @@
             font-weight: bold;
             color: var(--secondary-color);
         }
-        .metric-explainer {
-            font-size: 1rem;
-            color: white;
-            cursor: pointer;
-            margin-left: 5px;
-        }
-
+        
         /* --- Generic Modal/Popup Styles --- */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
-        .modal-content { background-color: white; padding: 20px; border-radius: 15px; text-align: center; max-width: 300px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; animation: fadeInModal 0.3s; }
+        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background-color: white; padding: 20px; border-radius: 15px; text-align: center; max-width: 300px; animation: scaleUpModal 0.3s; }
+        @keyframes scaleUpModal { from { transform: scale(0.8); } to { transform: scale(1); } }
         .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--secondary-color); }
         .modal-buttons { display: flex; gap: 1rem; justify-content: center; }
         .modal button { padding: 0.7rem 1.5rem; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; }
@@ -493,7 +490,7 @@
     <div id="oilDrynessResultPage" class="page result-page"><div class="result-container"><h2>Your Skin Balance Score</h2><div id="oilDrynessMeter" class="meter-container"><div class="meter-gauge"></div><div id="oilDrynessMeterNeedle" class="meter-needle"></div></div><p id="oilDrynessResultScore" class="result-score">Score: 0 / 100</p><p id="oilDrynessSkinTypeText" class="skin-type-text">Your Skin is: </p><button class="go-home-btn">Go to Home</button></div></div>
 
     <!-- ========================== -->
-    <!-- NEW: AI Scan Result Page -->
+    <!-- AI Scan Result Page      -->
     <!-- ========================== -->
     <div id="aiResultPage" class="page ai-result-page">
         <img id="resultScannedImage" src="" alt="Scanned photo">
@@ -545,8 +542,343 @@
 
 
     <script>
-       // The complete JavaScript code you provided earlier goes here.
-       // It is unchanged.
+        // --- Global Variables ---
+        let currentStream;
+        let facingMode = 'user'; // 'user' for front, 'environment' for back
+        let capturedImage = null;
+        let lightLevel = 'yellow'; // 'red', 'yellow', 'green'
+        let userCredits = 1; // Simulated credits for paid feature
+
+        // --- DOM Element Selection ---
+        const pages = document.querySelectorAll('.page');
+        const goHomeBtns = document.querySelectorAll('.go-home-btn');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        // Original Quiz Elements
+        const mainOpenBtn = document.getElementById('mainOpenBtn');
+        const quizForm = document.getElementById('quizForm');
+        const meterNeedle = document.getElementById('meterNeedle');
+        const resultScoreEl = document.getElementById('resultScore');
+        const skinTypeTextEl = document.getElementById('skinTypeText');
+
+        // Oil/Dryness Quiz Elements
+        const oilDrynessOpenBtn = document.getElementById('oilDrynessOpenBtn');
+        const oilDrynessForm = document.getElementById('oilDrynessForm');
+        const oilDrynessMeterNeedle = document.getElementById('oilDrynessMeterNeedle');
+        const oilDrynessResultScoreEl = document.getElementById('oilDrynessResultScore');
+        const oilDrynessSkinTypeTextEl = document.getElementById('oilDrynessSkinTypeText');
+
+        // ClearPath Elements
+        const clearPathOpenBtn = document.getElementById('clearPathOpenBtn');
+        const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
+        const photoInput = document.getElementById('photoInput');
+        const todayImage = document.getElementById('todayImage');
+        const diaryCardLink = document.getElementById('diaryCardLink');
+        const diaryBackBtn = document.getElementById('diaryBackBtn');
+        const calendarIcon = document.getElementById('calendarIcon');
+        const openComparisonBtn = document.getElementById('openComparison');
+        const viewResultBtn = document.getElementById('viewResultBtn');
+
+        // Comparison Modal & Page Elements
+        const calendarModal = document.getElementById('calendarModal');
+        const cancelComparisonBtn = document.getElementById('cancelComparisonBtn');
+        const startComparisonBtn = document.getElementById('startComparisonBtn');
+        const dateInput1 = document.getElementById('date1');
+        const dateInput2 = document.getElementById('date2');
+        const comparisonImage1 = document.getElementById('comparisonImage1');
+        const comparisonImage2 = document.getElementById('comparisonImage2');
+        const comparisonDate1Text = document.getElementById('comparisonDate1Text');
+        const comparisonDate2Text = document.getElementById('comparisonDate2Text');
+
+        // Camera Hub Elements
+        const cameraFeed = document.getElementById('cameraFeed');
+        const shutterBtn = document.getElementById('shutterBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const lightIcon = document.getElementById('lightIcon');
+        const captureCanvas = document.getElementById('captureCanvas');
+
+        // Photo Review Elements
+        const photoPreview = document.getElementById('photoPreview');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const saveToDiaryBtn = document.getElementById('saveToDiaryBtn');
+        const quickScanBtn = document.getElementById('quickScanBtn');
+
+        // AI Result Page Elements
+        const resultScannedImage = document.getElementById('resultScannedImage');
+        const aiMeterNeedle = document.getElementById('aiMeterNeedle');
+        const aiResultScoreEl = document.getElementById('aiResultScore');
+        const blemishesValueEl = document.getElementById('blemishesValue');
+        const darkCirclesValueEl = document.getElementById('darkCirclesValue');
+        const smoothnessValueEl = document.getElementById('smoothnessValue');
+        const saveResultBtn = document.getElementById('saveResultBtn');
+
+        // Generic Modal Elements
+        const genericModal = document.getElementById('genericModal');
+        const modalText = document.getElementById('modalText');
+        const modalButtons = document.getElementById('modalButtons');
+
+
+        // --- Page Navigation & Control ---
+        function showPage(pageId) {
+            if (document.querySelector('.page.active').id === 'cameraHubPage' && pageId !== 'cameraHubPage') {
+                stopCamera();
+            }
+            pages.forEach(page => page.classList.remove('active'));
+            const activePage = document.getElementById(pageId);
+            if (activePage) activePage.classList.add('active');
+            window.scrollTo(0, 0);
+
+            navItems.forEach(item => {
+                item.classList.toggle('active', item.dataset.page === pageId);
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.dataset.page;
+                if (pageId) {
+                     if (pageId === 'cameraHubPage') {
+                        startCamera();
+                     }
+                    if(['advicePage', 'trackPage', 'profilePage'].includes(pageId)) {
+                        alert(`"${pageId.replace('Page', '')}" is coming soon!`);
+                        return;
+                    }
+                    showPage(pageId);
+                }
+            });
+        });
+
+        
+        // --- Camera Functions ---
+        async function startCamera() {
+            if (currentStream) stopCamera();
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            };
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = currentStream;
+                // Mirror back camera correctly
+                cameraFeed.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+                setInterval(simulateLighting, 2000);
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Could not access camera. Please check permissions.");
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        function switchCamera() {
+            facingMode = (facingMode === 'user') ? 'environment' : 'user';
+            startCamera();
+        }
+
+        function takePhoto() {
+            const context = captureCanvas.getContext('2d');
+            captureCanvas.width = cameraFeed.videoWidth;
+            captureCanvas.height = cameraFeed.videoHeight;
+
+            // Flip the image back to normal if it was from the front camera
+            if (facingMode === 'user') {
+                context.translate(captureCanvas.width, 0);
+                context.scale(-1, 1);
+            }
+            
+            context.drawImage(cameraFeed, 0, 0, captureCanvas.width, captureCanvas.height);
+            capturedImage = captureCanvas.toDataURL('image/jpeg');
+            photoPreview.src = capturedImage;
+            stopCamera();
+            showPage('photoReviewPage');
+        }
+
+        // --- Lighting Simulation ---
+        function simulateLighting() {
+            const levels = ['red', 'yellow', 'green'];
+            const colors = { red: 'var(--red)', yellow: 'var(--yellow)', green: 'var(--green)' };
+            const nextLevelIndex = (levels.indexOf(lightLevel) + 1) % levels.length;
+            lightLevel = levels[nextLevelIndex];
+            lightIcon.style.color = colors[lightLevel];
+        }
+
+        // --- Generic Modal Functions ---
+        function showModal(text, buttons = []) {
+            modalText.textContent = text;
+            modalButtons.innerHTML = '';
+            if (buttons.length === 0) {
+                 const okButton = document.createElement('button');
+                 okButton.textContent = 'OK';
+                 okButton.className = 'modal-btn-primary';
+                 okButton.onclick = () => { genericModal.style.display = 'none'; };
+                 modalButtons.appendChild(okButton);
+            } else {
+                buttons.forEach(btnInfo => {
+                    const button = document.createElement('button');
+                    button.textContent = btnInfo.text;
+                    button.className = btnInfo.class;
+                    button.onclick = () => {
+                        genericModal.style.display = 'none';
+                        if (btnInfo.callback) btnInfo.callback();
+                    };
+                    modalButtons.appendChild(button);
+                });
+            }
+            genericModal.style.display = 'flex';
+        }
+
+        // --- Local Storage Photo Functions ---
+        function getFormattedDate(date) { const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+        function savePhotoToLocalStorage(dateKey, base64Image) { try { localStorage.setItem(`photo-${dateKey}`, base64Image); } catch (e) { console.error("Could not save to localStorage:", e); alert("Could not save photo. Storage may be full."); } }
+        function getPhotoFromLocalStorage(dateKey) { return localStorage.getItem(`photo-${dateKey}`); }
+        function loadTodaysPhoto() { const todayKey=getFormattedDate(new Date()), savedImage=getPhotoFromLocalStorage(todayKey); if(savedImage) { todayImage.src=savedImage; } else { todayImage.src=""; todayImage.alt="No photo uploaded for today."; } }
+
+        // --- AI Scan Functions ---
+        async function performQuickScan() {
+            if (!capturedImage) {
+                alert("No image captured to analyze.");
+                return;
+            }
+
+            // You must implement a function to get the actual user token
+            const userToken = "YOUR_FIREBASE_AUTH_TOKEN"; // IMPORTANT: Replace this with a real token
+
+            showModal("Analyzing your skin...", []);
+
+            try {
+                const response = await fetch('/analyze-skin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imageBase64: capturedImage.split(',')[1], // Remove the 'data:image/jpeg;base64,' part
+                        token: userToken
+                    })
+                });
+
+                const result = await response.json();
+                genericModal.style.display = 'none'; // Hide loading modal
+
+                if (response.ok) {
+                    displayAiResults(result.data);
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred.');
+                }
+
+            } catch (error) {
+                console.error("Quick Scan Error:", error);
+                showModal(`Analysis Failed: ${error.message}`);
+            }
+        }
+
+        function displayAiResults(data) {
+            resultScannedImage.src = capturedImage;
+            
+            const healthScore = data.health || 0;
+            const blemishesCount = data.blemishes || 0;
+            const darkCircleLevel = data.darkCircle || 'N/A';
+            const smoothnessScore = data.health || 0; // Assuming health is smoothness
+
+            aiResultScoreEl.textContent = `Health: ${healthScore.toFixed(0)}%`;
+            aiMeterNeedle.style.transform = `rotate(${(healthScore / 100) * 180}deg)`;
+
+            blemishesValueEl.textContent = blemishesCount;
+            darkCirclesValueEl.textContent = darkCircleLevel.charAt(0).toUpperCase() + darkCircleLevel.slice(1);
+            smoothnessValueEl.textContent = `${smoothnessScore.toFixed(0)}%`;
+            
+            showPage('aiResultPage');
+        }
+
+        // --- Event Listeners ---
+        mainOpenBtn.addEventListener('click', () => showPage('questionPage'));
+        oilDrynessOpenBtn.addEventListener('click', () => showPage('oilDrynessPage'));
+        clearPathOpenBtn.addEventListener('click', () => { showPage('clearPathPage'); loadTodaysPhoto(); });
+        goHomeBtns.forEach(btn => btn.addEventListener('click', () => { quizForm.reset(); oilDrynessForm.reset(); showPage('homePage'); }));
+        uploadPhotoBtn.addEventListener('click', () => photoInput.click());
+        photoInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const b64 = e.target.result; const key = getFormattedDate(new Date()); savePhotoToLocalStorage(key, b64); todayImage.src = b64; }; reader.readAsDataURL(file); } });
+        diaryCardLink.addEventListener('click', () => showPage('photoDiaryPage'));
+        diaryBackBtn.addEventListener('click', () => showPage('clearPathPage'));
+        openComparisonBtn.addEventListener('click', () => { calendarModal.style.display = 'flex'; });
+        calendarIcon.addEventListener('click', () => { calendarModal.style.display = 'flex'; });
+        cancelComparisonBtn.addEventListener('click', () => { calendarModal.style.display = 'none'; });
+        startComparisonBtn.addEventListener('click', () => {
+            const d1 = dateInput1.value, d2 = dateInput2.value; if (!d1 || !d2) { alert("Please select two dates."); return; }
+            const p1 = getPhotoFromLocalStorage(d1), p2 = getPhotoFromLocalStorage(d2);
+            comparisonDate1Text.textContent = d1; comparisonDate2Text.textContent = d2;
+            comparisonImage1.src = p1 || ""; comparisonImage1.alt = p1 ? "" : `No photo for ${d1}`;
+            comparisonImage2.src = p2 || ""; comparisonImage2.alt = p2 ? "" : `No photo for ${d2}`;
+            calendarModal.style.display = 'none'; showPage('comparisonPage');
+        });
+
+        viewResultBtn.addEventListener('click', () => {
+            alert("This will show the latest saved result. Feature in development.");
+            // Later, this could load saved AI results and show the aiResultPage
+        });
+
+        saveResultBtn.addEventListener('click', () => {
+            alert("Result saved to today's diary entry!");
+            // Here you would add logic to save the AI data to localStorage or a database
+            showPage('photoDiaryPage');
+        });
+
+
+        // --- Camera & Review Page Event Listeners ---
+        shutterBtn.addEventListener('click', () => {
+            if (lightLevel === 'red') {
+                showModal('Lighting is poor, results may not be accurate. Proceed anyway?', [
+                    { text: 'Proceed', class: 'modal-btn-primary', callback: takePhoto },
+                    { text: 'Try Again', class: 'modal-btn-secondary' }
+                ]);
+            } else {
+                takePhoto();
+            }
+        });
+
+        switchCameraBtn.addEventListener('click', switchCamera);
+
+        retakeBtn.addEventListener('click', () => {
+            showPage('cameraHubPage');
+            startCamera();
+        });
+
+        saveToDiaryBtn.addEventListener('click', () => {
+            if (capturedImage) {
+                const todayKey = getFormattedDate(new Date());
+                savePhotoToLocalStorage(todayKey, capturedImage);
+                alert('Photo saved to diary!');
+                showPage('photoDiaryPage');
+            }
+        });
+
+        quickScanBtn.addEventListener('click', () => {
+            if (userCredits > 0) {
+                 performQuickScan();
+            } else {
+                showModal('You have no credits. Would you like to buy more?', [
+                    { text: 'Buy Credits', class: 'modal-btn-primary', callback: () => alert('Navigating to credit store...') },
+                    { text: 'Maybe Later', class: 'modal-btn-secondary' }
+                ]);
+            }
+        });
+
+        // --- Quiz Submission & Display Logic (Unchanged) ---
+        quizForm.addEventListener('submit', (event) => { event.preventDefault(); const formData=new FormData(quizForm); let t=0; const c={o:0,d:0,s:0,p:0,b:0}; for(let i=1;i<=30;i++){const v=parseInt(formData.get(`q${i}`)||0); t+=v; if(i<=6)c.o+=v; else if(i<=12)c.d+=v; else if(i<=18)c.s+=v; else if(i<=24)c.p+=v; else if(i<=30)c.b+=v;} displayResults(t,c); showPage('resultPage'); });
+        oilDrynessForm.addEventListener('submit', (event) => { event.preventDefault(); const formData=new FormData(oilDrynessForm); let t=0, q=0; for(let p of formData.entries()){t+=parseInt(p[1]); q++;} const f=Math.round(t/q); displayOilDrynessResults(f); showPage('oilDrynessResultPage'); });
+        function displayResults(score, cat) { const max=60; resultScoreEl.textContent=`Score: ${score}/${max}`; meterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let type="Normal Skin"; if(cat.s>7)type="Sensitive Skin"; else if(cat.b>7)type="Combination Skin"; else if(cat.o>7&&cat.d<5)type="Oily Skin"; else if(cat.d>7&&cat.o<5)type="Dry Skin"; else if(score<15)type="Normal Skin"; else type="Combination Skin (Mixed Symptoms)"; skinTypeTextEl.textContent=`Skin Type: ${type}`; }
+        function displayOilDrynessResults(score) { const max=100; oilDrynessResultScoreEl.textContent=`Score: ${score}/${max}`; oilDrynessMeterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let text=""; if(score<=30)text="Very Dry"; else if(score<=50)text="Slightly Dry"; else if(score<=70)text="Balanced (Healthy)"; else if(score<=85)text="Slightly Oily"; else text="Very Oily"; oilDrynessSkinTypeTextEl.textContent=`Your Skin is: ${text}`; }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('homePage'); // Ensure home page is active on start
+        });
     </script>
 
 </body>
