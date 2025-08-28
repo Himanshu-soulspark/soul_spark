@@ -303,7 +303,6 @@
             object-fit: cover;
             transform: scaleX(-1);
         }
-        #faceOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scaleX(-1); width: 70%; max-width: 350px; opacity: 0.5; pointer-events: none; }
         .camera-controls { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; padding: 2rem; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
         #shutterBtn { width: 70px; height: 70px; border-radius: 50%; background-color: white; border: 5px solid rgba(255,255,255,0.5); cursor: pointer; }
         #switchCameraBtn { color: white; font-size: 2rem; cursor: pointer; }
@@ -321,11 +320,57 @@
         .action-button .text-content strong { font-size: 1.1rem; color: var(--secondary-color); }
         .action-button .text-content span { font-size: 0.8rem; color: var(--text-color); }
         
-        /* --- AI Result Page Styles --- */
+        /* --- NEW: Instructions Page Styles --- */
+        #instructionsPage {
+            justify-content: center;
+            gap: 2rem;
+        }
+        .instructions-card {
+            background-color: var(--card-bg-color);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .instructions-card h2 {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+        }
+        .instructions-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+        .instructions-card ul li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .instructions-card ul li i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            width: 30px;
+        }
+        
+        /* --- IMPROVED: AI Result Page Styles --- */
         #aiResultPage {
+            justify-content: center;
             gap: 1.5rem;
-            justify-content: flex-start;
-            padding-top: 1rem;
+        }
+        .ai-result-content {
+            background-color: var(--card-bg-color);
+            padding: 1.5rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         #resultScannedImage {
             width: 100%;
@@ -335,7 +380,7 @@
             object-fit: cover;
             border: 3px solid white;
             box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
         .metrics-container {
             display: grid;
@@ -346,11 +391,12 @@
             margin-top: 1.5rem;
         }
         .metric-box {
-            background-color: var(--card-bg-color);
+            background-color: #f8f9fa;
             padding: 1rem;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
         }
         .metric-box i {
             font-size: 2rem;
@@ -362,6 +408,7 @@
             color: var(--text-color);
             display: block;
             margin-bottom: 0.3rem;
+            font-weight: 500;
         }
         .metric-box .metric-value {
             font-size: 1.2rem;
@@ -401,6 +448,23 @@
     </div>
     
     <!-- ======================= -->
+    <!--   Instructions Page     -->
+    <!-- ======================= -->
+    <div id="instructionsPage" class="page">
+        <div class="instructions-card">
+            <h2>For Best AI Results</h2>
+            <ul>
+                <li><i class="fas fa-eye-slash"></i><span>Remove glasses for clear eye analysis.</span></li>
+                <li><i class="fas fa-sun"></i><span>Use bright, even lighting from the front.</span></li>
+                <li><i class="fas fa-meh-blank"></i><span>Keep a neutral facial expression.</span></li>
+                <li><i class="fas fa-ruler-horizontal"></i><span>Hold your phone at arm's length.</span></li>
+                <li><i class="fas fa-camera"></i><span>Keep the camera still for a sharp photo.</span></li>
+            </ul>
+            <button id="startScanBtn" class="submit-button">Got It, Open Camera</button>
+        </div>
+    </div>
+    
+    <!-- ======================= -->
     <!--      ClearPath Page      -->
     <!-- ======================= -->
     <div id="clearPathPage" class="page">
@@ -435,7 +499,6 @@
     <!-- ======================= -->
     <div id="cameraHubPage" class="page">
         <video id="cameraFeed" autoplay playsinline></video>
-        <img id="faceOverlay" src="https://i.ibb.co/6wm1bXn/face-overlay.png" alt="Face Outline">
         <div class="lighting-check">
             <i id="lightIcon" class="fas fa-sun"></i>
             <span id="lightText">Better results in good light.</span>
@@ -491,9 +554,9 @@
     <!-- ========================== -->
     <!-- AI Scan Result Page      -->
     <!-- ========================== -->
-    <div id="aiResultPage" class="page ai-result-page">
-        <img id="resultScannedImage" src="" alt="Scanned photo">
-        <div class="result-container">
+    <div id="aiResultPage" class="page">
+        <div class="ai-result-content">
+            <img id="resultScannedImage" src="" alt="Scanned photo">
             <h2>AI Scan Result</h2>
             <div id="aiMeter" class="meter-container">
                 <div class="meter-gauge"></div>
@@ -517,8 +580,8 @@
                     <span id="smoothnessValue" class="metric-value">0%</span>
                 </div>
             </div>
+            <button id="saveResultBtn" class="submit-button">Save Result to Diary & Add Notes</button>
         </div>
-        <button id="saveResultBtn" class="submit-button">Save Result to Diary & Add Notes</button>
     </div>
 
 
@@ -542,16 +605,10 @@
     <!-- ========================================================= -->
     <!--               FIREBASE SDKs and CONFIGURATION            -->
     <!-- ========================================================= -->
-    <!-- 1. Firebase SDKs को इम्पोर्ट करें -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <!-- अगर आप Firestore या Analytics इस्तेमाल करना चाहते हैं, तो उन्हें यहाँ जोड़ें -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script> -->
 
-    <!-- 2. Firebase को अपनी कॉन्फ़िगरेशन के साथ शुरू करें -->
     <script>
-      // Your web app's Firebase configuration
       const firebaseConfig = {
         apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
         authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -562,8 +619,6 @@
         appId: "1:42179676197:web:1796559543fb869c5297cc",
         measurementId: "G-VD9YFFECTC"
       };
-
-      // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
     </script>
 
@@ -574,20 +629,20 @@
     <script>
         // --- Global Variables ---
         let currentStream;
-        let facingMode = 'user'; // 'user' for front, 'environment' for back
+        let facingMode = 'user';
         let capturedImage = null;
-        let lightLevel = 'yellow'; // 'red', 'yellow', 'green'
-        let userCredits = 1; // Simulated credits for paid feature
+        let lightLevel = 'yellow';
+        let userCredits = 1;
 
         // --- DOM Element Selection ---
         const pages = document.querySelectorAll('.page');
         const goHomeBtns = document.querySelectorAll('.go-home-btn');
         const navItems = document.querySelectorAll('.nav-item');
-        
-        // UI elements to hide/show
-        const faceOverlay = document.getElementById('faceOverlay');
         const bottomNav = document.querySelector('.bottom-nav');
 
+        // Instructions Page
+        const startScanBtn = document.getElementById('startScanBtn');
+        
         // Original Quiz Elements
         const mainOpenBtn = document.getElementById('mainOpenBtn');
         const quizForm = document.getElementById('quizForm');
@@ -666,14 +721,10 @@
                 item.classList.toggle('active', item.dataset.page === pageId);
             });
 
-            // --- यहाँ बदलाव किया गया है ---
-            // कैमरा पेज पर ओवरले और नेविगेशन बार को छिपाना और दिखाना
             if (pageId === 'cameraHubPage') {
-                faceOverlay.style.display = 'none'; // फेस ओवरले छिपाएँ
-                bottomNav.style.display = 'none'; // नेविगेशन बार छिपाएँ
+                bottomNav.style.display = 'none';
             } else {
-                faceOverlay.style.display = 'block'; // बाकी सभी पेजों पर फेस ओवरले दिखाएँ
-                bottomNav.style.display = 'flex'; // बाकी सभी पेजों पर नेविगेशन बार दिखाएँ
+                bottomNav.style.display = 'flex';
             }
         }
 
@@ -681,10 +732,12 @@
             item.addEventListener('click', () => {
                 const pageId = item.dataset.page;
                 if (pageId) {
-                     if (pageId === 'cameraHubPage') {
-                        startCamera();
-                     }
-                    if(['advicePage', 'trackPage', 'profilePage'].includes(pageId)) {
+                    if (pageId === 'cameraHubPage') {
+                        // अब कैमरा सीधे नहीं खुलेगा, पहले निर्देश दिखेंगे
+                        showPage('instructionsPage');
+                        return;
+                    }
+                    if (['advicePage', 'trackPage', 'profilePage'].includes(pageId)) {
                         alert(`"${pageId.replace('Page', '')}" is coming soon!`);
                         return;
                     }
@@ -693,7 +746,7 @@
             });
         });
 
-        
+
         // --- Camera Functions ---
         async function startCamera() {
             if (currentStream) stopCamera();
@@ -790,13 +843,11 @@
                 alert("No image captured to analyze.");
                 return;
             }
-
-            // --- यहाँ बदलाव किया गया है ---
-            // Firebase से लॉग-इन हुए यूजर का टोकन प्राप्त करना
+            
             const user = firebase.auth().currentUser;
             if (!user) {
                 showModal("Please log in to use this feature.");
-                return; // अगर यूजर लॉग-इन नहीं है तो रुक जाएं
+                return;
             }
 
             let userToken;
@@ -807,9 +858,8 @@
                 showModal("Could not verify your session. Please log in again.");
                 return;
             }
-            // --- बदलाव यहाँ खत्म हुआ ---
 
-
+            const imageToAnalyze = capturedImage;
             showModal("Analyzing your skin...", []);
 
             try {
@@ -817,8 +867,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        imageBase64: capturedImage.split(',')[1], // Remove the 'data:image/jpeg;base64,' part
-                        token: userToken // असली टोकन भेजना
+                        imageBase64: imageToAnalyze.split(',')[1],
+                        token: userToken
                     })
                 });
 
@@ -826,8 +876,8 @@
                 genericModal.style.display = 'none';
 
                 if (response.ok) {
-                    userCredits--; // एनालिसिस सफल होने पर क्रेडिट कम करें
-                    displayAiResults(result.data);
+                    userCredits--;
+                    displayAiResults(result.data, imageToAnalyze);
                 } else {
                     throw new Error(result.error || 'Unknown error occurred.');
                 }
@@ -838,18 +888,25 @@
             }
         }
 
-        function displayAiResults(data) {
-            resultScannedImage.src = capturedImage;
+        function displayAiResults(data, imageToShow) {
+            function interpretDarkCircleValue(value) {
+                if (value <= 15) return "None";
+                if (value <= 35) return "Slight";
+                if (value <= 65) return "Moderate";
+                return "Severe";
+            }
+
+            resultScannedImage.src = imageToShow;
             
             const healthScore = data.health || 0;
             const blemishesCount = data.blemishes || 0;
-            const darkCircleLevel = data.darkCircle || 'N/A';
+            const darkCircleLevel = interpretDarkCircleValue(data.darkCircle || 0);
 
             aiResultScoreEl.textContent = `Health: ${healthScore.toFixed(0)}%`;
             aiMeterNeedle.style.transform = `rotate(${(healthScore / 100) * 180}deg)`;
 
             blemishesValueEl.textContent = blemishesCount;
-            darkCirclesValueEl.textContent = typeof darkCircleLevel === 'number' ? darkCircleLevel.toFixed(0) : (darkCircleLevel.charAt(0).toUpperCase() + darkCircleLevel.slice(1));
+            darkCirclesValueEl.textContent = darkCircleLevel;
             smoothnessValueEl.textContent = `${healthScore.toFixed(0)}%`;
             
             showPage('aiResultPage');
@@ -885,6 +942,11 @@
             showPage('photoDiaryPage');
         });
 
+        // Instructions page button
+        startScanBtn.addEventListener('click', () => {
+            startCamera();
+            showPage('cameraHubPage');
+        });
 
         // --- Camera & Review Page Event Listeners ---
         shutterBtn.addEventListener('click', () => {
@@ -933,7 +995,7 @@
 
         // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            showPage('homePage'); // Ensure home page is active on start
+            showPage('homePage');
         });
     </script>
 
