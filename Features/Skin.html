@@ -260,72 +260,30 @@
         .submit-button:hover { transform: scale(1.05); }
 
         /* --- Result Page Styles --- */
-        .result-page .result-container {
-            background-color: var(--card-bg-color);
-            padding: 2rem;
-            border-radius: 25px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 400px;
-        }
-        
+        .result-page .result-container { background-color: var(--card-bg-color); padding: 2rem; border-radius: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); width: 100%; max-width: 400px; }
         .meter-container { position: relative; width: 250px; height: 125px; margin: 1.5rem auto; overflow: hidden; }
         .meter-gauge { width: 250px; height: 250px; border-radius: 50%; border-bottom: 125px solid var(--card-bg-color); }
         #originalMeter .meter-gauge { background: conic-gradient(var(--green) 0deg 60deg, var(--yellow) 60deg 120deg, var(--red) 120deg 180deg); }
         #oilDrynessMeter .meter-gauge { background: conic-gradient(#F44336 0deg 36deg, #FFC107 36deg 72deg, #4CAF50 72deg 108deg, #FFC107 108deg 144deg, #F44336 144deg 180deg); }
-
         .meter-needle { position: absolute; bottom: 0; left: 50%; width: 4px; height: 110px; background-color: var(--text-color); transform-origin: bottom center; transition: transform 1s ease-out; border-radius: 5px; transform: rotate(0deg); }
         .meter-needle::after { content: ''; position: absolute; bottom: -10px; left: -8px; width: 20px; height: 20px; background-color: var(--text-color); border-radius: 50%; }
-
         .result-score { font-size: 2.5rem; font-weight: bold; color: var(--secondary-color); margin-bottom: 0.5rem; }
         .skin-type-text { font-size: 1.5rem; font-weight: 500; color: var(--primary-color); margin-bottom: 2rem; }
         .go-home-btn { padding: 0.8rem 2rem; background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)); color: white; border: none; border-radius: 30px; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
         .go-home-btn:hover { transform: scale(1.05); }
 
-        /* --- New ClearPath Page Styles --- */
+        /* --- ClearPath Page Styles --- */
         #clearPathPage { gap: 1.5rem; padding-top: 1rem; }
         .top-buttons-container { display: flex; gap: 1rem; width: 100%; max-width: 500px; }
         .top-buttons-container .open-button-3d { width: 50%; }
         .diary-card { cursor: pointer; }
         
         /* --- Photo Diary Page Styles --- */
-        .transparent-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            z-index: 20;
-            font-size: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        .transparent-header { position: fixed; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: white; z-index: 20; font-size: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .transparent-header .icon-btn { cursor: pointer; font-size: 1.8rem; }
         #photoDiaryPage .content { margin-top: 80px; width: 100%; max-width: 500px; text-align: center; }
-        #photoDiaryPage .comparison-button {
-            width: 100%; padding: 1rem; font-size: 1.2rem;
-            background: var(--light-blue); color: var(--secondary-color);
-            border: none; border-radius: 15px; font-weight: bold;
-            cursor: pointer; margin-bottom: 1.5rem;
-        }
-        #calendarModal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;
-        }
-        .calendar-content { background-color: white; padding: 20px; border-radius: 15px; text-align: center; }
-        .calendar-content p { margin-bottom: 1rem; font-size: 1.2rem; color: var(--secondary-color); }
-        .calendar-content input[type="date"] { padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc; margin-top: 0.5rem;}
-        .calendar-buttons { margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; }
-        #calendarModal button { padding: 0.7rem 1.5rem; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; }
-        #startComparisonBtn { background-color: var(--green); color: white; }
-        #cancelComparisonBtn { background-color: #ccc; }
-
+        #photoDiaryPage .comparison-button { width: 100%; padding: 1rem; font-size: 1.2rem; background: var(--light-blue); color: var(--secondary-color); border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-bottom: 1.5rem; }
+        
         /* --- Comparison Page Styles --- */
         #comparisonPage { justify-content: center; gap: 1rem; }
         .comparison-container { display: flex; width: 100%; max-width: 800px; gap: 0.5rem; }
@@ -333,204 +291,169 @@
         .comparison-photo img { width: 100%; height: 100%; object-fit: cover; }
         .comparison-photo p { text-align: center; padding: 0.5rem; font-weight: bold; background: rgba(0,0,0,0.5); color: white; }
 
-        /* Media Query for smaller screens */
-        @media (max-height: 700px) {
-            .question-card { aspect-ratio: auto; height: calc(100vh - 100px); }
-        }
+        /* --- NEW: Camera Hub Page Styles --- */
+        #cameraHubPage { padding: 0; background-color: #000; justify-content: center; overflow: hidden; position: relative; }
+        #cameraFeed { width: 100%; height: 100%; object-fit: cover; }
+        #faceOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; max-width: 350px; opacity: 0.5; pointer-events: none; }
+        .camera-controls { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; padding: 2rem; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
+        #shutterBtn { width: 70px; height: 70px; border-radius: 50%; background-color: white; border: 5px solid rgba(255,255,255,0.5); cursor: pointer; }
+        #switchCameraBtn { color: white; font-size: 2rem; cursor: pointer; }
+        .lighting-check { position: absolute; top: 2rem; right: 1rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.5); padding: 0.5rem 1rem; border-radius: 20px; color: white; font-size: 0.8rem; }
+        #lightIcon { font-size: 1.5rem; }
+        
+        /* --- NEW: Photo Review Page Styles --- */
+        #photoReviewPage { justify-content: center; gap: 1rem; }
+        #photoPreview { width: 100%; max-width: 400px; aspect-ratio: 9/16; border-radius: 15px; object-fit: cover; border: 3px solid white; }
+        #retakeBtn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        .action-button { display: flex; align-items: center; gap: 1rem; width: 100%; max-width: 400px; background-color: rgba(255,255,255,0.9); padding: 1rem; border-radius: 15px; cursor: pointer; text-align: left; }
+        .action-button i { font-size: 2rem; color: var(--secondary-color); }
+        .action-button .text-content { display: flex; flex-direction: column; }
+        .action-button .text-content strong { font-size: 1.1rem; color: var(--secondary-color); }
+        .action-button .text-content span { font-size: 0.8rem; color: var(--text-color); }
+
+        /* --- Generic Modal/Popup Styles --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+        .modal-content { background-color: white; padding: 20px; border-radius: 15px; text-align: center; max-width: 300px; }
+        .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--secondary-color); }
+        .modal-buttons { display: flex; gap: 1rem; justify-content: center; }
+        .modal button { padding: 0.7rem 1.5rem; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; }
+        .modal-btn-primary { background-color: var(--green); color: white; }
+        .modal-btn-secondary { background-color: #ccc; }
+
+        @media (max-height: 700px) { .question-card { aspect-ratio: auto; height: calc(100vh - 100px); } }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
 
     <!-- ======================= -->
     <!--      Home Page         -->
     <!-- ======================= -->
     <div id="homePage" class="page active">
-        <div class="search-container">
-            <input type="text" placeholder="Search...">
-            <button>🔍</button>
-        </div>
-        <div class="image-card-16-9">
-            <img src="https://i.ibb.co/jkJwf8b3/Leonardo-Phoenix-10-Prompt-English-A-futuristicancient-themed-b-2.jpg" alt="Futuristic Skincare Theme">
-        </div>
+        <div class="search-container"><input type="text" placeholder="Search..."><button>🔍</button></div>
+        <div class="image-card-16-9"><img src="https://i.ibb.co/jkJwf8b3/Leonardo-Phoenix-10-Prompt-English-A-futuristicancient-themed-b-2.jpg" alt="Futuristic Skincare Theme"></div>
         <button id="mainOpenBtn" class="open-button-3d">Start Full Skin Analysis</button>
-        
         <div class="grid-container">
-            <div class="grid-card">
-                <div class="image-container-1x1">
-                    <img src="https://i.ibb.co/jkxhH1xP/Leonardo-Phoenix-10-A-modern-skincare-mobile-app-interface-dis-0.jpg" alt="Oily Skin Test">
-                </div>
-                <button id="oilDrynessOpenBtn" class="open-button-grid">Take Oil/Dryness Test</button>
-            </div>
-            <div class="grid-card">
-                <div class="image-container-1x1">
-                    <img src="https://i.ibb.co/R4yq71gJ/Leonardo-Phoenix-10-Futuristic-skincare-mobile-app-UI-clean-an-1.jpg" alt="ClearPath Feature">
-                </div>
-                <button id="clearPathOpenBtn" class="open-button-grid">ClearPath</button>
-            </div>
+            <div class="grid-card"><div class="image-container-1x1"><img src="https://i.ibb.co/jkxhH1xP/Leonardo-Phoenix-10-A-modern-skincare-mobile-app-interface-dis-0.jpg" alt="Oily Skin Test"></div><button id="oilDrynessOpenBtn" class="open-button-grid">Take Oil/Dryness Test</button></div>
+            <div class="grid-card"><div class="image-container-1x1"><img src="https://i.ibb.co/R4yq71gJ/Leonardo-Phoenix-10-Futuristic-skincare-mobile-app-UI-clean-an-1.jpg" alt="ClearPath Feature"></div><button id="clearPathOpenBtn" class="open-button-grid">ClearPath</button></div>
         </div>
     </div>
     
     <!-- ======================= -->
-    <!--      New ClearPath Page  -->
+    <!--      ClearPath Page      -->
     <!-- ======================= -->
     <div id="clearPathPage" class="page">
-        <div class="top-buttons-container">
-            <button id="uploadPhotoBtn" class="open-button-3d">Upload Today's Photo</button>
-            <input type="file" id="photoInput" accept="image/*" style="display: none;">
-            <button class="open-button-3d">Result</button>
-        </div>
+        <div class="top-buttons-container"><button id="uploadPhotoBtn" class="open-button-3d">Upload Today's Photo</button><input type="file" id="photoInput" accept="image/*" style="display: none;"><button class="open-button-3d">Result</button></div>
+        <div id="diaryCardLink" class="image-card-16-9 diary-card"><img src="https://i.ibb.co/ks64vkpY/Leonardo-Phoenix-10-A-dreamy-soft-pastel-scene-of-a-cute-teena-3.jpg" alt="Photo Diary"></div>
+        <div class="image-container-1x1"><img id="todayImage" src="" alt="Today's uploaded photo will appear here."></div>
+        <div class="image-card-16-9"></div>
+    </div>
+    
+    <!-- ======================= -->
+    <!--      Photo Diary Page   -->
+    <!-- ======================= -->
+    <div id="photoDiaryPage" class="page">
+        <div class="transparent-header"><i id="diaryBackBtn" class="fas fa-arrow-left icon-btn"></i><span>Photo Diary</span><i id="calendarIcon" class="fas fa-calendar-alt icon-btn"></i></div>
+        <div class="content"><button id="openComparison" class="comparison-button">Comparison</button></div>
+    </div>
 
-        <div id="diaryCardLink" class="image-card-16-9 diary-card">
-            <img src="https://i.ibb.co/ks64vkpY/Leonardo-Phoenix-10-A-dreamy-soft-pastel-scene-of-a-cute-teena-3.jpg" alt="Photo Diary">
+    <!-- ======================= -->
+    <!--      Comparison Page     -->
+    <!-- ======================= -->
+    <div id="comparisonPage" class="page">
+        <div class="comparison-container"><div class="comparison-photo"><p id="comparisonDate1Text">Date 1</p><img id="comparisonImage1" src="" alt="Select first image"></div><div class="comparison-photo"><p id="comparisonDate2Text">Date 2</p><img id="comparisonImage2" src="" alt="Select second image"></div></div>
+        <button class="go-home-btn">Go to Home</button>
+    </div>
+    
+    <!-- ======================= -->
+    <!--      NEW: Camera Hub Page  -->
+    <!-- ======================= -->
+    <div id="cameraHubPage" class="page">
+        <video id="cameraFeed" autoplay playsinline></video>
+        <img id="faceOverlay" src="https://i.ibb.co/6wm1bXn/face-overlay.png" alt="Face Outline">
+        <div class="lighting-check">
+            <i id="lightIcon" class="fas fa-sun"></i>
+            <span id="lightText">Better results in good light.</span>
         </div>
-
-        <div class="image-container-1x1">
-            <img id="todayImage" src="" alt="Today's uploaded photo will appear here.">
-        </div>
-
-        <div class="image-card-16-9">
-             <!-- Placeholder for another card -->
+        <div class="camera-controls">
+            <i id="switchCameraBtn" class="fas fa-sync-alt"></i>
+            <div id="shutterBtn"></div>
+            <!-- Empty space for balance -->
+            <div style="width: 2rem;"></div>
         </div>
     </div>
     
     <!-- ======================= -->
-    <!--  New Photo Diary Page   -->
+    <!--  NEW: Photo Review Page   -->
     <!-- ======================= -->
-    <div id="photoDiaryPage" class="page">
-        <div class="transparent-header">
-            <i id="diaryBackBtn" class="fas fa-arrow-left icon-btn"></i>
-            <span>Photo Diary</span>
-            <i id="calendarIcon" class="fas fa-calendar-alt icon-btn"></i>
-        </div>
-        <div class="content">
-            <button id="openComparison" class="comparison-button">Comparison</button>
-            <!-- Diary content like a grid of photos can be added here later -->
-        </div>
-    </div>
-
-    <!-- ======================= -->
-    <!-- New Comparison Page     -->
-    <!-- ======================= -->
-    <div id="comparisonPage" class="page">
-        <div class="comparison-container">
-            <div class="comparison-photo">
-                <p id="comparisonDate1Text">Date 1</p>
-                <img id="comparisonImage1" src="" alt="Select first image">
-            </div>
-            <div class="comparison-photo">
-                <p id="comparisonDate2Text">Date 2</p>
-                <img id="comparisonImage2" src="" alt="Select second image">
+    <div id="photoReviewPage" class="page">
+        <img id="photoPreview" src="" alt="Captured photo preview">
+        <button id="retakeBtn">❌ Retake</button>
+        <div class="action-button" id="saveToDiaryBtn">
+            <i class="fas fa-book-open"></i>
+            <div class="text-content">
+                <strong>Save to Diary</strong>
+                <span>Add notes and track manually for free.</span>
             </div>
         </div>
-        <button class="go-home-btn">Go to Home</button>
-    </div>
-
-    <!-- Calendar Modal for Comparison -->
-    <div id="calendarModal" style="display: none;">
-        <div class="calendar-content">
-            <p>Select two dates for comparison</p>
-            <div>
-                <label for="date1">Date 1:</label>
-                <input type="date" id="date1">
-            </div>
-            <div>
-                <label for="date2">Date 2:</label>
-                <input type="date" id="date2">
-            </div>
-            <div class="calendar-buttons">
-                <button id="startComparisonBtn">Compare</button>
-                <button id="cancelComparisonBtn">Cancel</button>
+        <div class="action-button" id="quickScanBtn">
+            <i class="fas fa-magic"></i>
+            <div class="text-content">
+                <strong>Perform Quick Scan</strong>
+                <span>Uses 1 Credit. Get instant AI analysis.</span>
             </div>
         </div>
     </div>
-
 
     <!-- ======================= -->
     <!--      Original Quiz Page   -->
     <!-- ======================= -->
     <div id="questionPage" class="page">
-        <div class="page-header">Glowmeter (Full Analysis)</div>
-        <div class="question-card">
-            <form id="quizForm">
-                <h2>Total Questions: 30</h2>
-                <p style="text-align: center; margin-bottom: 1.5rem; font-style: italic;">(This is a detailed analysis of your skin profile)</p>
-                
-                <div class="question-set"><h3>A. Oiliness and Shine Level</h3><div class="question"><p>1. 30 minutes after washing your face, does your nose and forehead look oily or shiny?</p><div class="options"><label><input type="radio" name="q1" value="2" required> Yes</label><label><input type="radio" name="q1" value="1"> Sometimes</label><label><input type="radio" name="q1" value="0"> No</label></div></div><div class="question"><p>2. Does your face feel greasy by the end of the day?</p><div class="options"><label><input type="radio" name="q2" value="2" required> Always</label><label><input type="radio" name="q2" value="1"> Sometimes</label><label><input type="radio" name="q2" value="0"> No</label></div></div><div class="question"><p>3. Do you need to use blotting paper or tissue more than once a day?</p><div class="options"><label><input type="radio" name="q3" value="2" required> Yes</label><label><input type="radio" name="q3" value="1"> Sometimes</label><label><input type="radio" name="q3" value="0"> No</label></div></div><div class="question"><p>4. Does oiliness increase in hot weather?</p><div class="options"><label><input type="radio" name="q4" value="2" required> Yes</label><label><input type="radio" name="q4" value="1"> A little</label><label><input type="radio" name="q4" value="0"> No</label></div></div><div class="question"><p>5. Does your makeup melt quickly or look oily?</p><div class="options"><label><input type="radio" name="q5" value="2" required> Yes</label><label><input type="radio" name="q5" value="1"> Sometimes</label><label><input type="radio" name="q5" value="0"> No</label></div></div><div class="question"><p>6. Do you feel that powder or matte products on your face finish quickly?</p><div class="options"><label><input type="radio" name="q6" value="2" required> Yes</label><label><input type="radio" name="q6" value="0"> No</label></div></div></div>
-                <div class="question-set"><h3>B. Dryness and Hydration Level</h3><div class="question"><p>7. Does your face feel tight after washing?</p><div class="options"><label><input type="radio" name="q7" value="2" required> Yes</label><label><input type="radio" name="q7" value="1"> Sometimes</label><label><input type="radio" name="q7" value="0"> No</label></div></div><div class="question"><p>8. Are fine lines visible due to dehydration?</p><div class="options"><label><input type="radio" name="q8" value="2" required> Yes</label><label><input type="radio" name="q8" value="1"> A little</label><label><input type="radio" name="q8" value="0"> No</label></div></div><div class="question"><p>9. Do you often see patches or flakes on your skin?</p><div class="options"><label><input type="radio" name="q9" value="2" required> Yes</label><label><input type="radio" name="q9" value="1"> Sometimes</label><label><input type="radio" name="q9" value="0"> No</label></div></div><div class="question"><p>10. Does your skin still feel dry after applying moisturizer?</p><div class="options"><label><input type="radio" name="q10" value="2" required> Yes</label><label><input type="radio" name="q10" value="1"> A little</label><label><input type="radio" name="q10" value="0"> No</label></div></div><div class="question"><p>11. Do your lips and cheeks often feel rough?</p><div class="options"><label><input type="radio" name="q11" value="2" required> Yes</label><label><input type="radio" name="q11" value="1"> Sometimes</label><label><input type="radio" name="q11" value="0"> No</label></div></div><div class="question"><p>12. Does your skin get drier in cold weather?</p><div class="options"><label><input type="radio" name="q12" value="2" required> Yes</label><label><input type="radio" name="q12" value="1"> Sometimes</label><label><input type="radio" name="q12" value="0"> No</label></div></div></div>
-                <div class="question-set"><h3>C. Sensitivity and Reaction Level</h3><div class="question"><p>13. Does your skin burn or itch after applying a product?</p><div class="options"><label><input type="radio" name="q13" value="2" required> Yes</label><label><input type="radio" name="q13" value="1"> Sometimes</label><label><input type="radio" name="q13" value="0"> No</label></div></div><div class="question"><p>14. Do you often experience redness, rashes, or stinging?</p><div class="options"><label><input type="radio" name="q14" value="2" required> Yes</label><label><input type="radio" name="q14" value="1"> Sometimes</label><label><input type="radio" name="q14" value="0"> No</label></div></div><div class="question"><p>15. Does your skin react immediately to new creams or serums?</p><div class="options"><label><input type="radio" name="q15" value="2" required> Yes</label><label><input type="radio" name="q15" value="1"> Sometimes</label><label><input type="radio" name="q15" value="0"> No</label></div></div><div class="question"><p>16. Does your skin get red quickly in the sun?</p><div class="options"><label><input type="radio" name="q16" value="2" required> Yes</label><label><input type="radio" name="q16" value="1"> A little</label><label><input type="radio" name="q16" value="0"> No</label></div></div><div class="question"><p>17. Does your skin get irritated or itchy from face wash or soap?</p><div class="options"><label><input type="radio" name="q17" value="2" required> Yes</label><label><input type="radio" name="q17" value="1"> Sometimes</label><label><input type="radio" name="q17" value="0"> No</label></div></div><div class="question"><p>18. Do you get rashes from products with perfume or fragrance?</p><div class="options"><label><input type="radio" name="q18" value="2" required> Yes</label><label><input type="radio" name="q18" value="0"> No</label></div></div></div>
-                <div class="question-set"><h3>D. Pores and Texture</h3><div class="question"><p>19. Are large pores visible on your face?</p><div class="options"><label><input type="radio" name="q19" value="2" required> Yes</label><label><input type="radio" name="q19" value="1"> A few</label><label><input type="radio" name="q19" value="0"> No</label></div></div><div class="question"><p>20. Do the pores on your T-Zone (nose, forehead, chin) look larger than other areas?</p><div class="options"><label><input type="radio" name="q20" value="2" required> Yes</label><label><input type="radio" name="q20" value="1"> A little</label><label><input type="radio" name="q20" value="0"> No</label></div></div><div class="question"><p>21. Do you often get blackheads or whiteheads?</p><div class="options"><label><input type="radio" name="q21" value="2" required> Yes</label><label><input type="radio" name="q21" value="1"> Sometimes</label><label><input type="radio" name="q21" value="0"> No</label></div></div><div class="question"><p>22. Does your skin texture feel uneven or not smooth?</p><div class="options"><label><input type="radio" name="q22" value="2" required> Yes</label><label><input type="radio" name="q22" value="1"> A little</label><label><input type="radio" name="q22" value="0"> No</label></div></div><div class="question"><p>23. Do you feel that products don't absorb well into your skin?</p><div class="options"><label><input type="radio" name="q23" value="2" required> Yes</label><label><input type="radio" name="q23" value="1"> Sometimes</label><label><input type="radio" name="q23" value="0"> No</label></div></div><div class="question"><p>24. Do you feel fine bumps or small pimples on your skin?</p><div class="options"><label><input type="radio" name="q24" value="2" required> Yes</label><label><input type="radio" name="q24" value="0"> No</label></div></div></div>
-                <div class="question-set"><h3>E. Balance and Combination Factor</h3><div class="question"><p>25. Are your cheeks dry but your T-Zone oily?</p><div class="options"><label><input type="radio" name="q25" value="2" required> Yes</label><label><input type="radio" name="q25" value="1"> A little</label><label><input type="radio" name="q25" value="0"> No</label></div></div><div class="question"><p>26. Do different parts of your skin react differently (e.g., dry cheeks, oily nose)?</p><div class="options"><label><input type="radio" name="q26" value="2" required> Yes</label><label><input type="radio" name="q26" value="1"> Sometimes</label><label><input type="radio" name="q26" value="0"> No</label></div></div><div class="question"><p>27. Do you use different products for different areas of your face?</p><div class="options"><label><input type="radio" name="q27" value="2" required> Yes</label><label><input type="radio" name="q27" value="0"> No</label></div></div><div class="question"><p>28. Does your skin become dry in winter and oily in summer?</p><div class="options"><label><input type="radio" name="q28" value="2" required> Yes</label><label><input type="radio" name="q28" value="1"> A little</label><label><input type="radio" name="q28" value="0"> No</label></div></div><div class="question"><p>29. Does makeup look dry on your cheeks but oily on your nose?</p><div class="options"><label><input type="radio" name="q29" value="2" required> Yes</label><label><input type="radio" name="q29" value="1"> Sometimes</label><label><input type="radio" name="q29" value="0"> No</label></div></div><div class="question"><p>30. Does your skin feel unbalanced despite a daily routine?</p><div class="options"><label><input type="radio" name="q30" value="2" required> Yes</label><label><input type="radio" name="q30" value="0"> No</label></div></div></div>
-
-                <button type="submit" class="submit-button">See Results</button>
-            </form>
-        </div>
-    </div>
+        <div class="page-header">Glowmeter (Full Analysis)</div><div class="question-card"><form id="quizForm"><h2>Total Questions: 30</h2><p style="text-align: center; margin-bottom: 1.5rem; font-style: italic;">(This is a detailed analysis of your skin profile)</p><div class="question-set"><h3>A. Oiliness and Shine Level</h3><div class="question"><p>1. 30 minutes after washing your face, does your nose and forehead look oily or shiny?</p><div class="options"><label><input type="radio" name="q1" value="2" required> Yes</label><label><input type="radio" name="q1" value="1"> Sometimes</label><label><input type="radio" name="q1" value="0"> No</label></div></div><div class="question"><p>2. Does your face feel greasy by the end of the day?</p><div class="options"><label><input type="radio" name="q2" value="2" required> Always</label><label><input type="radio" name="q2" value="1"> Sometimes</label><label><input type="radio" name="q2" value="0"> No</label></div></div><div class="question"><p>3. Do you need to use blotting paper or tissue more than once a day?</p><div class="options"><label><input type="radio" name="q3" value="2" required> Yes</label><label><input type="radio" name="q3" value="1"> Sometimes</label><label><input type="radio" name="q3" value="0"> No</label></div></div><div class="question"><p>4. Does oiliness increase in hot weather?</p><div class="options"><label><input type="radio" name="q4" value="2" required> Yes</label><label><input type="radio" name="q4" value="1"> A little</label><label><input type="radio" name="q4" value="0"> No</label></div></div><div class="question"><p>5. Does your makeup melt quickly or look oily?</p><div class="options"><label><input type="radio" name="q5" value="2" required> Yes</label><label><input type="radio" name="q5" value="1"> Sometimes</label><label><input type="radio" name="q5" value="0"> No</label></div></div><div class="question"><p>6. Do you feel that powder or matte products on your face finish quickly?</p><div class="options"><label><input type="radio" name="q6" value="2" required> Yes</label><label><input type="radio" name="q6" value="0"> No</label></div></div></div><div class="question-set"><h3>B. Dryness and Hydration Level</h3><div class="question"><p>7. Does your face feel tight after washing?</p><div class="options"><label><input type="radio" name="q7" value="2" required> Yes</label><label><input type="radio" name="q7" value="1"> Sometimes</label><label><input type="radio" name="q7" value="0"> No</label></div></div><div class="question"><p>8. Are fine lines visible due to dehydration?</p><div class="options"><label><input type="radio" name="q8" value="2" required> Yes</label><label><input type="radio" name="q8" value="1"> A little</label><label><input type="radio" name="q8" value="0"> No</label></div></div><div class="question"><p>9. Do you often see patches or flakes on your skin?</p><div class="options"><label><input type="radio" name="q9" value="2" required> Yes</label><label><input type="radio" name="q9" value="1"> Sometimes</label><label><input type="radio" name="q9" value="0"> No</label></div></div><div class="question"><p>10. Does your skin still feel dry after applying moisturizer?</p><div class="options"><label><input type="radio" name="q10" value="2" required> Yes</label><label><input type="radio" name="q10" value="1"> A little</label><label><input type="radio" name="q10" value="0"> No</label></div></div><div class="question"><p>11. Do your lips and cheeks often feel rough?</p><div class="options"><label><input type="radio" name="q11" value="2" required> Yes</label><label><input type="radio" name="q11" value="1"> Sometimes</label><label><input type="radio" name="q11" value="0"> No</label></div></div><div class="question"><p>12. Does your skin get drier in cold weather?</p><div class="options"><label><input type="radio" name="q12" value="2" required> Yes</label><label><input type="radio" name="q12" value="1"> Sometimes</label><label><input type="radio" name="q12" value="0"> No</label></div></div></div><div class="question-set"><h3>C. Sensitivity and Reaction Level</h3><div class="question"><p>13. Does your skin burn or itch after applying a product?</p><div class="options"><label><input type="radio" name="q13" value="2" required> Yes</label><label><input type="radio" name="q13" value="1"> Sometimes</label><label><input type="radio" name="q13" value="0"> No</label></div></div><div class="question"><p>14. Do you often experience redness, rashes, or stinging?</p><div class="options"><label><input type="radio" name="q14" value="2" required> Yes</label><label><input type="radio" name="q14" value="1"> Sometimes</label><label><input type="radio" name="q14" value="0"> No</label></div></div><div class="question"><p>15. Does your skin react immediately to new creams or serums?</p><div class="options"><label><input type="radio" name="q15" value="2" required> Yes</label><label><input type="radio" name="q15" value="1"> Sometimes</label><label><input type="radio" name="q15" value="0"> No</label></div></div><div class="question"><p>16. Does your skin get red quickly in the sun?</p><div class="options"><label><input type="radio" name="q16" value="2" required> Yes</label><label><input type="radio" name="q16" value="1"> A little</label><label><input type="radio" name="q16" value="0"> No</label></div></div><div class="question"><p>17. Does your skin get irritated or itchy from face wash or soap?</p><div class="options"><label><input type="radio" name="q17" value="2" required> Yes</label><label><input type="radio" name="q17" value="1"> Sometimes</label><label><input type="radio" name="q17" value="0"> No</label></div></div><div class="question"><p>18. Do you get rashes from products with perfume or fragrance?</p><div class="options"><label><input type="radio" name="q18" value="2" required> Yes</label><label><input type="radio" name="q18" value="0"> No</label></div></div></div><div class="question-set"><h3>D. Pores and Texture</h3><div class="question"><p>19. Are large pores visible on your face?</p><div class="options"><label><input type="radio" name="q19" value="2" required> Yes</label><label><input type="radio" name="q19" value="1"> A few</label><label><input type="radio" name="q19" value="0"> No</label></div></div><div class="question"><p>20. Do the pores on your T-Zone (nose, forehead, chin) look larger than other areas?</p><div class="options"><label><input type="radio" name="q20" value="2" required> Yes</label><label><input type="radio" name="q20" value="1"> A little</label><label><input type="radio" name="q20" value="0"> No</label></div></div><div class="question"><p>21. Do you often get blackheads or whiteheads?</p><div class="options"><label><input type="radio" name="q21" value="2" required> Yes</label><label><input type="radio" name="q21" value="1"> Sometimes</label><label><input type="radio" name="q21" value="0"> No</label></div></div><div class="question"><p>22. Does your skin texture feel uneven or not smooth?</p><div class="options"><label><input type="radio" name="q22" value="2" required> Yes</label><label><input type="radio" name="q22" value="1"> A little</label><label><input type="radio" name="q22" value="0"> No</label></div></div><div class="question"><p>23. Do you feel that products don't absorb well into your skin?</p><div class="options"><label><input type="radio" name="q23" value="2" required> Yes</label><label><input type="radio" name="q23" value="1"> Sometimes</label><label><input type="radio" name="q23" value="0"> No</label></div></div><div class="question"><p>24. Do you feel fine bumps or small pimples on your skin?</p><div class="options"><label><input type="radio" name="q24" value="2" required> Yes</label><label><input type="radio" name="q24" value="0"> No</label></div></div></div><div class="question-set"><h3>E. Balance and Combination Factor</h3><div class="question"><p>25. Are your cheeks dry but your T-Zone oily?</p><div class="options"><label><input type="radio" name="q25" value="2" required> Yes</label><label><input type="radio" name="q25" value="1"> A little</label><label><input type="radio" name="q25" value="0"> No</label></div></div><div class="question"><p>26. Do different parts of your skin react differently (e.g., dry cheeks, oily nose)?</p><div class="options"><label><input type="radio" name="q26" value="2" required> Yes</label><label><input type="radio" name="q26" value="1"> Sometimes</label><label><input type="radio" name="q26" value="0"> No</label></div></div><div class="question"><p>27. Do you use different products for different areas of your face?</p><div class="options"><label><input type="radio" name="q27" value="2" required> Yes</label><label><input type="radio" name="q27" value="0"> No</label></div></div><div class="question"><p>28. Does your skin become dry in winter and oily in summer?</p><div class="options"><label><input type="radio" name="q28" value="2" required> Yes</label><label><input type="radio" name="q28" value="1"> A little</label><label><input type="radio" name="q28" value="0"> No</label></div></div><div class="question"><p>29. Does makeup look dry on your cheeks but oily on your nose?</p><div class="options"><label><input type="radio" name="q29" value="2" required> Yes</label><label><input type="radio" name="q29" value="1"> Sometimes</label><label><input type="radio" name="q29" value="0"> No</label></div></div><div class="question"><p>30. Does your skin feel unbalanced despite a daily routine?</p><div class="options"><label><input type="radio" name="q30" value="2" required> Yes</label><label><input type="radio" name="q30" value="0"> No</label></div></div></div><button type="submit" class="submit-button">See Results</button></form></div></div>
     
     <!-- ======================= -->
     <!-- Oil/Dryness Quiz Page   -->
     <!-- ======================= -->
     <div id="oilDrynessPage" class="page">
-        <div class="page-header">Skin Balance Test</div>
-        <div class="question-card">
-            <form id="oilDrynessForm">
-                <h2>Understand your skin's moisture and oil</h2>
-                <div class="question-set">
-                    <div class="question"><p>1. How does your skin feel after washing?</p><div class="options"><label><input type="radio" name="odq1" value="0" required> Very tight and dry</label><label><input type="radio" name="odq1" value="20"> Slightly tight</label><label><input type="radio" name="odq1" value="50"> Normal and smooth</label><label><input type="radio" name="odq1" value="80"> Slightly oily</label></div></div>
-                    <div class="question"><p>2. How does your T-Zone (nose, forehead) look in the middle of the day?</p><div class="options"><label><input type="radio" name="odq2" value="100" required> Very oily and shiny</label><label><input type="radio" name="odq2" value="85"> Slightly oily</label><label><input type="radio" name="odq2" value="55"> Balanced (not oily, not dry)</label><label><input type="radio" name="odq2" value="20"> Dry or matte</label></div></div>
-                    <div class="question"><p>3. Do you need to use blotting paper or powder during the day?</p><div class="options"><label><input type="radio" name="odq3" value="95" required> Yes, several times</label><label><input type="radio" name="odq3" value="75"> Yes, sometimes</label><label><input type="radio" name="odq3" value="40"> No, never</label></div></div>
-                    <div class="question"><p>4. Do you see dry, flaky patches on your skin?</p><div class="options"><label><input type="radio" name="odq4" value="5" required> Yes, often</label><label><input type="radio" name="odq4" value="25"> Yes, sometimes (especially in winter)</label><label><input type="radio" name="odq4" value="60"> No, never</label></div></div>
-                    <div class="question"><p>5. How does your skin feel after applying moisturizer?</p><div class="options"><label><input type="radio" name="odq5" value="15" required> Still feels dry after application</label><label><input type="radio" name="odq5" value="65"> Comfortable and hydrated</label><label><input type="radio" name="odq5" value="90"> A bit sticky or oily</label></div></div>
-                </div>
-                <button type="submit" class="submit-button">See Balance Score</button>
-            </form>
-        </div>
-    </div>
-
+        <div class="page-header">Skin Balance Test</div><div class="question-card"><form id="oilDrynessForm"><h2>Understand your skin's moisture and oil</h2><div class="question-set"><div class="question"><p>1. How does your skin feel after washing?</p><div class="options"><label><input type="radio" name="odq1" value="0" required> Very tight and dry</label><label><input type="radio" name="odq1" value="20"> Slightly tight</label><label><input type="radio" name="odq1" value="50"> Normal and smooth</label><label><input type="radio" name="odq1" value="80"> Slightly oily</label></div></div><div class="question"><p>2. How does your T-Zone (nose, forehead) look in the middle of the day?</p><div class="options"><label><input type="radio" name="odq2" value="100" required> Very oily and shiny</label><label><input type="radio" name="odq2" value="85"> Slightly oily</label><label><input type="radio" name="odq2" value="55"> Balanced (not oily, not dry)</label><label><input type="radio" name="odq2" value="20"> Dry or matte</label></div></div><div class="question"><p>3. Do you need to use blotting paper or powder during the day?</p><div class="options"><label><input type="radio" name="odq3" value="95" required> Yes, several times</label><label><input type="radio" name="odq3" value="75"> Yes, sometimes</label><label><input type="radio" name="odq3" value="40"> No, never</label></div></div><div class="question"><p>4. Do you see dry, flaky patches on your skin?</p><div class="options"><label><input type="radio" name="odq4" value="5" required> Yes, often</label><label><input type="radio" name="odq4" value="25"> Yes, sometimes (especially in winter)</label><label><input type="radio" name="odq4" value="60"> No, never</label></div></div><div class="question"><p>5. How does your skin feel after applying moisturizer?</p><div class="options"><label><input type="radio" name="odq5" value="15" required> Still feels dry after application</label><label><input type="radio" name="odq5" value="65"> Comfortable and hydrated</label><label><input type="radio" name="odq5" value="90"> A bit sticky or oily</label></div></div></div><button type="submit" class="submit-button">See Balance Score</button></form></div></div>
 
     <!-- ======================= -->
-    <!--      Original Result Page -->
+    <!-- Original & Oil/Dryness Result Pages -->
     <!-- ======================= -->
-    <div id="resultPage" class="page result-page">
-        <div class="result-container">
-            <h2>Your Skin Analysis</h2>
-            <div id="originalMeter" class="meter-container"><div class="meter-gauge"></div><div id="meterNeedle" class="meter-needle"></div></div>
-            <p id="resultScore" class="result-score">Score: 0 / 60</p>
-            <p id="skinTypeText" class="skin-type-text">Skin Type: </p>
-            <button class="go-home-btn">Go to Home</button>
-        </div>
-    </div>
-    
-    <!-- ======================= -->
-    <!--    Oil/Dryness Result Page -->
-    <!-- ======================= -->
-    <div id="oilDrynessResultPage" class="page result-page">
-        <div class="result-container">
-            <h2>Your Skin Balance Score</h2>
-            <div id="oilDrynessMeter" class="meter-container"><div class="meter-gauge"></div><div id="oilDrynessMeterNeedle" class="meter-needle"></div></div>
-            <p id="oilDrynessResultScore" class="result-score">Score: 0 / 100</p>
-            <p id="oilDrynessSkinTypeText" class="skin-type-text">Your Skin is: </p>
-            <button class="go-home-btn">Go to Home</button>
-        </div>
-    </div>
-
+    <div id="resultPage" class="page result-page"><div class="result-container"><h2>Your Skin Analysis</h2><div id="originalMeter" class="meter-container"><div class="meter-gauge"></div><div id="meterNeedle" class="meter-needle"></div></div><p id="resultScore" class="result-score">Score: 0 / 60</p><p id="skinTypeText" class="skin-type-text">Skin Type: </p><button class="go-home-btn">Go to Home</button></div></div>
+    <div id="oilDrynessResultPage" class="page result-page"><div class="result-container"><h2>Your Skin Balance Score</h2><div id="oilDrynessMeter" class="meter-container"><div class="meter-gauge"></div><div id="oilDrynessMeterNeedle" class="meter-needle"></div></div><p id="oilDrynessResultScore" class="result-score">Score: 0 / 100</p><p id="oilDrynessSkinTypeText" class="skin-type-text">Your Skin is: </p><button class="go-home-btn">Go to Home</button></div></div>
 
     <!-- ======================= -->
-    <!--      Bottom Navigation Bar -->
+    <!-- Modals and Popups -->
+    <!-- ======================= -->
+    <div id="calendarModal" class="modal"><div class="modal-content"><p>Select two dates for comparison</p><div><label for="date1">Date 1:</label><input type="date" id="date1"></div><div><label for="date2">Date 2:</label><input type="date" id="date2"></div><div class="modal-buttons"><button id="startComparisonBtn" class="modal-btn-primary">Compare</button><button id="cancelComparisonBtn" class="modal-btn-secondary">Cancel</button></div></div></div>
+    <div id="genericModal" class="modal"><div class="modal-content"><p id="modalText"></p><div id="modalButtons" class="modal-buttons"></div></div></div>
+
+    <!-- ======================= -->
+    <!-- Bottom Navigation Bar -->
     <!-- ======================= -->
     <div class="bottom-nav">
-        <div class="nav-item active"><i class="fas fa-home"></i><span>Glowmeter</span></div>
-        <div class="nav-item"><i class="fas fa-user-md"></i><span>Advice</span></div>
-        <div class="nav-item"><i class="fas fa-camera"></i><span>Scan</span></div>
-        <div class="nav-item"><i class="fas fa-chart-line"></i><span>Track</span></div>
-        <div class="nav-item"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Glowmeter</span></div>
+        <div class="nav-item" data-page="advicePage"><i class="fas fa-user-md"></i><span>Advice</span></div>
+        <div class="nav-item" data-page="cameraHubPage"><i class="fas fa-camera"></i><span>Scan</span></div>
+        <div class="nav-item" data-page="trackPage"><i class="fas fa-chart-line"></i><span>Track</span></div>
+        <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
 
     <script>
+        // --- Global Variables ---
+        let currentStream;
+        let facingMode = 'user'; // 'user' for front, 'environment' for back
+        let capturedImage = null;
+        let lightLevel = 'yellow'; // 'red', 'yellow', 'green'
+        let userCredits = 0; // Simulated credits for paid feature
+
         // --- DOM Element Selection ---
         const pages = document.querySelectorAll('.page');
         const goHomeBtns = document.querySelectorAll('.go-home-btn');
+        const navItems = document.querySelectorAll('.nav-item');
 
         // Original Quiz Elements
         const mainOpenBtn = document.getElementById('mainOpenBtn');
@@ -546,7 +469,7 @@
         const oilDrynessResultScoreEl = document.getElementById('oilDrynessResultScore');
         const oilDrynessSkinTypeTextEl = document.getElementById('oilDrynessSkinTypeText');
 
-        // New ClearPath Elements
+        // ClearPath Elements
         const clearPathOpenBtn = document.getElementById('clearPathOpenBtn');
         const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
         const photoInput = document.getElementById('photoInput');
@@ -567,196 +490,203 @@
         const comparisonDate1Text = document.getElementById('comparisonDate1Text');
         const comparisonDate2Text = document.getElementById('comparisonDate2Text');
 
+        // NEW Camera Hub Elements
+        const cameraFeed = document.getElementById('cameraFeed');
+        const shutterBtn = document.getElementById('shutterBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const lightIcon = document.getElementById('lightIcon');
+        const captureCanvas = document.getElementById('captureCanvas');
 
-        // --- Page Navigation Function ---
+        // NEW Photo Review Elements
+        const photoPreview = document.getElementById('photoPreview');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const saveToDiaryBtn = document.getElementById('saveToDiaryBtn');
+        const quickScanBtn = document.getElementById('quickScanBtn');
+
+        // Generic Modal Elements
+        const genericModal = document.getElementById('genericModal');
+        const modalText = document.getElementById('modalText');
+        const modalButtons = document.getElementById('modalButtons');
+
+
+        // --- Page Navigation & Control ---
         function showPage(pageId) {
-            pages.forEach(page => {
-                page.classList.remove('active');
-            });
-            const activePage = document.getElementById(pageId);
-            if (activePage) {
-                activePage.classList.add('active');
+            // Stop camera if leaving a camera page
+            if (document.querySelector('.page.active').id === 'cameraHubPage' && pageId !== 'cameraHubPage') {
+                stopCamera();
             }
+            pages.forEach(page => page.classList.remove('active'));
+            const activePage = document.getElementById(pageId);
+            if (activePage) activePage.classList.add('active');
             window.scrollTo(0, 0);
+
+            // Update nav item active state
+            navItems.forEach(item => {
+                item.classList.toggle('active', item.dataset.page === pageId || (pageId === 'homePage' && item.dataset.page === 'homePage'));
+            });
         }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.dataset.page;
+                if (pageId) {
+                     if (pageId === 'cameraHubPage') {
+                        startCamera();
+                    }
+                    // For placeholder pages
+                    if(['advicePage', 'trackPage', 'profilePage'].includes(pageId)) {
+                        alert(`"${pageId.replace('Page', '')}" is coming soon!`);
+                        return;
+                    }
+                    showPage(pageId);
+                }
+            });
+        });
+
         
-        // --- Date Formatting Helper ---
-        function getFormattedDate(date) {
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+        // --- Camera Functions ---
+        async function startCamera() {
+            if (currentStream) stopCamera(); // Stop existing stream first
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            };
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = currentStream;
+                // Simulate lighting check
+                setInterval(simulateLighting, 2000);
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Could not access camera. Please check permissions.");
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function switchCamera() {
+            facingMode = (facingMode === 'user') ? 'environment' : 'user';
+            startCamera();
+        }
+
+        function takePhoto() {
+            const context = captureCanvas.getContext('2d');
+            captureCanvas.width = cameraFeed.videoWidth;
+            captureCanvas.height = cameraFeed.videoHeight;
+            context.drawImage(cameraFeed, 0, 0, captureCanvas.width, captureCanvas.height);
+            capturedImage = captureCanvas.toDataURL('image/jpeg');
+            photoPreview.src = capturedImage;
+            stopCamera();
+            showPage('photoReviewPage');
+        }
+
+        // --- Lighting Simulation ---
+        function simulateLighting() {
+            const levels = ['red', 'yellow', 'green'];
+            const colors = { red: 'var(--red)', yellow: 'var(--yellow)', green: 'var(--green)' };
+            const nextLevelIndex = (levels.indexOf(lightLevel) + 1) % levels.length;
+            lightLevel = levels[nextLevelIndex];
+            lightIcon.style.color = colors[lightLevel];
+        }
+
+        // --- Generic Modal Functions ---
+        function showModal(text, buttons) {
+            modalText.textContent = text;
+            modalButtons.innerHTML = '';
+            buttons.forEach(btnInfo => {
+                const button = document.createElement('button');
+                button.textContent = btnInfo.text;
+                button.className = btnInfo.class;
+                button.onclick = () => {
+                    genericModal.style.display = 'none';
+                    if (btnInfo.callback) btnInfo.callback();
+                };
+                modalButtons.appendChild(button);
+            });
+            genericModal.style.display = 'flex';
         }
 
         // --- Local Storage Photo Functions ---
-        function savePhotoToLocalStorage(dateKey, base64Image) {
-            try {
-                localStorage.setItem(`photo-${dateKey}`, base64Image);
-            } catch (e) {
-                console.error("Could not save to localStorage:", e);
-                alert("Could not save photo. Storage may be full.");
-            }
-        }
-        function getPhotoFromLocalStorage(dateKey) {
-            return localStorage.getItem(`photo-${dateKey}`);
-        }
-        
-        // --- Function to load today's photo on ClearPath page ---
-        function loadTodaysPhoto() {
-             const todayKey = getFormattedDate(new Date());
-             const savedImage = getPhotoFromLocalStorage(todayKey);
-             if(savedImage) {
-                 todayImage.src = savedImage;
-             } else {
-                 todayImage.src = ""; // Clear if no image
-                 todayImage.alt = "No photo uploaded for today.";
-             }
-        }
-
+        function getFormattedDate(date) { const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+        function savePhotoToLocalStorage(dateKey, base64Image) { try { localStorage.setItem(`photo-${dateKey}`, base64Image); } catch (e) { console.error("Could not save to localStorage:", e); alert("Could not save photo. Storage may be full."); } }
+        function getPhotoFromLocalStorage(dateKey) { return localStorage.getItem(`photo-${dateKey}`); }
+        function loadTodaysPhoto() { const todayKey=getFormattedDate(new Date()), savedImage=getPhotoFromLocalStorage(todayKey); if(savedImage) { todayImage.src=savedImage; } else { todayImage.src=""; todayImage.alt="No photo uploaded for today."; } }
 
         // --- Event Listeners ---
         mainOpenBtn.addEventListener('click', () => showPage('questionPage'));
         oilDrynessOpenBtn.addEventListener('click', () => showPage('oilDrynessPage'));
-        clearPathOpenBtn.addEventListener('click', () => {
-            showPage('clearPathPage');
-            loadTodaysPhoto();
-        });
-        
-        goHomeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                quizForm.reset();
-                oilDrynessForm.reset();
-                showPage('homePage');
-            });
-        });
-
-        // --- ClearPath Page Logic ---
-        uploadPhotoBtn.addEventListener('click', () => {
-            photoInput.click(); // Trigger the hidden file input
-        });
-
-        photoInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Image = e.target.result;
-                    const todayKey = getFormattedDate(new Date());
-                    savePhotoToLocalStorage(todayKey, base64Image);
-                    todayImage.src = base64Image; // Display the uploaded image immediately
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // --- Photo Diary and Comparison Logic ---
+        clearPathOpenBtn.addEventListener('click', () => { showPage('clearPathPage'); loadTodaysPhoto(); });
+        goHomeBtns.forEach(btn => btn.addEventListener('click', () => { quizForm.reset(); oilDrynessForm.reset(); showPage('homePage'); }));
+        uploadPhotoBtn.addEventListener('click', () => photoInput.click());
+        photoInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const b64 = e.target.result, key = getFormattedDate(new Date()); savePhotoToLocalStorage(key, b64); todayImage.src = b64; }; reader.readAsDataURL(file); } });
         diaryCardLink.addEventListener('click', () => showPage('photoDiaryPage'));
         diaryBackBtn.addEventListener('click', () => showPage('clearPathPage'));
-        
-        openComparisonBtn.addEventListener('click', () => {
-            calendarModal.style.display = 'flex';
-        });
-
-        calendarIcon.addEventListener('click', () => {
-            // For now, this also opens the comparison selector.
-            // Can be changed to a single date picker later.
-            calendarModal.style.display = 'flex';
-        });
-
-        cancelComparisonBtn.addEventListener('click', () => {
-            calendarModal.style.display = 'none';
-        });
-
+        openComparisonBtn.addEventListener('click', () => { calendarModal.style.display = 'flex'; });
+        calendarIcon.addEventListener('click', () => { calendarModal.style.display = 'flex'; });
+        cancelComparisonBtn.addEventListener('click', () => { calendarModal.style.display = 'none'; });
         startComparisonBtn.addEventListener('click', () => {
-            const date1 = dateInput1.value;
-            const date2 = dateInput2.value;
-
-            if (!date1 || !date2) {
-                alert("Please select two dates.");
-                return;
-            }
-
-            const photo1 = getPhotoFromLocalStorage(date1);
-            const photo2 = getPhotoFromLocalStorage(date2);
-
-            comparisonDate1Text.textContent = date1;
-            comparisonDate2Text.textContent = date2;
-
-            comparisonImage1.src = photo1 || "";
-            comparisonImage1.alt = photo1 ? "" : `No photo for ${date1}`;
-
-            comparisonImage2.src = photo2 || "";
-            comparisonImage2.alt = photo2 ? "" : `No photo for ${date2}`;
-            
-            calendarModal.style.display = 'none';
-            showPage('comparisonPage');
+            const d1 = dateInput1.value, d2 = dateInput2.value; if (!d1 || !d2) { alert("Please select two dates."); return; }
+            const p1 = getPhotoFromLocalStorage(d1), p2 = getPhotoFromLocalStorage(d2);
+            comparisonDate1Text.textContent = d1; comparisonDate2Text.textContent = d2;
+            comparisonImage1.src = p1 || ""; comparisonImage1.alt = p1 ? "" : `No photo for ${d1}`;
+            comparisonImage2.src = p2 || ""; comparisonImage2.alt = p2 ? "" : `No photo for ${d2}`;
+            calendarModal.style.display = 'none'; showPage('comparisonPage');
         });
 
-
-        // --- Original Quiz Submission Logic ---
-        quizForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const formData = new FormData(quizForm);
-            let totalScore = 0;
-            const categoryScores = { oily: 0, dry: 0, sensitive: 0, pores: 0, combination: 0 };
-            for (let i = 1; i <= 30; i++) {
-                const value = parseInt(formData.get(`q${i}`) || 0);
-                totalScore += value;
-                if (i <= 6) categoryScores.oily += value;
-                else if (i <= 12) categoryScores.dry += value;
-                else if (i <= 18) categoryScores.sensitive += value;
-                else if (i <= 24) categoryScores.pores += value;
-                else if (i <= 30) categoryScores.combination += value;
+        // --- NEW Camera & Review Page Event Listeners ---
+        shutterBtn.addEventListener('click', () => {
+            if (lightLevel === 'red') {
+                showModal('Lighting is poor, results may not be accurate. Would you like to proceed anyway?', [
+                    { text: 'Proceed', class: 'modal-btn-primary', callback: takePhoto },
+                    { text: 'Try Again', class: 'modal-btn-secondary' }
+                ]);
+            } else {
+                takePhoto();
             }
-            displayResults(totalScore, categoryScores);
-            showPage('resultPage');
-        });
-        
-        // --- Oil/Dryness Quiz Submission Logic ---
-        oilDrynessForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const formData = new FormData(oilDrynessForm);
-            let totalValue = 0, questionCount = 0;
-            for(let pair of formData.entries()) {
-                totalValue += parseInt(pair[1]);
-                questionCount++;
-            }
-            const finalScore = Math.round(totalValue / questionCount);
-            displayOilDrynessResults(finalScore);
-            showPage('oilDrynessResultPage');
         });
 
+        switchCameraBtn.addEventListener('click', switchCamera);
 
-        // --- Original Result Display Function ---
-        function displayResults(score, categoryScores) {
-            const maxScore = 60;
-            resultScoreEl.textContent = `Score: ${score} / ${maxScore}`;
-            const rotation = (score / maxScore) * 180;
-            meterNeedle.style.transform = `rotate(${rotation}deg)`;
-            let skinType = "Normal Skin";
-            if (categoryScores.sensitive > 7) skinType = "Sensitive Skin";
-            else if (categoryScores.combination > 7) skinType = "Combination Skin";
-            else if (categoryScores.oily > 7 && categoryScores.dry < 5) skinType = "Oily Skin";
-            else if (categoryScores.dry > 7 && categoryScores.oily < 5) skinType = "Dry Skin";
-            else if (score < 15) skinType = "Normal Skin";
-            else skinType = "Combination Skin (Mixed Symptoms)";
-            skinTypeTextEl.textContent = `Skin Type: ${skinType}`;
-        }
-        
-        // --- Oil/Dryness Result Display Function ---
-        function displayOilDrynessResults(score) {
-            const maxScore = 100;
-            oilDrynessResultScoreEl.textContent = `Score: ${score} / ${maxScore}`;
-            const rotation = (score / maxScore) * 180;
-            oilDrynessMeterNeedle.style.transform = `rotate(${rotation}deg)`;
-            let skinBalanceText = "";
-            if (score <= 30) skinBalanceText = "Very Dry";
-            else if (score <= 50) skinBalanceText = "Slightly Dry";
-            else if (score <= 70) skinBalanceText = "Balanced (Healthy)";
-            else if (score <= 85) skinBalanceText = "Slightly Oily";
-            else skinBalanceText = "Very Oily";
-            oilDrynessSkinTypeTextEl.textContent = `Your Skin is: ${skinBalanceText}`;
-        }
+        retakeBtn.addEventListener('click', () => {
+            showPage('cameraHubPage');
+            startCamera();
+        });
+
+        saveToDiaryBtn.addEventListener('click', () => {
+            if (capturedImage) {
+                const todayKey = getFormattedDate(new Date());
+                savePhotoToLocalStorage(todayKey, capturedImage);
+                alert('Photo saved to diary!');
+                showPage('photoDiaryPage');
+            }
+        });
+
+        quickScanBtn.addEventListener('click', () => {
+            if (userCredits > 0) {
+                userCredits--; // Deduct credit
+                alert('Analyzing your skin... This is a placeholder for the AI result.');
+                // Here you would navigate to an AI result page
+                // showPage('aiResultPage');
+            } else {
+                showModal('You have no credits. Would you like to buy more?', [
+                    { text: 'Buy Credits', class: 'modal-btn-primary', callback: () => alert('Navigating to credit store...') },
+                    { text: 'Maybe Later', class: 'modal-btn-secondary' }
+                ]);
+            }
+        });
+
+        // --- Quiz Submission & Display Logic (Unchanged) ---
+        quizForm.addEventListener('submit', (event) => { event.preventDefault(); const formData=new FormData(quizForm); let t=0; const c={o:0,d:0,s:0,p:0,b:0}; for(let i=1;i<=30;i++){const v=parseInt(formData.get(`q${i}`)||0); t+=v; if(i<=6)c.o+=v; else if(i<=12)c.d+=v; else if(i<=18)c.s+=v; else if(i<=24)c.p+=v; else if(i<=30)c.b+=v;} displayResults(t,c); showPage('resultPage'); });
+        oilDrynessForm.addEventListener('submit', (event) => { event.preventDefault(); const formData=new FormData(oilDrynessForm); let t=0, q=0; for(let p of formData.entries()){t+=parseInt(p[1]); q++;} const f=Math.round(t/q); displayOilDrynessResults(f); showPage('oilDrynessResultPage'); });
+        function displayResults(score, cat) { const max=60; resultScoreEl.textContent=`Score: ${score}/${max}`; meterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let type="Normal Skin"; if(cat.s>7)type="Sensitive Skin"; else if(cat.b>7)type="Combination Skin"; else if(cat.o>7&&cat.d<5)type="Oily Skin"; else if(cat.d>7&&cat.o<5)type="Dry Skin"; else if(score<15)type="Normal Skin"; else type="Combination Skin (Mixed Symptoms)"; skinTypeTextEl.textContent=`Skin Type: ${type}`; }
+        function displayOilDrynessResults(score) { const max=100; oilDrynessResultScoreEl.textContent=`Score: ${score}/${max}`; oilDrynessMeterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let text=""; if(score<=30)text="Very Dry"; else if(score<=50)text="Slightly Dry"; else if(score<=70)text="Balanced (Healthy)"; else if(score<=85)text="Slightly Oily"; else text="Very Oily"; oilDrynessSkinTypeTextEl.textContent=`Your Skin is: ${text}`; }
     </script>
 
 </body>
