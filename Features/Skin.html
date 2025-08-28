@@ -301,7 +301,6 @@
             width: 100%; 
             height: 100%; 
             object-fit: cover;
-            /* This will mirror the front camera correctly */
             transform: scaleX(-1);
         }
         #faceOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scaleX(-1); width: 70%; max-width: 350px; opacity: 0.5; pointer-events: none; }
@@ -540,7 +539,38 @@
         <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
+    <!-- ========================================================= -->
+    <!--               FIREBASE SDKs and CONFIGURATION            -->
+    <!-- ========================================================= -->
+    <!-- 1. Firebase SDKs को इम्पोर्ट करें -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- अगर आप Firestore या Analytics इस्तेमाल करना चाहते हैं, तो उन्हें यहाँ जोड़ें -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script> -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script> -->
 
+    <!-- 2. Firebase को अपनी कॉन्फ़िगरेशन के साथ शुरू करें -->
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
+        authDomain: "shubhmed-9f05d.firebaseapp.com",
+        databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
+        projectId: "shubhmed-9f05d",
+        storageBucket: "shubhmed-9f05d.firebasestorage.app",
+        messagingSenderId: "42179676197",
+        appId: "1:42179676197:web:1796559543fb869c5297cc",
+        measurementId: "G-VD9YFFECTC"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+
+
+    <!-- ======================= -->
+    <!--    Main App Logic       -->
+    <!-- ======================= -->
     <script>
         // --- Global Variables ---
         let currentStream;
@@ -553,6 +583,10 @@
         const pages = document.querySelectorAll('.page');
         const goHomeBtns = document.querySelectorAll('.go-home-btn');
         const navItems = document.querySelectorAll('.nav-item');
+        
+        // UI elements to hide/show
+        const faceOverlay = document.getElementById('faceOverlay');
+        const bottomNav = document.querySelector('.bottom-nav');
 
         // Original Quiz Elements
         const mainOpenBtn = document.getElementById('mainOpenBtn');
@@ -631,6 +665,16 @@
             navItems.forEach(item => {
                 item.classList.toggle('active', item.dataset.page === pageId);
             });
+
+            // --- यहाँ बदलाव किया गया है ---
+            // कैमरा पेज पर ओवरले और नेविगेशन बार को छिपाना और दिखाना
+            if (pageId === 'cameraHubPage') {
+                faceOverlay.style.display = 'none'; // फेस ओवरले छिपाएँ
+                bottomNav.style.display = 'none'; // नेविगेशन बार छिपाएँ
+            } else {
+                faceOverlay.style.display = 'block'; // बाकी सभी पेजों पर फेस ओवरले दिखाएँ
+                bottomNav.style.display = 'flex'; // बाकी सभी पेजों पर नेविगेशन बार दिखाएँ
+            }
         }
 
         navItems.forEach(item => {
@@ -663,7 +707,6 @@
             try {
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 cameraFeed.srcObject = currentStream;
-                // Mirror back camera correctly
                 cameraFeed.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
                 setInterval(simulateLighting, 2000);
             } catch (err) {
@@ -689,7 +732,6 @@
             captureCanvas.width = cameraFeed.videoWidth;
             captureCanvas.height = cameraFeed.videoHeight;
 
-            // Flip the image back to normal if it was from the front camera
             if (facingMode === 'user') {
                 context.translate(captureCanvas.width, 0);
                 context.scale(-1, 1);
@@ -749,8 +791,24 @@
                 return;
             }
 
-            // You must implement a function to get the actual user token
-            const userToken = "YOUR_FIREBASE_AUTH_TOKEN"; // IMPORTANT: Replace this with a real token
+            // --- यहाँ बदलाव किया गया है ---
+            // Firebase से लॉग-इन हुए यूजर का टोकन प्राप्त करना
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showModal("Please log in to use this feature.");
+                return; // अगर यूजर लॉग-इन नहीं है तो रुक जाएं
+            }
+
+            let userToken;
+            try {
+                userToken = await user.getIdToken(true);
+            } catch (error) {
+                console.error("Error getting auth token:", error);
+                showModal("Could not verify your session. Please log in again.");
+                return;
+            }
+            // --- बदलाव यहाँ खत्म हुआ ---
+
 
             showModal("Analyzing your skin...", []);
 
@@ -760,14 +818,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         imageBase64: capturedImage.split(',')[1], // Remove the 'data:image/jpeg;base64,' part
-                        token: userToken
+                        token: userToken // असली टोकन भेजना
                     })
                 });
 
                 const result = await response.json();
-                genericModal.style.display = 'none'; // Hide loading modal
+                genericModal.style.display = 'none';
 
                 if (response.ok) {
+                    userCredits--; // एनालिसिस सफल होने पर क्रेडिट कम करें
                     displayAiResults(result.data);
                 } else {
                     throw new Error(result.error || 'Unknown error occurred.');
@@ -785,14 +844,13 @@
             const healthScore = data.health || 0;
             const blemishesCount = data.blemishes || 0;
             const darkCircleLevel = data.darkCircle || 'N/A';
-            const smoothnessScore = data.health || 0; // Assuming health is smoothness
 
             aiResultScoreEl.textContent = `Health: ${healthScore.toFixed(0)}%`;
             aiMeterNeedle.style.transform = `rotate(${(healthScore / 100) * 180}deg)`;
 
             blemishesValueEl.textContent = blemishesCount;
-            darkCirclesValueEl.textContent = darkCircleLevel.charAt(0).toUpperCase() + darkCircleLevel.slice(1);
-            smoothnessValueEl.textContent = `${smoothnessScore.toFixed(0)}%`;
+            darkCirclesValueEl.textContent = typeof darkCircleLevel === 'number' ? darkCircleLevel.toFixed(0) : (darkCircleLevel.charAt(0).toUpperCase() + darkCircleLevel.slice(1));
+            smoothnessValueEl.textContent = `${healthScore.toFixed(0)}%`;
             
             showPage('aiResultPage');
         }
@@ -820,12 +878,10 @@
 
         viewResultBtn.addEventListener('click', () => {
             alert("This will show the latest saved result. Feature in development.");
-            // Later, this could load saved AI results and show the aiResultPage
         });
 
         saveResultBtn.addEventListener('click', () => {
             alert("Result saved to today's diary entry!");
-            // Here you would add logic to save the AI data to localStorage or a database
             showPage('photoDiaryPage');
         });
 
