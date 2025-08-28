@@ -1,1 +1,674 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowmeter Skin Analysis</title>
+    <style>
+        /* --- बेसिक सेटअप और वेरिएबल्स --- */
+        :root {
+            --primary-color: #00bcd4; /* Cyan */
+            --secondary-color: #0d47a1; /* Dark Blue */
+            --background-color: #e0f7fa; /* Light Cyan */
+            --text-color: #333;
+            --card-bg-color: #ffffff;
+            --green: #4CAF50;
+            --yellow: #FFC107;
+            --red: #F44336;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            width: 100%;
+            min-height: 100vh;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- होम पेज स्टाइल्स --- */
+        #homePage nav {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #homePage .home-icon {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        #homePage .search-container {
+            display: flex;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 1.5rem;
+        }
+
+        #homePage .search-container input {
+            flex-grow: 1;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 30px 0 0 30px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        #homePage .search-container button {
+            border: none;
+            padding: 0.8rem 1.2rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #homePage .image-card {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 16 / 9;
+            background-color: var(--card-bg-color);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        #homePage .image-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        #homePage .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- क्वेश्चन पेज स्टाइल्स --- */
+        #questionPage .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(13, 71, 161, 0.5); /* secondary-color with transparency */
+            backdrop-filter: blur(5px);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        #questionPage .question-card {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 9 / 16;
+            background-color: var(--card-bg-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            margin-top: 80px; /* Space for header */
+        }
+        
+        #questionPage h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .question-set { margin-bottom: 1.5rem; }
+        .question-set h3 { color: var(--primary-color); margin-bottom: 1rem; border-left: 4px solid var(--primary-color); padding-left: 0.5rem; }
+        .question { margin-bottom: 1.2rem; }
+        .question p { font-weight: 500; margin-bottom: 0.5rem; }
+        .options label { margin-right: 1rem; cursor: pointer; }
+        .options input { margin-right: 0.3rem; }
+
+        #submitBtn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform 0.2s;
+        }
+        #submitBtn:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- रिजल्ट पेज स्टाइल्स --- */
+        #resultPage .result-container {
+            background-color: var(--card-bg-color);
+            padding: 2rem;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .meter-container {
+            position: relative;
+            width: 250px;
+            height: 125px;
+            margin: 1.5rem auto;
+            overflow: hidden;
+        }
+        
+        .meter-gauge {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--green) 0deg 60deg,
+                var(--yellow) 60deg 120deg,
+                var(--red) 120deg 180deg
+            );
+            border-bottom: 125px solid var(--card-bg-color);
+        }
+
+        .meter-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 110px;
+            background-color: var(--text-color);
+            transform-origin: bottom center;
+            transition: transform 1s ease-out;
+            border-radius: 5px;
+        }
+        
+        .meter-needle::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -8px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--text-color);
+            border-radius: 50%;
+        }
+
+        #resultScore {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        #skinTypeText {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        #goHomeBtn {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #goHomeBtn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* छोटे डिवाइस के लिए एडजस्टमेंट */
+        @media (max-height: 700px) {
+            #questionPage .question-card {
+                aspect-ratio: auto; /* छोटी स्क्रीन पर आस्पेक्ट रेशियो हटाएं */
+                height: calc(100vh - 100px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================= -->
+    <!--      होम पेज            -->
+    <!-- ======================= -->
+    <div id="homePage" class="page active">
+        <nav>
+            <div class="home-icon">🏠</div>
+        </nav>
+        <div class="search-container">
+            <input type="text" placeholder="Search...">
+            <button>🔍</button>
+        </div>
+        <div id="imageCard" class="image-card">
+            <img src="../image/Glowmeter.jpg" alt="Glowmeter Skin Analysis">
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!--      क्वेश्चन पेज         -->
+    <!-- ======================= -->
+    <div id="questionPage" class="page">
+        <div class="header">Glowmeter</div>
+        <div class="question-card">
+            <form id="quizForm">
+                <h2>कुल क्वेश्चन सेट: 30</h2>
+                <p style="text-align: center; margin-bottom: 1.5rem; font-style: italic;">(प्रत्येक सवाल स्किन के ऑयल लेवल, हाइड्रेशन, सेंसिटिविटी, पोर्स, रिएक्शन और टेक्सचर पर आधारित है)</p>
+                
+                <!-- सेक्शन A -->
+                <div class="question-set">
+                    <h3>A. ऑयलिनेस और शाइन लेवल</h3>
+                    <div class="question">
+                        <p>1. क्या चेहरा धोने के 30 मिनट बाद आपकी नाक और माथे पर ऑयल या चमक दिखती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q1" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q1" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q1" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>2. दिन के अंत तक क्या आपका चेहरा तैलीय महसूस करता है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q2" value="2" required> हमेशा</label>
+                            <label><input type="radio" name="q2" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q2" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>3. क्या आपको ब्लॉटिंग पेपर या टिशू का इस्तेमाल दिन में एक से अधिक बार करना पड़ता है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q3" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q3" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q3" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>4. क्या गर्म मौसम में ऑयलिनेस बढ़ जाती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q4" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q4" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q4" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>5. क्या मेकअप जल्दी पिघल जाता है या ऑयली दिखता है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q5" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q5" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q5" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>6. क्या आपको लगता है कि आपके चेहरे पर पाउडर या मैट प्रोडक्ट जल्दी खत्म हो जाते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q6" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q6" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- सेक्शन B -->
+                <div class="question-set">
+                    <h3>B. ड्राईनेस और हाइड्रेशन लेवल</h3>
+                     <div class="question">
+                        <p>7. क्या चेहरा धोने के बाद खिंचाव महसूस होता है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q7" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q7" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q7" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>8. क्या स्किन पर फाइन लाइन्स डिहाइड्रेशन के कारण दिखाई देती हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q8" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q8" value="1"> थोड़ी</label>
+                            <label><input type="radio" name="q8" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>9. क्या आपको अक्सर स्किन पर पैचेस या फ्लेक्स दिखते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q9" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q9" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q9" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>10. क्या आप मॉइश्चराइज़र लगाने के बाद भी स्किन ड्राई फील करती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q10" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q10" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q10" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>11. क्या लिप्स और गाल अक्सर रफ लगते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q11" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q11" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q11" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>12. क्या ठंडे मौसम में स्किन ज्यादा ड्राई हो जाती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q12" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q12" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q12" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- सेक्शन C -->
+                <div class="question-set">
+                    <h3>C. सेंसिटिविटी और रिएक्शन लेवल</h3>
+                     <div class="question">
+                        <p>13. क्या आपकी स्किन पर प्रोडक्ट लगाने के बाद जलन या खुजली होती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q13" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q13" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q13" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>14. क्या आपको अक्सर रेडनेस, रैश या चुभन होती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q14" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q14" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q14" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>15. क्या आपकी स्किन नई क्रीम या सीरम पर तुरंत रिएक्ट करती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q15" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q15" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q15" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>16. क्या धूप में जाने पर स्किन जल्दी लाल हो जाती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q16" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q16" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q16" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>17. क्या फेस वॉश या साबुन से स्किन जलन या खुजली करती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q17" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q17" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q17" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                     <div class="question">
+                        <p>18. क्या आपको परफ्यूम या फ्रैगरेंस वाले प्रोडक्ट से रैश होते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q18" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q18" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- सेक्शन D -->
+                <div class="question-set">
+                    <h3>D. पोर्स और टेक्सचर</h3>
+                    <div class="question">
+                        <p>19. क्या आपके चेहरे पर बड़े-बड़े पोर्स दिखते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q19" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q19" value="1"> थोड़े</label>
+                            <label><input type="radio" name="q19" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>20. क्या आपके T-Zone (नाक, माथा, ठुड्डी) पर पोर्स बाकी हिस्सों से बड़े लगते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q20" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q20" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q20" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>21. क्या आपको अक्सर ब्लैकहेड्स या व्हाइटहेड्स होते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q21" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q21" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q21" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>22. क्या स्किन टेक्सचर स्मूद नहीं लगता?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q22" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q22" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q22" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>23. क्या आपको लगता है कि स्किन पर प्रोडक्ट ठीक से अब्सॉर्ब नहीं होते?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q23" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q23" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q23" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>24. क्या आपको फाइन बम्प्स या छोटे दाने स्किन पर महसूस होते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q24" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q24" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- सेक्शन E -->
+                <div class="question-set">
+                    <h3>E. बैलेंस और कॉम्बिनेशन फैक्टर</h3>
+                    <div class="question">
+                        <p>25. क्या आपके गाल ड्राई हैं लेकिन T-Zone ऑयली?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q25" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q25" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q25" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>26. क्या स्किन के अलग-अलग हिस्सों पर अलग रिएक्शन होता है (जैसे गाल ड्राई, नाक ऑयली)?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q26" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q26" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q26" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>27. क्या आप अलग-अलग हिस्सों के लिए अलग प्रोडक्ट इस्तेमाल करते हैं?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q27" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q27" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>28. क्या सर्दियों में स्किन ड्राई और गर्मियों में ऑयली हो जाती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q28" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q28" value="1"> थोड़ा</label>
+                            <label><input type="radio" name="q28" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>29. क्या मेकअप गाल पर सूखा और नाक पर ऑयली लगता है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q29" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q29" value="1"> कभी-कभी</label>
+                            <label><input type="radio" name="q29" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <p>30. क्या स्किन डेली रूटीन के बावजूद अनबैलेंस्ड लगती है?</p>
+                        <div class="options">
+                            <label><input type="radio" name="q30" value="2" required> हाँ</label>
+                            <label><input type="radio" name="q30" value="0"> नहीं</label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <button type="submit" id="submitBtn">परिणाम देखें</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!--      रिजल्ट पेज          -->
+    <!-- ======================= -->
+    <div id="resultPage" class="page">
+        <div class="result-container">
+            <h2>आपकी स्किन का विश्लेषण</h2>
+            <div class="meter-container">
+                <div class="meter-gauge"></div>
+                <div id="meterNeedle" class="meter-needle"></div>
+            </div>
+            <p id="resultScore">स्कोर: 0 / 60</p>
+            <p id="skinTypeText">स्किन टाइप: </p>
+            <button id="goHomeBtn">होम पर वापस जाएं</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DOM एलिमेंट्स चुनना ---
+        const pages = document.querySelectorAll('.page');
+        const imageCard = document.getElementById('imageCard');
+        const quizForm = document.getElementById('quizForm');
+        const goHomeBtn = document.getElementById('goHomeBtn');
+        const meterNeedle = document.getElementById('meterNeedle');
+        const resultScoreEl = document.getElementById('resultScore');
+        const skinTypeTextEl = document.getElementById('skinTypeText');
+
+        // --- पेज नेविगेशन फंक्शन ---
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.add('active');
+            }
+        }
+
+        // --- इवेंट लिस्टनर्स ---
+        imageCard.addEventListener('click', () => {
+            showPage('questionPage');
+        });
+
+        goHomeBtn.addEventListener('click', () => {
+            quizForm.reset(); // फॉर्म को रीसेट करें
+            showPage('homePage');
+        });
+
+        quizForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // फॉर्म का डिफ़ॉल्ट सबमिशन रोकें
+
+            const formData = new FormData(quizForm);
+            let totalScore = 0;
+            const categoryScores = {
+                oily: 0,
+                dry: 0,
+                sensitive: 0,
+                pores: 0,
+                combination: 0,
+            };
+
+            // हर सवाल के लिए स्कोर की गणना
+            for (let i = 1; i <= 30; i++) {
+                const value = parseInt(formData.get(`q${i}`) || 0);
+                totalScore += value;
+                
+                if (i >= 1 && i <= 6) categoryScores.oily += value;
+                else if (i >= 7 && i <= 12) categoryScores.dry += value;
+                else if (i >= 13 && i <= 18) categoryScores.sensitive += value;
+                else if (i >= 19 && i <= 24) categoryScores.pores += value;
+                else if (i >= 25 && i <= 30) categoryScores.combination += value;
+            }
+            
+            displayResults(totalScore, categoryScores);
+            showPage('resultPage');
+        });
+        
+        // --- रिजल्ट दिखाने का फंक्शन ---
+        function displayResults(score, categoryScores) {
+            const maxScore = 60; // 30 सवाल * 2 पॉइंट
+            resultScoreEl.textContent = `स्कोर: ${score} / ${maxScore}`;
+
+            // मीटर की सुई को घुमाना
+            const rotation = (score / maxScore) * 180;
+            meterNeedle.style.transform = `rotate(${rotation}deg)`;
+
+            // स्किन टाइप का पता लगाना
+            let skinType = "नॉर्मल स्किन";
+            
+            // हाई स्कोर (6 सवालों में 7 से ज्यादा) के आधार पर टाइप तय करें
+            if (categoryScores.sensitive > 7) {
+                skinType = "सेंसिटिव स्किन";
+            } else if (categoryScores.combination > 7) {
+                skinType = "कॉम्बिनेशन स्किन";
+            } else if (categoryScores.oily > 7 && categoryScores.dry < 5) {
+                skinType = "ऑयली स्किन";
+            } else if (categoryScores.dry > 7 && categoryScores.oily < 5) {
+                skinType = "ड्राई स्किन";
+            } else if (score < 15) {
+                skinType = "नॉर्मल स्किन";
+            } else {
+                skinType = "कॉम्बिनेशन स्किन (मिक्स्ड लक्षण)";
+            }
+
+            skinTypeTextEl.textContent = `स्किन टाइप: ${skinType}`;
+        }
+    </script>
+
+</body>
+</html>
