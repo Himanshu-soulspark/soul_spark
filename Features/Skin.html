@@ -163,7 +163,7 @@
             max-width: 500px;
         }
 
-        #homePage .grid-card {
+        #homePage .grid-card, #articlesPage .grid-card {
             background-color: var(--card-bg-color);
             border-radius: 15px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
@@ -428,6 +428,166 @@
         .modal-btn-secondary { background-color: #ccc; }
 
         @media (max-height: 700px) { .question-card { aspect-ratio: auto; height: calc(100vh - 100px); } }
+
+        /* --- NEW: Articles Page Styles --- */
+        #articlesPage {
+            padding-top: 1.5rem;
+            gap: 1.5rem;
+        }
+        #articlesPage .grid-container-3x3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 500px;
+        }
+        #mistakesListPage {
+            gap: 1rem;
+            padding-top: 70px;
+            padding-bottom: 2rem;
+            justify-content: flex-start;
+        }
+        .mistakes-list-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .mistake-list-button {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: left;
+            color: white;
+            background: linear-gradient(145deg, var(--primary-color), #00a8bd);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #006064, 0 8px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        .mistake-list-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #006064, 0 5px 10px rgba(0,0,0,0.3);
+        }
+        .language-toggle-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+        #languageToggleBtn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background-color: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        /* --- NEW: Article Detail Page Styles --- */
+        #articleDetailPage {
+            justify-content: flex-start;
+            padding-top: 70px; /* Space for fixed header */
+        }
+        .article-header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 500;
+        }
+        .article-header h2 {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            text-align: center;
+            flex-grow: 1;
+        }
+        .back-btn {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
+        .article-content-wrapper {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 9 / 14;
+            position: relative;
+            overflow: hidden;
+        }
+        .article-card {
+            background-color: var(--card-bg-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            visibility: hidden;
+            overflow-y: auto;
+        }
+        .article-card.visible {
+            opacity: 1;
+            transform: scale(1);
+            visibility: visible;
+        }
+        .article-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .article-card p {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .article-card-image {
+             width: 80%;
+             max-height: 150px;
+             aspect-ratio: 16/9;
+             border-radius: 10px;
+             object-fit: cover;
+             margin-bottom: 1rem;
+        }
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 1rem;
+        }
+        .article-nav-btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background: var(--secondary-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        .article-nav-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -583,6 +743,48 @@
             <button id="saveResultBtn" class="submit-button">Save Result to Diary & Add Notes</button>
         </div>
     </div>
+    
+    <!-- ======================= -->
+    <!--    NEW: Articles Pages   -->
+    <!-- ======================= -->
+    <div id="articlesPage" class="page">
+         <div class="page-header">Articles & Guides</div>
+         <div style="margin-top: 70px; width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+             <div class="grid-card">
+                 <div class="image-container-1x1">
+                     <img src="https://i.ibb.co/gLKgvSfW/Leonardo-Phoenix-10-Cute-animated-girl-in-a-pastelthemed-bathr-3.jpg" alt="Skincare Mistakes">
+                 </div>
+                 <button id="openMistakesBtn" class="open-button-3d" style="font-size: 1rem; padding: 0.8rem;">Skin care mistek</button>
+             </div>
+              <!-- Other article categories can be added here -->
+         </div>
+    </div>
+
+    <div id="mistakesListPage" class="page">
+        <div class="page-header">Skincare Mistakes</div>
+        <div class="language-toggle-container">
+            <button id="languageToggleBtn">Read in English</button>
+        </div>
+        <div id="mistakesListContainer" class="mistakes-list-container">
+            <!-- Buttons will be generated by JavaScript -->
+        </div>
+    </div>
+    
+    <div id="articleDetailPage" class="page">
+        <div id="articleHeader" class="article-header">
+            <i id="articleBackBtn" class="fas fa-arrow-left back-btn"></i>
+            <h2 id="articleTitle"></h2>
+             <!-- Empty div for spacing -->
+             <div style="width: 24px;"></div>
+        </div>
+        <div id="articleContentWrapper" class="article-content-wrapper">
+             <!-- Article cards will be injected by JS -->
+        </div>
+        <div class="article-nav">
+            <button id="articlePrevBtn" class="article-nav-btn">Back</button>
+            <button id="articleNextBtn" class="article-nav-btn">Next</button>
+        </div>
+    </div>
 
 
     <!-- ======================= -->
@@ -598,7 +800,7 @@
         <div class="nav-item active" data-page="homePage"><i class="fas fa-home"></i><span>Glowmeter</span></div>
         <div class="nav-item" data-page="advicePage"><i class="fas fa-user-md"></i><span>Advice</span></div>
         <div class="nav-item" data-page="cameraHubPage"><i class="fas fa-camera"></i><span>Scan</span></div>
-        <div class="nav-item" data-page="trackPage"><i class="fas fa-chart-line"></i><span>Track</span></div>
+        <div class="nav-item" data-page="articlesPage"><i class="fas fa-book-open"></i><span>Articles</span></div>
         <div class="nav-item" data-page="profilePage"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
@@ -633,6 +835,10 @@
         let capturedImage = null;
         let lightLevel = 'yellow';
         let userCredits = 1;
+        let currentLanguage = 'hi'; // 'hi' for Hindi, 'en' for English
+        let currentArticleId = null;
+        let currentArticleCardIndex = 0;
+
 
         // --- DOM Element Selection ---
         const pages = document.querySelectorAll('.page');
@@ -706,6 +912,15 @@
         const modalText = document.getElementById('modalText');
         const modalButtons = document.getElementById('modalButtons');
 
+        // --- NEW: Article Elements ---
+        const openMistakesBtn = document.getElementById('openMistakesBtn');
+        const mistakesListContainer = document.getElementById('mistakesListContainer');
+        const languageToggleBtn = document.getElementById('languageToggleBtn');
+        const articleTitleEl = document.getElementById('articleTitle');
+        const articleContentWrapper = document.getElementById('articleContentWrapper');
+        const articleBackBtn = document.getElementById('articleBackBtn');
+        const articlePrevBtn = document.getElementById('articlePrevBtn');
+        const articleNextBtn = document.getElementById('articleNextBtn');
 
         // --- Page Navigation & Control ---
         function showPage(pageId) {
@@ -721,10 +936,10 @@
                 item.classList.toggle('active', item.dataset.page === pageId);
             });
 
-            if (pageId === 'cameraHubPage') {
-                bottomNav.style.display = 'none';
+            if (pageId === 'cameraHubPage' || pageId === 'articleDetailPage') {
+                 bottomNav.style.display = 'none';
             } else {
-                bottomNav.style.display = 'flex';
+                 bottomNav.style.display = 'flex';
             }
         }
 
@@ -733,11 +948,10 @@
                 const pageId = item.dataset.page;
                 if (pageId) {
                     if (pageId === 'cameraHubPage') {
-                        // अब कैमरा सीधे नहीं खुलेगा, पहले निर्देश दिखेंगे
                         showPage('instructionsPage');
                         return;
                     }
-                    if (['advicePage', 'trackPage', 'profilePage'].includes(pageId)) {
+                    if (['advicePage', 'profilePage'].includes(pageId)) {
                         alert(`"${pageId.replace('Page', '')}" is coming soon!`);
                         return;
                     }
@@ -992,6 +1206,238 @@
         oilDrynessForm.addEventListener('submit', (event) => { event.preventDefault(); const formData=new FormData(oilDrynessForm); let t=0, q=0; for(let p of formData.entries()){t+=parseInt(p[1]); q++;} const f=Math.round(t/q); displayOilDrynessResults(f); showPage('oilDrynessResultPage'); });
         function displayResults(score, cat) { const max=60; resultScoreEl.textContent=`Score: ${score}/${max}`; meterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let type="Normal Skin"; if(cat.s>7)type="Sensitive Skin"; else if(cat.b>7)type="Combination Skin"; else if(cat.o>7&&cat.d<5)type="Oily Skin"; else if(cat.d>7&&cat.o<5)type="Dry Skin"; else if(score<15)type="Normal Skin"; else type="Combination Skin (Mixed Symptoms)"; skinTypeTextEl.textContent=`Skin Type: ${type}`; }
         function displayOilDrynessResults(score) { const max=100; oilDrynessResultScoreEl.textContent=`Score: ${score}/${max}`; oilDrynessMeterNeedle.style.transform=`rotate(${(score/max)*180}deg)`; let text=""; if(score<=30)text="Very Dry"; else if(score<=50)text="Slightly Dry"; else if(score<=70)text="Balanced (Healthy)"; else if(score<=85)text="Slightly Oily"; else text="Very Oily"; oilDrynessSkinTypeTextEl.textContent=`Your Skin is: ${text}`; }
+
+
+        // --- NEW: Article Logic ---
+
+        // Database of all articles
+        const articlesData = {
+            mistake1: {
+                title: { hi: "चेहरे को बार-बार धोना", en: "Washing Face Too Often" },
+                cards: [
+                    { hi: "चेहरे को बार-बार धोना – एक बड़ी स्किनकेयर गलती", en: "Washing Your Face Too Often - A Big Skincare Mistake", img: "https://i.ibb.co/6yJ4F0M/pexels-ron-lach-8130758.jpg" },
+                    { hi: "हमारी स्किन की नेचुरल ऑयल लेयर (सीबम) होती है, जो स्किन को मॉइस्चराइज रखती है और बैक्टीरिया से बचाती है। बार-बार धोने से यह हट जाती है।", en: "Our skin has a natural oil layer (sebum) that keeps it moisturized and protects from bacteria. Frequent washing strips it away.", img: "https://i.ibb.co/3sL0w0d/pexels-kristina-paukshtite-1596888.jpg" },
+                    { hi: "ज्यादा धोने से स्किन का बैरियर कमजोर हो जाता है, जिससे खुजली, जलन, और रैशेज हो सकते हैं।", en: "Over-washing weakens the skin barrier, leading to itching, irritation, and rashes.", img: "https://i.ibb.co/D7S9sP4/pexels-mikhail-nilov-8951207.jpg" },
+                    { hi: "स्किन ड्राई होने पर और ज्यादा तेल बनाने लगती है, जिससे चेहरा ऑयली लगता है और पिम्पल्स बढ़ जाते हैं।", en: "When the skin becomes dry, it produces even more oil to compensate, making the face look greasy and increasing pimples.", img: "https://i.ibb.co/2qcS30T/pexels-shiny-diamond-3762283.jpg" },
+                    { hi: "दिन में सिर्फ दो बार चेहरा धोना काफी है – सुबह उठने के बाद और रात को सोने से पहले।", en: "Washing your face just twice a day is sufficient – once after waking up and once before sleeping.", img: "https://i.ibb.co/k5qV2j0/pexels-gabby-k-6204369.jpg" },
+                    { hi: "हमेशा सॉफ्ट, सल्फेट-फ्री क्लींजर का इस्तेमाल करें जो आपकी स्किन टाइप के अनुसार हो।", en: "Always use a soft, sulfate-free cleanser that is suitable for your skin type.", img: "https://i.ibb.co/YjVqV00/pexels-matheus-n-v-18210352.jpg" },
+                    { hi: "गुनगुने पानी से हल्के हाथों से धोएं और तौलिए से थपथपा कर सुखाएं। तुरंत बाद मॉइस्चराइज़र लगाएं।", en: "Wash with lukewarm water using gentle hands and pat dry with a towel. Apply moisturizer immediately after.", img: "https://i.ibb.co/P9M0T6Y/pexels-karolina-grabowska-4210376.jpg" },
+                    { hi: "कम धोने से स्किन में नैचुरल ग्लो बना रहेगा, ड्राइनेस और पिम्पल्स की समस्या कम होगी।", en: "Washing less will maintain the skin's natural glow and reduce problems of dryness and pimples.", img: "https://i.ibb.co/0FD886z/pexels-daria-obymaha-1685650.jpg" },
+                    { hi: "निष्कर्ष: सही समय पर, सही तरीके से चेहरा धोने से स्किन हेल्दी और ग्लोइंग बनी रहती है।", en: "Conclusion: Washing your face at the right time and in the right way keeps the skin healthy and glowing.", img: "https://i.ibb.co/hK70R3J/pexels-shiny-diamond-3762875.jpg" }
+                ]
+            },
+            mistake2: {
+                title: { hi: "सनस्क्रीन का इस्तेमाल न करना", en: "Not Using Sunscreen" },
+                cards: [
+                    { hi: "सनस्क्रीन का इस्तेमाल न करना – सबसे बड़ी स्किनकेयर गलती। यह सिर्फ गर्मियों के लिए नहीं, बल्कि हर मौसम के लिए ज़रूरी है।", en: "Not using sunscreen is the biggest skincare mistake. It's essential for every season, not just summer.", img: "https://i.ibb.co/wJ0cK2p/pexels-sarah-chai-7262913.jpg" },
+                    { hi: "सूरज की UVA किरणें स्किन को बूढ़ा करती हैं और UVB किरणें सनबर्न और टैनिंग का कारण बनती हैं।", en: "The sun's UVA rays age the skin, while UVB rays cause sunburn and tanning.", img: "https://i.ibb.co/2vTzN2P/pexels-george-desipris-1294895.jpg" },
+                    { hi: "सनस्क्रीन के बिना धूप में जाने से समय से पहले झुर्रियां, फाइन लाइन्स और डार्क स्पॉट्स दिखने लगते हैं।", en: "Going out in the sun without sunscreen leads to premature wrinkles, fine lines, and dark spots.", img: "https://i.ibb.co/v4S6tVz/pexels-rdne-stock-project-6672322.jpg" },
+                    { hi: "लगातार टैनिंग स्किन की नेचुरल टोन खराब करती है और काले धब्बे (Pigmentation) बना सकती है।", en: "Constant tanning damages the skin's natural tone and can cause dark spots (pigmentation).", img: "https://i.ibb.co/jGGxW6q/pexels-pavel-danilyuk-8007357.jpg" },
+                    { hi: "घर के अंदर भी UV किरणें खिड़की से आ सकती हैं, और फोन/लैपटॉप की ब्लू लाइट भी नुकसान करती है। सनस्क्रीन इनसे बचाती है।", en: "Even indoors, UV rays can penetrate windows, and blue light from phones/laptops also causes damage. Sunscreen protects from these.", img: "https://i.ibb.co/j3YgLgW/pexels-george-milton-7014434.jpg" },
+                    { hi: "SPF 30 या उससे ज्यादा का ब्रॉड-स्पेक्ट्रम सनस्क्रीन इस्तेमाल करें जो आपकी स्किन टाइप के अनुसार हो।", en: "Use a broad-spectrum sunscreen with SPF 30 or higher that is suitable for your skin type.", img: "https://i.ibb.co/hXKjtV9/pexels-ron-lach-8130147.jpg" },
+                    { hi: "बाहर निकलने से 15-20 मिनट पहले लगाएं और हर 2-3 घंटे में दोबारा लगाएं। गर्दन और हाथों को न भूलें।", en: "Apply 15-20 minutes before going out and reapply every 2-3 hours. Don't forget your neck and hands.", img: "https://i.ibb.co/QY7Nf58/pexels-mikhail-nilov-8950454.jpg" },
+                    { hi: "रोजाना सनस्क्रीन लगाने से स्किन कैंसर का खतरा कम होता है और स्किन लंबे समय तक हेल्दी रहती है।", en: "Daily use of sunscreen reduces the risk of skin cancer and keeps the skin healthy for a long time.", img: "https://i.ibb.co/QjP7DcS/pexels-anna-shvets-3851543.jpg" },
+                    { hi: "निष्कर्ष: रोजाना सनस्क्रीन का इस्तेमाल स्वस्थ, ग्लोइंग और यंग स्किन के लिए एक आदत बननी चाहिए।", en: "Conclusion: Daily sunscreen use should become a habit for healthy, glowing, and young skin.", img: "https://i.ibb.co/8rQ3p3T/pexels-andrea-piacquadio-840954.jpg" }
+                ]
+            },
+            mistake3: {
+                title: { hi: "अधिक एक्सफोलिएशन करना", en: "Over-Exfoliating" },
+                 cards: [
+                    { "hi": "अधिक एक्सफोलिएशन करना – स्किनकेयर की गंभीर गलती। इससे फायदा देने के बजाय नुकसान होने लगता है।", "en": "Over-exfoliating is a serious skincare mistake. Instead of benefiting, it starts to cause harm.", "img": "https://i.ibb.co/gPSr46h/pexels-karolina-grabowska-4202326.jpg" },
+                    { "hi": "एक्सफोलिएशन का मतलब स्किन से डेड सेल्स हटाना है। यह फिजिकल (स्क्रब) या केमिकल (एसिड) हो सकता है।", "en": "Exfoliation means removing dead cells from the skin. It can be physical (scrub) or chemical (acids).", "img": "https://i.ibb.co/0Y1xP0L/pexels-polina-tankilevitch-3738355.jpg" },
+                    { "hi": "ज्यादा एक्सफोलिएशन से स्किन बैरियर को नुकसान होता है, जिससे जलन, लालपन, और ड्राईनेस होती है।", "en": "Over-exfoliation damages the skin barrier, causing irritation, redness, and dryness.", "img": "https://i.ibb.co/0VfW5xT/pexels-karolina-grabowska-4465121.jpg" },
+                    { "hi": "ऑयली स्किन हफ्ते में 2-3 बार, और ड्राई या सेंसिटिव स्किन हफ्ते में 1-2 बार एक्सफोलिएट करें।", "en": "Exfoliate oily skin 2-3 times a week, and dry or sensitive skin 1-2 times a week.", "img": "https://i.ibb.co/Qn1z27r/pexels-klaus-nielsen-6303770.jpg" },
+                    { "hi": "बड़े और खुरदरे दानों वाले हार्ड स्क्रब से बचें। सॉफ्ट स्क्रब या केमिकल एक्सफोलिएंट चुनें।", "en": "Avoid hard scrubs with large, coarse particles. Choose a soft scrub or a chemical exfoliant.", "img": "https://i.ibb.co/Qc91j6J/pexels-valeria-boltneva-1650893.jpg" },
+                    { "hi": "एक्सफोलिएशन के बाद मॉइस्चराइज़र और दिन में सनस्क्रीन जरूर लगाएं।", "en": "Always apply moisturizer after exfoliation and sunscreen during the day.", "img": "https://i.ibb.co/GcJm9vB/pexels-ron-lach-8130143.jpg" },
+                    { "hi": "अगर स्किन में जलन, लालपन, या लगातार ड्राईनेस हो तो समझें आप ज्यादा एक्सफोलिएशन कर रहे हैं।", "en": "If you experience skin irritation, redness, or persistent dryness, you are likely over-exfoliating.", "img": "https://i.ibb.co/n6v6j4R/pexels-andrea-piacquadio-3768916.jpg" },
+                    { "hi": "सही एक्सफोलिएशन स्किन को फ्रेश और ग्लोइंग बनाता है, जबकि अधिकता नुकसान पहुंचाती है।", "en": "Proper exfoliation makes the skin fresh and glowing, while excess is harmful.", "img": "https://i.ibb.co/Jz5GzFw/pexels-anna-nekrashevich-8253905.jpg" },
+                    { "hi": "निष्कर्ष: संतुलन ही स्वस्थ और ग्लोइंग स्किन की कुंजी है।", "en": "Conclusion: Balance is the key to healthy and glowing skin.", "img": "https://i.ibb.co/gR7KzD5/pexels-pavel-danilyuk-7937877.jpg" }
+                ]
+            },
+            mistake4: {
+                title: { hi: "गलत स्किन प्रोडक्ट का चुनाव", en: "Choosing the Wrong Skincare Products" },
+                cards: [
+                    { "hi": "गलत स्किन प्रोडक्ट का चुनाव त्वचा को बिगाड़ने वाली गलती है। हमेशा अपनी स्किन टाइप के अनुसार प्रोडक्ट चुनें।", "en": "Choosing the wrong skincare product is a mistake that can ruin your skin. Always choose products according to your skin type.", "img": "https://i.ibb.co/c1D0T2W/pexels-ksenia-chernaya-3995922.jpg" },
+                    { "hi": "मुख्यत: पांच प्रकार की स्किन होती हैं: ऑयली, ड्राई, कॉम्बिनेशन, सेंसिटिव और नॉर्मल।", "en": "There are mainly five types of skin: Oily, Dry, Combination, Sensitive, and Normal.", "img": "https://i.ibb.co/v4tNqLd/pexels-anna-shvets-3851545.jpg" },
+                    { "hi": "ऑयली स्किन पर भारी क्रीम लगाने से पोर बंद हो जाते हैं। ड्राई स्किन पर स्ट्रॉन्ग फेस वॉश से रूखापन बढ़ता है।", "en": "Using heavy cream on oily skin clogs pores. Using a strong face wash on dry skin increases dryness.", "img": "https://i.ibb.co/wJvH8J4/pexels-polina-kovaleva-5712176.jpg" },
+                    { "hi": "प्रोडक्ट के लेबल पर स्किन टाइप का जिक्र देखें और पहले पैच टेस्ट करें।", "en": "Check the product label for the mentioned skin type and always do a patch test first.", "img": "https://i.ibb.co/hZ2v6N1/pexels-ron-lach-8130154.jpg" },
+                    { "hi": "सोशल मीडिया पर ट्रेंडिंग प्रोडक्ट्स से बचें। जरूरी नहीं कि वह आपकी स्किन के लिए सही हों।", "en": "Avoid trending products on social media. They may not be right for your skin.", "img": "https://i.ibb.co/gV28bL9/pexels-george-milton-7014337.jpg" },
+                    { "hi": "अगर स्किन पर कोई समस्या है, तो डर्मेटोलॉजिस्ट से सलाह लेकर ही प्रोडक्ट चुनें।", "en": "If you have any skin problems, choose products only after consulting a dermatologist.", "img": "https://i.ibb.co/4T18T73/pexels-anna-shvets-3845126.jpg" },
+                    { "hi": "सही प्रोडक्ट स्किन को हेल्दी बनाता है, जबकि गलत प्रोडक्ट नुकसान पहुंचा सकता है।", "en": "The right product makes the skin healthy, while the wrong one can cause harm.", "img": "https://i.ibb.co/Y09f2kX/pexels-kristina-paukshtite-1148813.jpg" },
+                    { "hi": "स्वस्थ त्वचा के लिए अपनी स्किन को समझना और उसके अनुसार देखभाल करना पहला कदम है।", "en": "Understanding your skin and caring for it accordingly is the first step to healthy skin.", "img": "https://i.ibb.co/x82kS7G/pexels-daria-obymaha-1685609.jpg" },
+                    { "hi": "निष्कर्ष: सही स्किन टाइप की पहचान कर, सॉफ्ट और क्लीन फॉर्मूले वाले प्रोडक्ट चुनना ही स्वस्थ त्वचा की कुंजी है।", "en": "Conclusion: Identifying the correct skin type and choosing products with soft, clean formulas is the key to healthy skin.", "img": "https://i.ibb.co/8YjG51Y/pexels-ron-lach-8129910.jpg" }
+                ]
+            },
+            mistake5: {
+                title: { hi: "मेकअप हटाए बिना सो जाना", en: "Sleeping Without Removing Makeup" },
+                cards: [
+                    { "hi": "मेकअप हटाए बिना सो जाना स्किन के लिए सबसे खतरनाक गलतियों में से एक है।", "en": "Sleeping without removing makeup is one of the most dangerous mistakes for your skin.", "img": "https://i.ibb.co/G7FpPqH/pexels-gabby-k-5865215.jpg" },
+                    { "hi": "मेकअप, धूल और तेल मिलकर पोर बंद कर देते हैं, जिससे पिम्पल्स और ब्लैकहेड्स होते हैं।", "en": "Makeup, dust, and oil combine to clog pores, leading to pimples and blackheads.", "img": "https://i.ibb.co/tZ5zDch/pexels-andrea-piacquadio-3761513.jpg" },
+                    { "hi": "रात में स्किन खुद को रिपेयर करती है। मेकअप इस प्रक्रिया में रुकावट डालता है, जिससे स्किन डल लगती है।", "en": "The skin repairs itself at night. Makeup obstructs this process, making the skin look dull.", "img": "https://i.ibb.co/zG528h3/pexels-ketut-subiyanto-4473398.jpg" },
+                    { "hi": "लंबे समय तक मेकअप स्किन पर रहने से कोलेजन को नुकसान होता है, जिससे झुर्रियां जल्दी आती हैं।", "en": "Leaving makeup on for long periods damages collagen, leading to premature wrinkles.", "img": "https://i.ibb.co/wBFv62z/pexels-koolshooters-6977197.jpg" },
+                    { "hi": "आंखों का मेकअप हटाए बिना सोने से इंफेक्शन और पलकों पर दाने हो सकते हैं।", "en": "Sleeping without removing eye makeup can cause infections and styes on the eyelids.", "img": "https://i.ibb.co/y4Y2Qn3/pexels-karolina-grabowska-4210611.jpg" },
+                    { "hi": "सही तरीका: पहले मेकअप रिमूवर या माइसेलर वाटर का इस्तेमाल करें, फिर फेस वॉश से चेहरा धोएं।", "en": "The right way: First use a makeup remover or micellar water, then wash your face with a face wash.", "img": "https://i.ibb.co/x7Rj1D5/pexels-sora-shimazaki-5938594.jpg" },
+                    { "hi": "मेकअप हटाने के बाद मॉइस्चराइज़र लगाना न भूलें ताकि स्किन हाइड्रेटेड रहे।", "en": "Don't forget to apply moisturizer after removing makeup to keep the skin hydrated.", "img": "https://i.ibb.co/Mkrx8S6/pexels-ron-lach-8129914.jpg" },
+                    { "hi": "यह छोटी सी आदत आपकी स्किन को लंबे समय तक खूबसूरत और हेल्दी बनाए रख सकती है।", "en": "This small habit can keep your skin beautiful and healthy for a long time.", "img": "https://i.ibb.co/D80R575/pexels-gabby-k-5865207.jpg" },
+                    { "hi": "निष्कर्ष: चाहे कितनी भी थकान हो, सोने से पहले मेकअप हटाना एक जरूरी नियम है।", "en": "Conclusion: No matter how tired you are, removing makeup before sleeping is a necessary rule.", "img": "https://i.ibb.co/wWkMggR/pexels-cottonbro-studio-4153251.jpg" }
+                ]
+            },
+            mistake6: {
+                title: { hi: "पानी कम पीना और खराब डाइट", en: "Drinking Less Water & Poor Diet" },
+                cards: [
+                    { "hi": "स्वस्थ और ग्लोइंग स्किन सिर्फ बाहरी देखभाल से नहीं, बल्कि अंदरूनी पोषण से मिलती है।", "en": "Healthy and glowing skin comes not just from external care, but from internal nourishment.", "img": "https://i.ibb.co/3k5fHwH/pexels-polina-tankilevitch-3735747.jpg" },
+                    { "hi": "पानी की कमी से त्वचा डिहाइड्रेटेड हो जाती है, जिससे रूखापन और झुर्रियां बढ़ती हैं।", "en": "Lack of water dehydrates the skin, leading to increased dryness and wrinkles.", "img": "https://i.ibb.co/Wc63V9P/pexels-andrea-piacquadio-3771836.jpg" },
+                    { "hi": "पानी शरीर से टॉक्सिन्स निकालकर ब्लड सर्कुलेशन को बेहतर बनाता है, जिससे स्किन में ग्लो आता है।", "en": "Water flushes out toxins from the body and improves blood circulation, which brings a glow to the skin.", "img": "https://i.ibb.co/f4F4q9M/pexels-sasha-prasastika-2608496.jpg" },
+                    { "hi": "जंक फूड, ज्यादा शुगर और तैलीय चीजें स्किन पर एक्ने और ऑयलिनेस को बढ़ाती हैं।", "en": "Junk food, excess sugar, and oily foods increase acne and oiliness on the skin.", "img": "https://i.ibb.co/x8mJqgP/pexels-nishant-aneja-13589146.jpg" },
+                    { "hi": "अपनी डाइट में विटामिन, मिनरल और एंटीऑक्सीडेंट से भरपूर फल और सब्जियां शामिल करें।", "en": "Include fruits and vegetables rich in vitamins, minerals, and antioxidants in your diet.", "img": "https://i.ibb.co/qD4D68g/pexels-lisa-fotios-1279330.jpg" },
+                    { "hi": "दिन में कम से कम 2-3 लीटर पानी पिएं और हाइड्रेटेड रहें।", "en": "Drink at least 2-3 liters of water a day and stay hydrated.", "img": "https://i.ibb.co/2d1h4cM/pexels-ksenia-chernaya-3951600.jpg" },
+                    { "hi": "ड्राई फ्रूट्स और सीड्स में मौजूद ओमेगा-3 फैटी एसिड्स स्किन के लिए बहुत फायदेमंद हैं।", "en": "Omega-3 fatty acids found in dry fruits and seeds are very beneficial for the skin.", "img": "https://i.ibb.co/r2Nps9X/pexels-elly-fairytale-3823073.jpg" },
+                    { "hi": "सही खान-पान और पर्याप्त पानी से स्किन बिना ज्यादा खर्च के हेल्दी और ग्लोइंग दिख सकती है।", "en": "With a proper diet and adequate water, skin can look healthy and glowing without much expense.", "img": "https://i.ibb.co/K2n7L0t/pexels-kristina-paukshtite-1998633.jpg" },
+                    { "hi": "निष्कर्ष: आपकी प्लेट और आपका पानी का गिलास आपकी स्किन का सबसे अच्छा दोस्त है।", "en": "Conclusion: Your plate and your water glass are your skin's best friends.", "img": "https://i.ibb.co/yq4bB4R/pexels-koolshooters-6977466.jpg" }
+                ]
+            },
+            mistake7: {
+                title: { hi: "पिम्पल्स को छेड़ना या दबाना", en: "Picking or Squeezing Pimples" },
+                 cards: [
+                    { "hi": "पिम्पल्स को छेड़ना या दबाना – एक आम लेकिन नुकसान पहुंचाने वाली गलती।", "en": "Picking or squeezing pimples is a common but harmful mistake.", "img": "https://i.ibb.co/k2VTPkQ/pexels-mikhail-nilov-8951239.jpg" },
+                    { "hi": "पिम्पल को दबाने से बैक्टीरिया और मवाद त्वचा की गहरी परतों में फैल सकता है, जिससे इंफेक्शन बढ़ता है।", "en": "Squeezing a pimple can spread bacteria and pus into deeper layers of the skin, increasing infection.", "img": "https://i.ibb.co/2gchQ1j/pexels-cottonbro-studio-5938263.jpg" },
+                    { "hi": "दबाए हुए पिम्पल्स अक्सर गहरे निशान और गड्ढे (स्कार्स) छोड़ जाते हैं जिन्हें हटाना मुश्किल होता है।", "en": "Squeezed pimples often leave behind deep marks and scars that are difficult to remove.", "img": "https://i.ibb.co/Wc63V9P/pexels-andrea-piacquadio-3771836.jpg" },
+                    { "hi": "पिम्पल्स को छेड़ने से घाव गहरा हो जाता है और उसे ठीक होने में ज्यादा समय लगता है।", "en": "Picking at pimples makes the wound deeper and it takes longer to heal.", "img": "https://i.ibb.co/MsdR2Tf/pexels-polina-kovaleva-5711904.jpg" },
+                    { "hi": "सही तरीका: पिम्पल को हाथ न लगाएं। दिन में दो बार हल्के फेस वॉश से चेहरा साफ करें।", "en": "The right approach: Don't touch the pimple. Clean your face twice a day with a gentle face wash.", "img": "https://i.ibb.co/P9M0T6Y/pexels-karolina-grabowska-4210376.jpg" },
+                    { "hi": "आप सैलिसिलिक एसिड या बेंज़ॉयल पेरोक्साइड युक्त स्पॉट ट्रीटमेंट क्रीम का उपयोग कर सकते हैं।", "en": "You can use a spot treatment cream containing salicylic acid or benzoyl peroxide.", "img": "https://i.ibb.co/Qk45W4d/pexels-ron-lach-8129909.jpg" },
+                    { "hi": "तकिए का कवर और तौलिए को नियमित रूप से धोएं और चेहरे को बार-बार छूने से बचें।", "en": "Wash your pillowcase and towel regularly and avoid touching your face frequently.", "img": "https://i.ibb.co/B2vLqXk/pexels-tara-winstead-8877197.jpg" },
+                    { "hi": "धैर्य रखें और स्किन को अपने आप ठीक होने का समय दें।", "en": "Be patient and give your skin time to heal on its own.", "img": "https://i.ibb.co/3sL0w0d/pexels-kristina-paukshtite-1596888.jpg" },
+                    { "hi": "निष्कर्ष: पिम्पल्स को दबाना समस्या का समाधान नहीं, बल्कि नई समस्याओं की शुरुआत है।", "en": "Conclusion: Squeezing pimples is not a solution, but the beginning of new problems.", "img": "https://i.ibb.co/W6x4yY3/pexels-ksenia-chernaya-3995914.jpg" }
+                ]
+            },
+            mistake8: {
+                title: { hi: "रात में स्किन केयर रूटीन न अपनाना", en: "Skipping Nighttime Skincare Routine" },
+                cards: [
+                    { "hi": "रात में स्किन केयर रूटीन को न अपनाना स्किन को डल और थका हुआ बना सकता है।", "en": "Skipping a nighttime skincare routine can make your skin look dull and tired.", "img": "https://i.ibb.co/y4L2qT1/pexels-polina-kovaleva-5712166.jpg" },
+                    { "hi": "नींद के दौरान स्किन नई कोशिकाएं बनाती है और दिनभर के डैमेज को रिपेयर करती है।", "en": "During sleep, the skin creates new cells and repairs the damage from the day.", "img": "https://i.ibb.co/PTPN634/pexels-ketut-subiyanto-4473405.jpg" },
+                    { "hi": "नाइट रूटीन दिनभर की धूल, प्रदूषण और मेकअप को हटाकर स्किन को सांस लेने में मदद करता है।", "en": "A night routine helps the skin breathe by removing the day's dirt, pollution, and makeup.", "img": "https://i.ibb.co/x7Rj1D5/pexels-sora-shimazaki-5938594.jpg" },
+                    { "hi": "यह स्किन को हाइड्रेट और पोषण देता है, जिससे उम्र बढ़ने के लक्षण रुकते हैं।", "en": "It hydrates and nourishes the skin, which prevents signs of aging.", "img": "https://i.ibb.co/Mkrx8S6/pexels-ron-lach-8129914.jpg" },
+                    { "hi": "आसान नाइट रूटीन: क्लींजिंग, टोनिंग, सीरम, और मॉइस्चराइजिंग।", "en": "A simple night routine: Cleansing, Toning, Serum, and Moisturizing.", "img": "https://i.ibb.co/3W9MhK0/pexels-ron-lach-8129598.jpg" },
+                    { "hi": "डार्क सर्कल्स और फाइन लाइन्स के लिए आई क्रीम का इस्तेमाल भी फायदेमंद है।", "en": "Using an eye cream for dark circles and fine lines is also beneficial.", "img": "https://i.ibb.co/fH192y0/pexels-ron-lach-8129899.jpg" },
+                    { "hi": "नाइट रूटीन न करने से पिम्पल्स, ब्लैकहेड्स और समय से पहले झुर्रियां हो सकती हैं।", "en": "Skipping a night routine can lead to pimples, blackheads, and premature wrinkles.", "img": "https://i.ibb.co/G7FpPqH/pexels-gabby-k-5865215.jpg" },
+                    { "hi": "इस रूटीन में सिर्फ 5-10 मिनट लगते हैं, लेकिन इसके फायदे लंबे समय तक दिखते हैं।", "en": "This routine takes only 5-10 minutes, but its benefits last a long time.", "img": "https://i.ibb.co/2Zk1n4S/pexels-gabby-k-6204360.jpg" },
+                    { "hi": "निष्कर्ष: यह आदत स्किन को लंबे समय तक हेल्दी, यंग और ग्लोइंग बनाए रख सकती है।", "en": "Conclusion: This habit can keep your skin healthy, young, and glowing for a long time.", "img": "https://i.ibb.co/0FD886z/pexels-daria-obymaha-1685650.jpg" }
+                ]
+            },
+            mistake9: {
+                title: { hi: "सिर्फ महंगे प्रोडक्ट्स पर भरोसा करना", en: "Relying Only on Expensive Products" },
+                cards: [
+                    { "hi": "यह एक गलत सोच है कि सिर्फ महंगे स्किनकेयर प्रोडक्ट्स ही बेहतर होते हैं।", "en": "It's a misconception that only expensive skincare products are better.", "img": "https://i.ibb.co/7Y6Yg64/pexels-karolina-grabowska-4202325.jpg" },
+                    { "hi": "प्रोडक्ट की कीमत अक्सर ब्रांड नेम, पैकेजिंग और मार्केटिंग पर निर्भर करती है, न कि सामग्री पर।", "en": "A product's price often depends on branding, packaging, and marketing, not just the ingredients.", "img": "https://i.ibb.co/Y09f2kX/pexels-kristina-paukshtite-1148813.jpg" },
+                    { "hi": "सस्ते और किफायती प्रोडक्ट्स में भी वही एक्टिव इंग्रेडिएंट्स हो सकते हैं जो महंगे प्रोडक्ट्स में होते हैं।", "en": "Affordable and budget-friendly products can also contain the same active ingredients as expensive ones.", "img": "https://i.ibb.co/mHq33kY/pexels-monstera-production-6621321.jpg" },
+                    { "hi": "प्रोडक्ट का असर कीमत से नहीं, बल्कि हायलूरोनिक एसिड, विटामिन C जैसी सामग्री से तय होता है।", "en": "A product's effectiveness is determined by its ingredients like Hyaluronic Acid or Vitamin C, not its price.", "img": "https://i.ibb.co/hZ2v6N1/pexels-ron-lach-8130154.jpg" },
+                    { "hi": "प्रोडक्ट चुनते समय कीमत की जगह लेबल पर एक्टिव इंग्रेडिएंट्स और अपनी स्किन की जरूरत पर ध्यान दें।", "en": "When choosing a product, focus on the active ingredients on the label and your skin's needs, rather than the price.", "img": "https://i.ibb.co/YjVqV00/pexels-matheus-n-v-18210352.jpg" },
+                    { "hi": "हमेशा पैराबेन, सल्फेट और हार्श केमिकल्स से बचें, चाहे प्रोडक्ट कितना भी महंगा क्यों न हो।", "en": "Always avoid parabens, sulfates, and harsh chemicals, no matter how expensive the product is.", "img": "https://i.ibb.co/x741J9r/pexels-karolina-grabowska-4041391.jpg" },
+                    { "hi": "कभी-कभी एलोवेरा, गुलाबजल और हल्दी जैसे प्राकृतिक और सस्ते घरेलू उपाय भी बहुत असरदार होते हैं।", "en": "Sometimes, natural and inexpensive home remedies like aloe vera, rose water, and turmeric are very effective.", "img": "https://i.ibb.co/0Y1xP0L/pexels-polina-tankilevitch-3738355.jpg" },
+                    { "hi": "स्मार्ट स्किनकेयर का मतलब है सही इंग्रेडिएंट्स में निवेश करना, न कि सिर्फ बड़े ब्रांड्स में।", "en": "Smart skincare means investing in the right ingredients, not just in big brands.", "img": "https://i.ibb.co/8YjG51Y/pexels-ron-lach-8129910.jpg" },
+                    { "hi": "निष्कर्ष: सही स्किनकेयर का मतलब है जरूरत और इंग्रेडिएंट्स को समझकर प्रोडक्ट चुनना, न कि कीमत देखकर।", "en": "Conclusion: Proper skincare means choosing products based on needs and ingredients, not price.", "img": "https://i.ibb.co/c1D0T2W/pexels-ksenia-chernaya-3995922.jpg" }
+                ]
+            },
+            mistake10: {
+                title: { hi: "नींद की कमी और तनाव को नजरअंदाज करना", en: "Ignoring Lack of Sleep and Stress" },
+                cards: [
+                    { "hi": "नींद की कमी और तनाव को नजरअंदाज करना स्किन पर गहरा असर डालने वाली गलती है।", "en": "Ignoring lack of sleep and stress is a mistake that deeply affects the skin.", "img": "https://i.ibb.co/wBFv62z/pexels-koolshooters-6977197.jpg" },
+                    { "hi": "नींद की कमी से स्किन डल और थकी हुई दिखती है, और आंखों के नीचे डार्क सर्कल्स बढ़ जाते हैं।", "en": "Lack of sleep makes the skin look dull and tired, and increases dark circles under the eyes.", "img": "https://i.ibb.co/f8L6t5m/pexels-andrea-piacquadio-3768031.jpg" },
+                    { "hi": "तनाव के कारण शरीर में कॉर्टिसोल हार्मोन बढ़ता है, जिससे ऑयल प्रोडक्शन बढ़ता है और पिम्पल्स निकल सकते हैं।", "en": "Stress increases the cortisol hormone in the body, which boosts oil production and can cause pimples.", "img": "https://i.ibb.co/D7S9sP4/pexels-mikhail-nilov-8951207.jpg" },
+                    { "hi": "स्किन को हेल्दी रखने के लिए रोजाना 7-8 घंटे की नींद लेना बहुत जरूरी है।", "en": "Getting 7-8 hours of sleep daily is very important for keeping the skin healthy.", "img": "https://i.ibb.co/PTPN634/pexels-ketut-subiyanto-4473405.jpg" },
+                    { "hi": "सोने का एक निश्चित समय बनाएं ताकि आपके शरीर की बायोलॉजिकल क्लॉक सेट हो सके।", "en": "Set a fixed bedtime to regulate your body's biological clock.", "img": "https://i.ibb.co/zG528h3/pexels-ketut-subiyanto-4473398.jpg" },
+                    { "hi": "तनाव कम करने के लिए योग, मेडिटेशन या हल्की एक्सरसाइज को अपनी दिनचर्या में शामिल करें।", "en": "Incorporate yoga, meditation, or light exercise into your routine to reduce stress.", "img": "https://i.ibb.co/Jz5GzFw/pexels-anna-nekrashevich-8253905.jpg" },
+                    { "hi": "रात को सोने से पहले मोबाइल या टीवी का इस्तेमाल कम करें ताकि आपको अच्छी और गहरी नींद आए।", "en": "Reduce the use of mobile phones or TV before bed to get good and deep sleep.", "img": "https://i.ibb.co/gV28bL9/pexels-george-milton-7014337.jpg" },
+                    { "hi": "अच्छी नींद और तनावमुक्त जीवन से स्किन फ्रेश दिखती है और डार्क सर्कल्स कम होते हैं।", "en": "Good sleep and a stress-free life make the skin look fresh and reduce dark circles.", "img": "https://i.ibb.co/yq4bB4R/pexels-koolshooters-6977466.jpg" },
+                    { "hi": "निष्कर्ष: अच्छी नींद और तनावमुक्त जीवन स्किनकेयर का सबसे बड़ा और सस्ता राज है।", "en": "Conclusion: Good sleep and a stress-free life are the biggest and cheapest secrets of skincare.", "img": "https://i.ibb.co/gR7KzD5/pexels-pavel-danilyuk-7937877.jpg" }
+                ]
+            }
+        };
+
+
+        // --- Article Functions ---
+        
+        function populateMistakesList() {
+            mistakesListContainer.innerHTML = '';
+            Object.keys(articlesData).forEach((key, index) => {
+                const article = articlesData[key];
+                const button = document.createElement('button');
+                button.className = 'mistake-list-button';
+                button.dataset.articleId = key;
+                button.textContent = `${index + 1}. ${article.title[currentLanguage]}`;
+                button.addEventListener('click', () => showArticle(key));
+                mistakesListContainer.appendChild(button);
+            });
+        }
+
+        function showArticle(articleId) {
+            currentArticleId = articleId;
+            currentArticleCardIndex = 0;
+            const article = articlesData[articleId];
+            
+            articleTitleEl.textContent = article.title[currentLanguage];
+            articleContentWrapper.innerHTML = '';
+
+            article.cards.forEach((cardData, index) => {
+                const card = document.createElement('div');
+                card.className = 'article-card';
+                card.id = `card-${index}`;
+                
+                let contentHTML = `<h3>${cardData[currentLanguage].split('–')[0]}</h3>`;
+                if(cardData.img) {
+                    contentHTML += `<img src="${cardData.img}" alt="Article image" class="article-card-image">`;
+                }
+                contentHTML += `<p>${cardData[currentLanguage]}</p>`;
+
+                card.innerHTML = contentHTML;
+                articleContentWrapper.appendChild(card);
+            });
+
+            updateArticleView();
+            showPage('articleDetailPage');
+        }
+
+        function updateArticleView() {
+            const article = articlesData[currentArticleId];
+            document.querySelectorAll('.article-card').forEach((card, index) => {
+                card.classList.toggle('visible', index === currentArticleCardIndex);
+            });
+            articlePrevBtn.disabled = currentArticleCardIndex === 0;
+            articleNextBtn.disabled = currentArticleCardIndex === article.cards.length - 1;
+             articleTitleEl.textContent = article.title[currentLanguage];
+        }
+
+        openMistakesBtn.addEventListener('click', () => {
+            populateMistakesList();
+            showPage('mistakesListPage');
+        });
+        
+        languageToggleBtn.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'hi' ? 'en' : 'hi';
+            languageToggleBtn.textContent = currentLanguage === 'hi' ? 'Read in English' : 'हिंदी में पढ़ें';
+            populateMistakesList();
+        });
+
+        articleBackBtn.addEventListener('click', () => {
+            populateMistakesList(); // Repopulate in case language changed
+            showPage('mistakesListPage');
+        });
+
+        articleNextBtn.addEventListener('click', () => {
+            const article = articlesData[currentArticleId];
+            if (currentArticleCardIndex < article.cards.length - 1) {
+                currentArticleCardIndex++;
+                updateArticleView();
+            }
+        });
+
+        articlePrevBtn.addEventListener('click', () => {
+            if (currentArticleCardIndex > 0) {
+                currentArticleCardIndex--;
+                updateArticleView();
+            }
+        });
+
 
         // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
