@@ -5,7 +5,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Razorpay = require('razorpay');
+// --- ज़रूरी बदलाव: Razorpay को हटाकर Cashfree SDK को इम्पोर्ट करें ---
+const { Cashfree } = require("@cashfreepayments/cashfree-sdk");
 const path = require('path');
 const axios = require('axios');
 const { google } = require('googleapis');
@@ -44,12 +45,18 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 console.log("✅ Google Generative AI initialized.");
 
-// --- Razorpay को शुरू करें ---
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+// --- ज़रूरी बदलाव: Razorpay की जगह Cashfree को शुरू करें ---
+const cashfree = new Cashfree({
+    mode: 'production', // ज़रूरी: टेस्टिंग के लिए 'sandbox' और लाइव के लिए 'production' सेट करें
+    apiDetails: {
+      // यह Render में सेट किए गए एनवायरनमेंट वेरिएबल्स का उपयोग करेगा
+      appId: process.env.CASHFREE_APP_ID,
+      secretKey: process.env.CASHFREE_SECRET_KEY,
+      apiVersion: "2023-08-01" // यह API का संस्करण है, इसे न बदलें
+    }
 });
-console.log("✅ Razorpay initialized.");
+console.log("✅ Cashfree initialized.");
+
 
 // --- YouTube API को शुरू करें ---
 const youtube = google.youtube({
@@ -421,38 +428,69 @@ app.get('/get-info-by-barcode', async(req, res) => {
 });
 
 
-// --- (मौजूदा) Razorpay पेमेंट बनाने वाले Endpoints ---
+// --- ज़रूरी बदलाव: Razorpay पेमेंट बनाने वाले Endpoint को Cashfree के लिए बदलें ---
 app.post('/create-payment', async(req, res) => {
     try {
         const { amount, token } = req.body;
         if (!token || !amount) return res.status(400).json({ error: "Amount and user token are required." });
-        await admin.auth().verifyIdToken(token);
-        const options = { amount, currency: "INR", receipt: `receipt_order_${Date.now()}` };
-        const order = await razorpay.orders.create(options);
-        res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
+        
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        const userData = userDoc.data();
+        
+        // एक यूनिक ऑर्डर आईडी बनाएँ
+        const orderId = `order_${Date.now()}`;
+
+        const orderRequest = {
+            order_id: orderId,
+            order_amount: amount / 100, // Cashfree रुपए में अमाउंट लेता है, पैसों में नहीं। इसलिए 100 से भाग दें।
+            order_currency: "INR",
+            customer_details: {
+                customer_id: decodedToken.uid,
+                customer_phone: userData.phone || "9999999999", // फोन नंबर ज़रूरी है, अगर प्रोफाइल में नहीं है तो एक डमी नंबर दें
+                customer_email: userData.email || "default@example.com" // ईमेल ज़रूरी है
+            },
+            order_meta: {
+                // यह यूआरएल पेमेंट के बाद यूजर को कहाँ भेजना है, यह तय करता है।
+                // मोबाइल ऐप के लिए यह ज़रूरी नहीं है, लेकिन वेब के लिए अच्छा है।
+                return_url: `https://your-app-name.onrender.com/payment-status?order_id=${orderId}`
+            }
+        };
+
+        const cfOrder = await cashfree.PGCreateOrder("2023-08-01", orderRequest);
+        
+        // फ्रंटएंड को केवल payment_session_id भेजें
+        res.json({ payment_session_id: cfOrder.data.payment_session_id });
+
     } catch (error) {
-        console.error("Error in /create-payment endpoint:", error);
+        console.error("Error in /create-payment endpoint:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: "Could not create payment order." });
     }
 });
 
+// --- ज़रूरी बदलाव: Razorpay पेमेंट वेरिफाई करने वाले Endpoint को Cashfree के लिए बदलें ---
 app.post('/verify-payment', async(req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, token } = req.body;
-        const crypto = require('crypto');
-        if (!token) return res.status(400).json({ error: "User token is required." });
+        // फ्रंटएंड से अब केवल 'order_id' और 'token' आएगा
+        const { order_id, token } = req.body;
+        if (!token || !order_id) return res.status(400).json({ error: "Order ID and user token are required." });
+
         const decodedToken = await admin.auth().verifyIdToken(token);
-        const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(body.toString()).digest('hex');
-        if (expectedSignature === razorpay_signature) {
+        
+        // Cashfree से ऑर्डर की स्थिति पता करें
+        const cfOrder = await cashfree.PGGetOrderById("2023-08-01", order_id);
+
+        // जांचें कि क्या पेमेंट सफल (PAID) है
+        if (cfOrder.data && cfOrder.data.order_status === 'PAID') {
             const userRef = db.collection('users').doc(decodedToken.uid);
             await userRef.update({ coins: admin.firestore.FieldValue.increment(5) });
             res.json({ status: 'success', message: 'Payment verified and coins added.' });
         } else {
-            res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
+            res.status(400).json({ status: 'failure', message: 'Payment verification failed or status is not PAID.' });
         }
     } catch (error) {
-        console.error("Error in /verify-payment endpoint:", error);
+        console.error("Error in /verify-payment endpoint:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: "An internal server error occurred." });
     }
 });
