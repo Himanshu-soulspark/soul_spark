@@ -4,8 +4,7 @@
   "description": "Backend server for Shubhmed app to handle AI, payments, and Firebase logic.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": "18.x"
@@ -13,17 +12,14 @@
   "author": "Shubhmed",
   "license": "ISC",
   "dependencies": {
-    "@cashfreepayments/cashfree-sdk": "^4.1.1",
-    "@google/generative-ai": "^0.11.3",
-    "axios": "^1.7.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "firebase-admin": "^12.1.0",
-    "form-data": "^4.0.0",
-    "googleapis": "^137.1.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@cashfreepayments/cashfree-sdk": "4.1.1",
+    "@google/generative-ai": "0.11.3",
+    "axios": "1.7.2",
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "firebase-admin": "12.1.0",
+    "form-data": "4.0.0",
+    "googleapis": "137.1.0"
   }
 }
