@@ -10,10 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Exo+2:wght@800&display=swap" rel="stylesheet">
 
 
-    <!-- =========================================================================================== -->
-    <!-- === पहला ज़रूरी बदलाव: Razorpay की स्क्रिप्ट को Cashfree की स्क्रिप्ट से बदला गया है === -->
-    <!-- =========================================================================================== -->
-    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <!-- Razorpay Script (यह पेमेंट के लिए ज़रूरी है) -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script type="importmap">
         {
@@ -1481,9 +1479,7 @@
         if (walletModal) walletModal.style.display = 'none';
     }
 
-    // ===========================================================================================
-    // === दूसरा और सबसे ज़रूरी बदलाव: Razorpay के पेमेंट कोड को Cashfree के कोड से बदला गया है ===
-    // ===========================================================================================
+    // --- Add Coins / Razorpay ---
     async function initiateAddCoins() {
         const user = auth.currentUser;
         if (!user) {
@@ -1497,89 +1493,69 @@
         const amount = 100; // Amount in paise (e.g., 100 paise = ₹1)
 
         try {
-            // स्टेप 1: अपने सर्वर से पेमेंट सेशन आईडी बनाएँ (यह हिस्सा नहीं बदला है)
-            const response = await fetch('/create-payment', { 
+            const response = await fetch('/create-payment', { // No need for full URL anymore
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    amount: amount, // यह अब Cashfree के लिए इस्तेमाल होगा
+                    amount: amount,
                     token: idToken
                 })
             });
 
             const order = await response.json();
             if (!response.ok) {
-                // आपका server.js अगर कोई एरर देता है तो उसे दिखाएँ
-                throw new Error(order.error || 'Failed to create payment session.');
+                throw new Error(order.error || 'Failed to create payment order.');
             }
-            
-            // स्टेप 2: Cashfree का पेमेंट पॉप-अप शुरू करें
-            // यह मानते हुए कि आपका सर्वर अब `{ payment_session_id: '...' }` भेज रहा है
-            const paymentSessionId = order.payment_session_id; 
-            
-            // Cashfree ऑब्जेक्ट को शुरू करें
-            const cashfree = new Cashfree({
-                mode: "production" // जब आप लाइव हों तो इसे 'production' पर सेट करें
-            });
 
-            // Cashfree का ड्रॉप-इन कंपोनेंट दिखाएँ
-            cashfree.dropin({
-                components: [
-                    "order-details",
-                    "card",
-                    "upi",
-                    "app",
-                    "netbanking",
-                    "paylater",
-                    "credicardemi"
-                ],
-                paymentSessionId: paymentSessionId,
-                // पेमेंट सफल होने पर यह फंक्शन चलेगा
-                onSuccess: async function (data) {
-                    if (data && data.order && data.order.orderId) {
-                        // स्टेप 3: पेमेंट को अपने सर्वर पर वेरिफाई करें
-                        // हम उसी '/verify-payment' endpoint को कॉल करेंगे, 
-                        // लेकिन अब Razorpay की डिटेल्स की जगह Cashfree की ऑर्डर आईडी भेजेंगे।
-                        const verificationResponse = await fetch('/verify-payment', {
-                             method: 'POST',
-                             headers: { 'Content-Type': 'application/json' },
-                             body: JSON.stringify({
-                                 order_id: data.order.orderId, // Cashfree की ऑर्डर आईडी भेजी
-                                 token: idToken
-                             })
-                        });
-                        
-                        const result = await verificationResponse.json();
-                        
-                        if(result.status === 'success') {
-                            alert('Payment successful! Coins have been added to your wallet.');
-                            const currentBalance = parseInt(document.getElementById('wallet-coin-balance-display').textContent);
-                            updateCoinDisplays(currentBalance + 5); 
-                        } else {
-                            alert(result.message || 'Payment verification failed. Please contact support.');
-                        }
+            const options = {
+                key: order.key_id, 
+                amount: order.amount,
+                currency: "INR",
+                name: "Shubhmed",
+                description: "Add Coins to Wallet",
+                order_id: order.id,
+                handler: async function (response) {
+                    
+                    const verificationResponse = await fetch('/verify-payment', { // No need for full URL
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({
+                             razorpay_order_id: response.razorpay_order_id,
+                             razorpay_payment_id: response.razorpay_payment_id,
+                             razorpay_signature: response.razorpay_signature,
+                             token: idToken
+                         })
+                    });
+                    
+                    const result = await verificationResponse.json();
+                    
+                    if(result.status === 'success') {
+                        alert('Payment successful! Coins have been added to your wallet.');
+                        const currentBalance = parseInt(document.getElementById('wallet-coin-balance-display').textContent);
+                        updateCoinDisplays(currentBalance + 5); 
                     } else {
-                         alert('Payment successful, but could not get order details for verification.');
+                        alert('Payment verification failed. Please contact support.');
                     }
                 },
-                // पेमेंट फेल होने पर यह फंक्शन चलेगा
-                onFailure: function (data) {
-                    if(data && data.order && data.order.errorText) {
-                        alert(data.order.errorText);
-                    } else {
-                        alert('Payment failed. Please try again.');
-                    }
+                prefill: {
+                    name: document.getElementById('profile-name').value || "User",
+                    email: document.getElementById('profile-email').value || "",
+                    contact: document.getElementById('profile-phone').value || ""
+                },
+                theme: {
+                    color: "#0077a2"
                 }
-            });
+            };
+            const rzp1 = new Razorpay(options);
+            rzp1.open();
 
         } catch (error) {
             console.error("Payment Error: ", error);
             alert("Error: " + error.message);
         }
     }
-
 
     // --- Logout Function ---
     function logOut() {
