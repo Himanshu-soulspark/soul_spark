@@ -668,13 +668,19 @@
         font-weight: 700;
         color: #333;
     }
+    
+    /* === START: ZAROORI BADLAV #2 (Wallet Scrolling) === */
     .wallet-body {
         padding: 20px 30px 30px 30px;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 25px;
+        max-height: 450px;      /* Height ko limit kiya */
+        overflow-y: scroll;     /* Scrollbar add kiya */
     }
+    /* === END: ZAROORI BADLAV #2 === */
+
     .wallet-coin-card {
         width: 100%;
         aspect-ratio: 1 / 1;
@@ -686,6 +692,7 @@
         justify-content: center;
         align-items: center;
         gap: 10px;
+        flex-shrink: 0; /* Shrink hone se roka */
     }
     .wallet-coin-card .coin-icon {
         font-size: 3em;
@@ -700,7 +707,6 @@
         color: #666;
     }
     
-    /* === START: NECESSARY CHANGES FOR NEW PAYMENT PLANS === */
     .wallet-plans-container {
         width: 100%;
         display: flex;
@@ -755,7 +761,6 @@
         margin-top: 5px;
         opacity: 0.8;
     }
-    /* === END: NECESSARY CHANGES FOR NEW PAYMENT PLANS === */
     
     @keyframes fadeIn {
         from { opacity: 0; }
@@ -780,7 +785,6 @@
     <div id="welcome-text" class="splash-text">Welcome</div>
     <div id="shubhmed-text" class="splash-text">Shubhmed</div>
     <div class="model-card">
-        <!-- MODIFICATION: Replaced canvas with img tag -->
         <img src="image/Welcome.png" alt="Welcome Image" id="welcome-image">
     </div>
     <div id="tagline" class="splash-text">See Your Health<br>Shape Your Future</div>
@@ -801,7 +805,6 @@
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
         <div class="search-container">
             <input type="text" class="search-bar" placeholder="Search for anything...">
-            <!-- MODIFICATION: Changed onclick to performSearch() -->
             <button class="search-button" onclick="performSearch()">&#128269;</button>
         </div>
         <div class="coin-display">
@@ -825,9 +828,7 @@
             <div class="features-section">
                 <div class="features-grid">
                     <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
-                    <!-- MODIFIED: Link to Health.html -->
                     <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg><span>Health Habit Builder</span></div>
-                    <!-- MODIFIED: Link to Diet.html -->
                     <div class="feature-item" onclick="window.location.href='Features/Diet.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
                     <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
                     <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
@@ -842,7 +843,6 @@
 </div>
 
 <!-- Floating Medical Assistant -->
-<!-- *** यही वह ज़रूरी बदलाव है *** -->
 <div id="medical-assistant-float" onclick="window.location.href='Features/Assistant.html'">
     <img src="image/Assistant.jpg" alt="Medical Assistant">
     <span>Medical Assistant</span>
@@ -865,7 +865,6 @@
         <div class="care-page-grid">
             <!-- Row 1 -->
             <div class="care-row">
-                <!-- *** यही वह ज़रूरी बदलाव है *** -->
                 <div class="care-card-wrapper" onclick="window.location.href='Features/Skin.html'">
                     <img src="image/skincare.jpg" alt="Skin Care">
                     <button class="care-3d-btn">Skin Care</button>
@@ -874,7 +873,6 @@
                     <img src="image/dental care .jpg" alt="Dental Care">
                     <button class="care-3d-btn">Dental Care</button>
                 </div>
-                <!-- MODIFICATION: Changed onclick to navigate to Features/Eye.html -->
                 <div class="care-card-wrapper" onclick="window.location.href='Features/Eye.html'">
                     <img src="image/eye care .jpg" alt="Eye Care">
                     <button class="care-3d-btn">Eye Care</button>
@@ -959,7 +957,6 @@
             <!-- Card 8 -->
             <div class="tracker-card-item">
                 <img src="image/meditation.jpg" alt="Meditation">
-                <!-- MODIFICATION: Changed onclick to navigate to Meditation.html -->
                 <button class="tracker-btn" onclick="window.location.href='Features/Meditation.html'">Meditation</button>
             </div>
             <!-- Card 9 -->
@@ -1087,7 +1084,6 @@
             </div>
         </form>
 
-        <!-- MODIFIED: Wrapped buttons in containers to show/hide them -->
         <div id="profile-main-buttons" class="profile-buttons">
             <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
             <button class="profile-btn" id="wallet-btn">Wallet</button>
@@ -1112,7 +1108,7 @@
     </div>
 </div>
 
-<!-- WALLET MODAL (New) -->
+<!-- WALLET MODAL -->
 <div id="wallet-modal">
     <div class="wallet-content">
         <div class="wallet-header">
@@ -1126,8 +1122,6 @@
                 <div class="coin-label">Available Coins</div>
             </div>
             
-            <!-- *** YAHAN ZAROORI BADLAV KIYA GAYA HAI *** -->
-            <!-- This section is updated to show multiple payment plans -->
             <div class="wallet-plans-container">
                 <button class="plan-btn" data-amount="1" data-coins="55" data-plan-type="subscription">
                     <span class="plan-price">₹1</span>
@@ -1159,28 +1153,18 @@
     <div class="nav-item active" id="nav-home"><svg viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"></path></svg><span>Home</span></div>
     <div class="nav-item" id="nav-consultant"><svg viewBox="0 0 24 24"><path d="M20,6H16V2H8V6H4C2.9,6 2,6.9 2,8V19C2,20.1 2.9,21 4,21H20C21.1,21 22,20.1 22,19V8C22,6.9 21.1,6 20,6M10,4H14V6H10V4M20,19H4V8H20V19M12,10.5L14,12.5L12,14.5L10,12.5L12,10.5Z"></path></svg><span>Consultant</span></div>
     <div class="nav-item" id="nav-care"><svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,11.56 4.05,11.12 4.14,10.7C5.9,10.14 7.5,9 7.5,7C7.5,6.05 7.08,5.19 6.4,4.58C7.5,3.14 9.12,2.29 11,2.06C11.33,3.15 12.28,4 13.5,4C14.72,4 15.67,3.15 16,2.06C17.88,2.29 19.5,3.14 20.6,4.58C19.92,5.19 19.5,6.05 19.5,7C19.5,9 21.1,10.14 22.86,10.7C22.95,11.12 23,11.56 23,12C22.97,16.41 19.41,20 15,20H9Z"></path></svg><span>Care</span></div>
-    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H17V3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
+    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
     <div class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"></path></svg><span>Profile</span></div>
 </nav>
 
 <script type="module">
-    // MODIFICATION: Removed 3D model related imports as they are no longer used
-    // import * as THREE from 'three';
-    // import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    // =================================================================================
-    // ===== START: FIREBASE SDK SETUP =====
-    // =================================================================================
-
-    // Import the functions you need from the SDKs you need
+    // FIREBASE SDK IMPORTS
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-    // Your web app's Firebase configuration
-    // This config is for your 'shubhmed-9f05d' project
+    // FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
       authDomain: "shubhmed-9f05d.firebaseapp.com",
@@ -1192,17 +1176,13 @@
       measurementId: "G-VD9YFFECTC"
     };
 
-    // Initialize Firebase
+    // FIREBASE INITIALIZATION
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const analytics = getAnalytics(app);
 
-    // =================================================================================
-    // ===== END: FIREBASE SDK SETUP =====
-    // =================================================================================
-
-    // --- Element References ---
+    // ELEMENT REFERENCES
     const splashScreen = document.getElementById('splash-screen');
     const dashboardSelectionScreen = document.getElementById('dashboard-selection-screen');
     const homePage = document.getElementById('home-page');
@@ -1223,14 +1203,12 @@
     const navTracker = document.getElementById('nav-tracker'); 
     const navProfile = document.getElementById('nav-profile'); 
     const medicalAssistantFloat = document.getElementById('medical-assistant-float');
-
     const profilePictureInput = document.getElementById('profile-image-upload');
     const profilePictureImg = document.getElementById('profile-picture');
     const profilePicturePlaceholder = document.getElementById('profile-image-placeholder');
-
     const walletModal = document.getElementById('wallet-modal');
 
-    // --- Page Navigation Logic ---
+    // PAGE NAVIGATION LOGIC
     function switchPage(pageToShow) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         if (pageToShow) {
@@ -1248,32 +1226,13 @@
         }
     }
     
-    navHome.onclick = () => {
-        switchPage(homePage);
-        updateActiveNav(navHome);
-    };
-
-    navConsultant.onclick = () => {
-        switchPage(consultantPage);
-        updateActiveNav(navConsultant);
-    };
-
-    navCare.onclick = () => {
-        switchPage(carePage);
-        updateActiveNav(navCare);
-    };
-
-    navTracker.onclick = () => {
-        switchPage(trackerPage);
-        updateActiveNav(navTracker);
-    };
-
-    navProfile.onclick = () => {
-        switchPage(profilePage);
-        updateActiveNav(navProfile);
-    };
+    navHome.onclick = () => { switchPage(homePage); updateActiveNav(navHome); };
+    navConsultant.onclick = () => { switchPage(consultantPage); updateActiveNav(navConsultant); };
+    navCare.onclick = () => { switchPage(carePage); updateActiveNav(navCare); };
+    navTracker.onclick = () => { switchPage(trackerPage); updateActiveNav(navTracker); };
+    navProfile.onclick = () => { switchPage(profilePage); updateActiveNav(navProfile); };
     
-    // --- Splash Screen Logic ---
+    // SPLASH SCREEN LOGIC
     function initializeWelcomeSequence() {
         setTimeout(() => {
             if(loader) loader.style.display = 'block';
@@ -1295,22 +1254,17 @@
         }
     }
 
-    if (startButton) {
-        startButton.onclick = proceedToDashboardSelection;
-    }
-
+    if (startButton) { startButton.onclick = proceedToDashboardSelection; }
     if (patientDashboardButton) {
         patientDashboardButton.onclick = function() {
-            if (dashboardSelectionScreen) {
-                dashboardSelectionScreen.style.display = 'none';
-            }
+            if (dashboardSelectionScreen) { dashboardSelectionScreen.style.display = 'none'; }
             switchPage(homePage);
             updateActiveNav(navHome);
             document.body.style.overflow = 'auto';
         }
     }
     
-    // --- Side Menu Logic ---
+    // SIDE MENU LOGIC
     function showSideMenu() {
         if (sideMenu) {
             sideMenu.classList.add('open');
@@ -1326,92 +1280,46 @@
         if (sideMenu) {
             sideMenu.classList.remove('open');
             const overlay = document.getElementById('menu-overlay');
-            if (overlay) {
-                overlay.remove();
-            }
+            if (overlay) { overlay.remove(); }
         }
     }
 
-    // --- Back Button Function for Prediction/Info Pages ---
+    // BACK BUTTON LOGIC
     function goBackToTracker() {
         switchPage(trackerPage);
         updateActiveNav(navTracker);
     }
 
-    // --- Draggable Medical Assistant Button ---
+    // DRAGGABLE BUTTON LOGIC
     if (medicalAssistantFloat) {
-        let isDragging = false;
-        let wasDragged = false; // Flag to distinguish drag from click
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
-
+        let isDragging = false, wasDragged = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
-
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
-
-        medicalAssistantFloat.addEventListener('click', (e) => {
-            if (wasDragged) {
-                e.preventDefault(); // Prevent navigation if it was a drag
-                wasDragged = false; // Reset flag
-            }
-        });
-
-
+        medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
         function dragStart(e) {
             wasDragged = false; 
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
-
-            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) {
-                isDragging = true;
-            }
+            if (e.type === "touchstart") { initialX = e.touches[0].clientX - xOffset; initialY = e.touches[0].clientY - yOffset; } 
+            else { initialX = e.clientX - xOffset; initialY = e.clientY - yOffset; }
+            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
         }
-
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-        }
-
+        function dragEnd(e) { initialX = currentX; initialY = currentY; isDragging = false; }
         function drag(e) {
             if (isDragging) {
-                e.preventDefault();
-                wasDragged = true; 
-
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
-
+                e.preventDefault(); wasDragged = true; 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.touches[0].clientY - initialY; } 
+                else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
+                xOffset = currentX; yOffset = currentY;
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
-        }
+        function setTranslate(xPos, yPos, el) { el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"; }
     }
 
-    // --- Profile Image Upload and Local Storage ---
+    // PROFILE IMAGE LOGIC
     function loadProfileImage() {
         const savedImage = localStorage.getItem('profileImage');
         if (savedImage) {
@@ -1423,68 +1331,43 @@
             profilePicturePlaceholder.style.display = 'block';
         }
     }
-
     if (profilePictureInput) {
         profilePictureInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imageDataUrl = e.target.result;
-                    localStorage.setItem('profileImage', imageDataUrl);
-                    loadProfileImage(); 
-                };
+                reader.onload = function(e) { localStorage.setItem('profileImage', e.target.result); loadProfileImage(); };
                 reader.readAsDataURL(file);
             }
         });
     }
 
-    
-    // =================================================================================
-    // ===== START: PROFILE, WALLET, AND AUTH LOGIC =====
-    // =================================================================================
-
-    // --- Auth State Change Listener ---
+    // AUTH, PROFILE, AND WALLET LOGIC
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            console.log("User is signed in:", user.uid);
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
 
-            // NOTE: Logic for new user coins will need to be changed to 0.
-            // This is just the initial setup.
             if (!userDoc.exists()) {
-                console.log("New user detected. Creating profile with 50 coins.");
                 await setDoc(userRef, {
-                    uid: user.uid,
-                    name: "",
-                    email: "",
-                    phone: "",
-                    address: "",
-                    coins: 50, // This will be changed to 0 in the next step.
+                    uid: user.uid, name: "", email: "", phone: "", address: "",
+                    coins: 0, // New users start with 0 coins
                     createdAt: new Date()
                 });
-                updateCoinDisplays(50);
+                updateCoinDisplays(0);
             } else {
                 const userData = userDoc.data();
-                console.log("Existing user data:", userData);
                 updateCoinDisplays(userData.coins || 0);
                 document.getElementById('profile-name').value = userData.name || "";
                 document.getElementById('profile-email').value = userData.email || "";
                 document.getElementById('profile-phone').value = userData.phone || "";
                 document.getElementById('profile-address').value = userData.address || "";
             }
-
         } else {
-            console.log("No user signed in. Signing in anonymously...");
-            signInAnonymously(auth).catch((error) => {
-                console.error("Anonymous sign-in failed:", error);
-                alert("Could not connect to the server. Please refresh.");
-            });
+            signInAnonymously(auth).catch((error) => console.error("Anonymous sign-in failed:", error));
         }
     });
     
-    // --- Update Coin Displays ---
     function updateCoinDisplays(balance) {
         document.getElementById('header-coin-balance').textContent = balance;
         document.getElementById('care-header-coin-balance').textContent = balance;
@@ -1495,78 +1378,44 @@
         document.getElementById('wallet-coin-balance-display').textContent = balance;
     }
 
-    // --- Profile Data Functions ---
     async function saveProfileData() {
         const user = auth.currentUser;
-        if (!user) {
-            alert("You are not logged in. Please refresh the page.");
-            return;
-        }
-
+        if (!user) { alert("You are not logged in."); return; }
         const name = document.getElementById('profile-name').value;
         const email = document.getElementById('profile-email').value;
         const phone = document.getElementById('profile-phone').value;
         const address = document.getElementById('profile-address').value;
-
         const userRef = doc(db, "users", user.uid);
         try {
-            await updateDoc(userRef, {
-                name: name,
-                email: email,
-                phone: phone,
-                address: address
-            });
+            await updateDoc(userRef, { name, email, phone, address });
             alert("Profile saved successfully!");
             showMainProfileView(); 
         } catch (error) {
             console.error("Error saving profile: ", error);
-            alert("Failed to save profile. Please try again.");
+            alert("Failed to save profile.");
         }
     }
     
-    // --- Wallet Functions ---
-    function openWallet() {
-        if (walletModal) walletModal.style.display = 'flex';
-    }
+    function openWallet() { if (walletModal) walletModal.style.display = 'flex'; }
+    window.closeWallet = function() { if (walletModal) walletModal.style.display = 'none'; }
 
-    window.closeWallet = function() {
-        if (walletModal) walletModal.style.display = 'none';
-    }
-
-    // --- Add Coins / Razorpay ---
-    // NOTE: This function will need significant changes to support multiple plans.
     async function initiateAddCoins(amount, isSubscription = false) {
         const user = auth.currentUser;
-        if (!user) {
-            alert("Please log in to add coins.");
-            return;
-        }
+        if (!user) { alert("Please log in to add coins."); return; }
         
-        alert("Connecting to payment gateway...");
+        console.log(`Starting payment for ₹${amount}. Is subscription: ${isSubscription}`);
 
         const idToken = await user.getIdToken();
-        // The amount is now passed as an argument, but it's in Rupees.
-        // Razorpay expects it in paise, so we multiply by 100.
         const amountInPaise = amount * 100; 
 
         try {
-            // The request body will now be more dynamic.
             const response = await fetch('/create-payment', { 
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    amount: amountInPaise,
-                    token: idToken,
-                    isSubscription: isSubscription // Let the server know if it's a subscription
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: amountInPaise, token: idToken, isSubscription: isSubscription })
             });
-
             const order = await response.json();
-            if (!response.ok) {
-                throw new Error(order.error || 'Failed to create payment order.');
-            }
+            if (!response.ok) { throw new Error(order.error || 'Failed to create payment order.'); }
 
             const options = {
                 key: order.key_id, 
@@ -1576,7 +1425,6 @@
                 description: "Add Coins to Wallet",
                 order_id: order.id,
                 handler: async function (response) {
-                    
                     const verificationResponse = await fetch('/verify-payment', { 
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
@@ -1587,17 +1435,11 @@
                              token: idToken
                          })
                     });
-                    
                     const result = await verificationResponse.json();
-                    
                     if(result.status === 'success') {
                         alert('Payment successful! Coins have been added to your wallet.');
-                        // The number of coins to add will come from the server in a real scenario
-                        // For now, we manually refresh the user's data from Firestore.
                         const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if(userDoc.exists()) {
-                            updateCoinDisplays(userDoc.data().coins);
-                        }
+                        if(userDoc.exists()) { updateCoinDisplays(userDoc.data().coins); }
                     } else {
                         alert('Payment verification failed. Please contact support.');
                     }
@@ -1607,96 +1449,56 @@
                     email: document.getElementById('profile-email').value || "",
                     contact: document.getElementById('profile-phone').value || ""
                 },
-                theme: {
-                    color: "#0077a2"
-                }
+                theme: { color: "#0077a2" }
             };
             const rzp1 = new Razorpay(options);
             rzp1.open();
-
         } catch (error) {
             console.error("Payment Error: ", error);
             alert("Error: " + error.message);
         }
     }
 
-    // --- Logout Function ---
     function logOut() {
         signOut(auth).then(() => {
             localStorage.removeItem('profileImage');
             alert('Logged out successfully!');
             window.location.reload();
-        }).catch((error) => {
-            console.error("Logout failed:", error);
-        });
+        }).catch((error) => console.error("Logout failed:", error));
     }
 
-    // --- Profile Page View Functions ---
     const profileForm = document.getElementById('profile-form');
     const profileMainButtons = document.getElementById('profile-main-buttons');
     const profileEditButtons = document.getElementById('profile-edit-buttons');
-
     function showEditProfileView() {
         profileMainButtons.style.display = 'none';
         profileForm.style.display = 'flex';
         profileEditButtons.style.display = 'flex';
     }
-
     function showMainProfileView() {
         profileMainButtons.style.display = 'flex';
         profileForm.style.display = 'none';
         profileEditButtons.style.display = 'none';
     }
 
-    // =================================================================================
-    // ===== END: PROFILE, WALLET, AND AUTH LOGIC =====
-    // =================================================================================
-
-
-    // --- Global Functions ---
-    window.showFuturePlan = function() {
-        alert('Future plan');
-    }
-
-    // --- Search Function ---
+    // GLOBAL FUNCTIONS
+    window.showFuturePlan = function() { alert('Future plan'); }
     window.performSearch = function() {
         const searchInput = document.querySelector('#home-page .search-bar');
         const searchTerm = searchInput.value.trim().toLowerCase();
-
-        if (searchTerm === "") {
-            alert("Please enter a search term.");
-            return;
-        }
-
-        if (searchTerm.includes("care") || searchTerm.includes("skin") || searchTerm.includes("dental") || searchTerm.includes("eye")) {
-            switchPage(carePage);
-            updateActiveNav(navCare);
-        } else if (searchTerm.includes("tracker") || searchTerm.includes("water") || searchTerm.includes("sleep") || searchTerm.includes("growth")) {
-            switchPage(trackerPage);
-            updateActiveNav(navTracker);
-        } else if (searchTerm.includes("consultant") || searchTerm.includes("doctor")) {
-            switchPage(consultantPage);
-            updateActiveNav(navConsultant);
-        } else if (searchTerm.includes("profile") || searchTerm.includes("wallet") || searchTerm.includes("logout")) {
-            switchPage(profilePage);
-            updateActiveNav(navProfile);
-        }
-        else if (searchTerm.includes("meditation")) {
-            window.location.href = 'Features/Meditation.html';
-        } else if (searchTerm.includes("diet")) {
-            window.location.href = 'Features/Diet.html';
-        } else if (searchTerm.includes("health habit")) {
-            window.location.href = 'Features/Health.html';
-        } else if (searchTerm.includes("medicine waste")) {
-            window.location.href = 'Features/Medicinewaste.html';
-        }
-        else {
-            alert(`No results found for "${searchInput.value}". This feature is expanding.`);
-        }
+        if (searchTerm === "") { alert("Please enter a search term."); return; }
+        if (searchTerm.includes("care")) { switchPage(carePage); updateActiveNav(navCare); } 
+        else if (searchTerm.includes("tracker")) { switchPage(trackerPage); updateActiveNav(navTracker); } 
+        else if (searchTerm.includes("consultant")) { switchPage(consultantPage); updateActiveNav(navConsultant); } 
+        else if (searchTerm.includes("profile")) { switchPage(profilePage); updateActiveNav(navProfile); }
+        else if (searchTerm.includes("meditation")) { window.location.href = 'Features/Meditation.html'; } 
+        else if (searchTerm.includes("diet")) { window.location.href = 'Features/Diet.html'; } 
+        else if (searchTerm.includes("health habit")) { window.location.href = 'Features/Health.html'; } 
+        else if (searchTerm.includes("medicine waste")) { window.location.href = 'Features/Medicinewaste.html'; }
+        else { alert(`No results found for "${searchInput.value}".`); }
     }
 
-
-    // --- Initialization ---
+    // INITIALIZATION
     document.addEventListener('DOMContentLoaded', () => {
         initializeWelcomeSequence();
         loadProfileImage();
@@ -1704,15 +1506,11 @@
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 if(button.classList.contains('water-tracker-link')) return; 
-
                 const pageTarget = button.getAttribute('data-target-page');
                 if (pageTarget) {
                     event.preventDefault(); 
-                    if (pageTarget === 'disease-prediction') {
-                        switchPage(diseasePredictionPage);
-                    } else if (pageTarget === 'disease-info') {
-                        switchPage(diseaseInfoPage);
-                    }
+                    if (pageTarget === 'disease-prediction') { switchPage(diseasePredictionPage); } 
+                    else if (pageTarget === 'disease-info') { switchPage(diseaseInfoPage); }
                 }
             });
         });
@@ -1720,34 +1518,27 @@
         const homeSearchInput = document.querySelector('#home-page .search-bar');
         if (homeSearchInput) {
             homeSearchInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault(); 
-                    performSearch();
-                }
+                if (event.key === 'Enter') { event.preventDefault(); performSearch(); }
             });
         }
         
         document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
         document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
         document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
-        
         document.getElementById('wallet-btn').addEventListener('click', openWallet);
         document.getElementById('logout-btn').addEventListener('click', logOut);
         
-        // Add event listeners for the new plan buttons
+        // === START: ZAROORI BADLAV #1 (Payment Function Call) ===
+        // Event listeners for the new plan buttons
         document.querySelectorAll('.plan-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const amount = button.dataset.amount;
                 const isSubscription = button.dataset.planType === 'subscription';
-                // The existing initiateAddCoins function is not fully ready for this,
-                // but this is how it would be called.
-                // For now, it will just show an alert.
-                alert(`Starting payment for ₹${amount}. Is subscription: ${isSubscription}`);
-                // In the next step, you would replace the alert with:
-                // initiateAddCoins(amount, isSubscription);
+                // Alert ko hata kar asli function ko call kiya
+                initiateAddCoins(amount, isSubscription);
             });
         });
-
+        // === END: ZAROORI BADLAV #1 ===
 
         window.goBackToTracker = goBackToTracker;
         window.showSideMenu = showSideMenu;
