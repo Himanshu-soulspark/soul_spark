@@ -699,9 +699,17 @@
         font-size: 1em;
         color: #666;
     }
-    .add-coins-btn {
+    
+    /* === START: NECESSARY CHANGES FOR NEW PAYMENT PLANS === */
+    .wallet-plans-container {
         width: 100%;
-        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px; /* Space between plan buttons */
+    }
+    .plan-btn {
+        width: 100%;
+        padding: 15px;
         font-size: 1.1em;
         font-weight: bold;
         color: #fff;
@@ -711,9 +719,43 @@
         cursor: pointer;
         box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.3);
         transition: all 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
-     .add-coins-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35); }
-    .add-coins-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3); }
+    .plan-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35);
+    }
+    .plan-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3);
+    }
+    .plan-btn[data-plan-type="subscription"] {
+        background: linear-gradient(145deg, #ff9800, #e65100); /* Orange color for special offer */
+        box-shadow: 0 8px 0 #bf360c, 0 12px 20px rgba(0,0,0,0.3);
+    }
+    .plan-btn[data-plan-type="subscription"]:hover {
+        box-shadow: 0 10px 0 #bf360c, 0 15px 25px rgba(0,0,0,0.35);
+    }
+    .plan-btn[data-plan-type="subscription"]:active {
+        box-shadow: 0 4px 0 #bf360c, 0 8px 15px rgba(0,0,0,0.3);
+    }
+    .plan-price {
+        font-size: 1.2em;
+    }
+    .plan-coins {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    .plan-note {
+        font-size: 0.7em;
+        font-weight: normal;
+        margin-top: 5px;
+        opacity: 0.8;
+    }
+    /* === END: NECESSARY CHANGES FOR NEW PAYMENT PLANS === */
     
     @keyframes fadeIn {
         from { opacity: 0; }
@@ -1083,7 +1125,32 @@
                 <div class="coin-balance" id="wallet-coin-balance-display">0</div>
                 <div class="coin-label">Available Coins</div>
             </div>
-            <button class="add-coins-btn" id="add-coins-btn">Add Coins (₹1 = 5 Coins)</button>
+            
+            <!-- *** YAHAN ZAROORI BADLAV KIYA GAYA HAI *** -->
+            <!-- This section is updated to show multiple payment plans -->
+            <div class="wallet-plans-container">
+                <button class="plan-btn" data-amount="1" data-coins="55" data-plan-type="subscription">
+                    <span class="plan-price">₹1</span>
+                    <span class="plan-coins">Get 55 Coins</span>
+                    <span class="plan-note">First time only! Auto-renews at ₹100 after 18 hrs.</span>
+                </button>
+                <button class="plan-btn" data-amount="100" data-coins="520">
+                    <span class="plan-price">₹100</span>
+                    <span class="plan-coins">Get 520 Coins</span>
+                </button>
+                <button class="plan-btn" data-amount="200" data-coins="1030">
+                    <span class="plan-price">₹200</span>
+                    <span class="plan-coins">Get 1030 Coins</span>
+                </button>
+                <button class="plan-btn" data-amount="500" data-coins="2550">
+                    <span class="plan-price">₹500</span>
+                    <span class="plan-coins">Get 2550 Coins</span>
+                </button>
+                <button class="plan-btn" data-amount="1000" data-coins="5200">
+                    <span class="plan-price">₹1000</span>
+                    <span class="plan-coins">Get 5200 Coins</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -1092,7 +1159,7 @@
     <div class="nav-item active" id="nav-home"><svg viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"></path></svg><span>Home</span></div>
     <div class="nav-item" id="nav-consultant"><svg viewBox="0 0 24 24"><path d="M20,6H16V2H8V6H4C2.9,6 2,6.9 2,8V19C2,20.1 2.9,21 4,21H20C21.1,21 22,20.1 22,19V8C22,6.9 21.1,6 20,6M10,4H14V6H10V4M20,19H4V8H20V19M12,10.5L14,12.5L12,14.5L10,12.5L12,10.5Z"></path></svg><span>Consultant</span></div>
     <div class="nav-item" id="nav-care"><svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,11.56 4.05,11.12 4.14,10.7C5.9,10.14 7.5,9 7.5,7C7.5,6.05 7.08,5.19 6.4,4.58C7.5,3.14 9.12,2.29 11,2.06C11.33,3.15 12.28,4 13.5,4C14.72,4 15.67,3.15 16,2.06C17.88,2.29 19.5,3.14 20.6,4.58C19.92,5.19 19.5,6.05 19.5,7C19.5,9 21.1,10.14 22.86,10.7C22.95,11.12 23,11.56 23,12C22.97,16.41 19.41,20 15,20H9Z"></path></svg><span>Care</span></div>
-    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
+    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H17V3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
     <div class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"></path></svg><span>Profile</span></div>
 </nav>
 
@@ -1243,14 +1310,6 @@
         }
     }
     
-    // --- 3D Model Setup (REMOVED) ---
-    // The setup3DModel function is no longer needed as we are using a static image.
-    /*
-    function setup3DModel() {
-        // ... Original 3D model code was here ...
-    }
-    */
-    
     // --- Side Menu Logic ---
     function showSideMenu() {
         if (sideMenu) {
@@ -1298,18 +1357,16 @@
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
 
-        // Modify the click handler to check the wasDragged flag
         medicalAssistantFloat.addEventListener('click', (e) => {
             if (wasDragged) {
                 e.preventDefault(); // Prevent navigation if it was a drag
                 wasDragged = false; // Reset flag
             }
-            // If not dragged, the default onclick behavior will proceed.
         });
 
 
         function dragStart(e) {
-            wasDragged = false; // Reset drag flag on new interaction
+            wasDragged = false; 
             if (e.type === "touchstart") {
                 initialX = e.touches[0].clientX - xOffset;
                 initialY = e.touches[0].clientY - yOffset;
@@ -1332,7 +1389,7 @@
         function drag(e) {
             if (isDragging) {
                 e.preventDefault();
-                wasDragged = true; // Set flag to true if moved
+                wasDragged = true; 
 
                 if (e.type === "touchmove") {
                     currentX = e.touches[0].clientX - initialX;
@@ -1375,7 +1432,7 @@
                 reader.onload = function(e) {
                     const imageDataUrl = e.target.result;
                     localStorage.setItem('profileImage', imageDataUrl);
-                    loadProfileImage(); // Reload to display the new image
+                    loadProfileImage(); 
                 };
                 reader.readAsDataURL(file);
             }
@@ -1394,8 +1451,9 @@
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
 
+            // NOTE: Logic for new user coins will need to be changed to 0.
+            // This is just the initial setup.
             if (!userDoc.exists()) {
-                // New user: Create their document with 50 coins
                 console.log("New user detected. Creating profile with 50 coins.");
                 await setDoc(userRef, {
                     uid: user.uid,
@@ -1403,16 +1461,14 @@
                     email: "",
                     phone: "",
                     address: "",
-                    coins: 50, // Give 50 coins to new users
+                    coins: 50, // This will be changed to 0 in the next step.
                     createdAt: new Date()
                 });
                 updateCoinDisplays(50);
             } else {
-                // Existing user: Load their data
                 const userData = userDoc.data();
                 console.log("Existing user data:", userData);
                 updateCoinDisplays(userData.coins || 0);
-                // Populate profile form
                 document.getElementById('profile-name').value = userData.name || "";
                 document.getElementById('profile-email').value = userData.email || "";
                 document.getElementById('profile-phone').value = userData.phone || "";
@@ -1420,7 +1476,6 @@
             }
 
         } else {
-            // User is signed out or not yet signed in.
             console.log("No user signed in. Signing in anonymously...");
             signInAnonymously(auth).catch((error) => {
                 console.error("Anonymous sign-in failed:", error);
@@ -1462,7 +1517,6 @@
                 address: address
             });
             alert("Profile saved successfully!");
-            // MODIFIED: After saving, switch back to the main profile view
             showMainProfileView(); 
         } catch (error) {
             console.error("Error saving profile: ", error);
@@ -1480,7 +1534,8 @@
     }
 
     // --- Add Coins / Razorpay ---
-    async function initiateAddCoins() {
+    // NOTE: This function will need significant changes to support multiple plans.
+    async function initiateAddCoins(amount, isSubscription = false) {
         const user = auth.currentUser;
         if (!user) {
             alert("Please log in to add coins.");
@@ -1490,17 +1545,21 @@
         alert("Connecting to payment gateway...");
 
         const idToken = await user.getIdToken();
-        const amount = 100; // Amount in paise (e.g., 100 paise = ₹1)
+        // The amount is now passed as an argument, but it's in Rupees.
+        // Razorpay expects it in paise, so we multiply by 100.
+        const amountInPaise = amount * 100; 
 
         try {
-            const response = await fetch('/create-payment', { // No need for full URL anymore
+            // The request body will now be more dynamic.
+            const response = await fetch('/create-payment', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    amount: amount,
-                    token: idToken
+                    amount: amountInPaise,
+                    token: idToken,
+                    isSubscription: isSubscription // Let the server know if it's a subscription
                 })
             });
 
@@ -1518,7 +1577,7 @@
                 order_id: order.id,
                 handler: async function (response) {
                     
-                    const verificationResponse = await fetch('/verify-payment', { // No need for full URL
+                    const verificationResponse = await fetch('/verify-payment', { 
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({
@@ -1533,8 +1592,12 @@
                     
                     if(result.status === 'success') {
                         alert('Payment successful! Coins have been added to your wallet.');
-                        const currentBalance = parseInt(document.getElementById('wallet-coin-balance-display').textContent);
-                        updateCoinDisplays(currentBalance + 5); 
+                        // The number of coins to add will come from the server in a real scenario
+                        // For now, we manually refresh the user's data from Firestore.
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if(userDoc.exists()) {
+                            updateCoinDisplays(userDoc.data().coins);
+                        }
                     } else {
                         alert('Payment verification failed. Please contact support.');
                     }
@@ -1568,7 +1631,7 @@
         });
     }
 
-    // --- START: NEW Profile Page View Functions ---
+    // --- Profile Page View Functions ---
     const profileForm = document.getElementById('profile-form');
     const profileMainButtons = document.getElementById('profile-main-buttons');
     const profileEditButtons = document.getElementById('profile-edit-buttons');
@@ -1584,8 +1647,6 @@
         profileForm.style.display = 'none';
         profileEditButtons.style.display = 'none';
     }
-    // --- END: NEW Profile Page View Functions ---
-
 
     // =================================================================================
     // ===== END: PROFILE, WALLET, AND AUTH LOGIC =====
@@ -1597,7 +1658,7 @@
         alert('Future plan');
     }
 
-    // --- NEW: Search Function ---
+    // --- Search Function ---
     window.performSearch = function() {
         const searchInput = document.querySelector('#home-page .search-bar');
         const searchTerm = searchInput.value.trim().toLowerCase();
@@ -1607,7 +1668,6 @@
             return;
         }
 
-        // Keywords for specific pages within the app
         if (searchTerm.includes("care") || searchTerm.includes("skin") || searchTerm.includes("dental") || searchTerm.includes("eye")) {
             switchPage(carePage);
             updateActiveNav(navCare);
@@ -1621,7 +1681,6 @@
             switchPage(profilePage);
             updateActiveNav(navProfile);
         }
-        // Keywords for navigating to separate HTML files
         else if (searchTerm.includes("meditation")) {
             window.location.href = 'Features/Meditation.html';
         } else if (searchTerm.includes("diet")) {
@@ -1631,7 +1690,6 @@
         } else if (searchTerm.includes("medicine waste")) {
             window.location.href = 'Features/Medicinewaste.html';
         }
-        // Default case if no keyword matches
         else {
             alert(`No results found for "${searchInput.value}". This feature is expanding.`);
         }
@@ -1640,8 +1698,6 @@
 
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
-        // MODIFICATION: Removed call to setup3DModel()
-        // setup3DModel();
         initializeWelcomeSequence();
         loadProfileImage();
 
@@ -1658,30 +1714,40 @@
                         switchPage(diseaseInfoPage);
                     }
                 }
-                // The meditation button with a direct onclick will not be affected by this.
-                // Other buttons without 'data-target-page' will trigger their own onclicks (e.g., showFuturePlan).
             });
         });
         
-        // Add keypress event for the search bar
         const homeSearchInput = document.querySelector('#home-page .search-bar');
         if (homeSearchInput) {
             homeSearchInput.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
-                    event.preventDefault(); // Prevent default form submission
+                    event.preventDefault(); 
                     performSearch();
                 }
             });
         }
         
-        // Re-wired profile button event listeners
         document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
         document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
         document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
         
         document.getElementById('wallet-btn').addEventListener('click', openWallet);
         document.getElementById('logout-btn').addEventListener('click', logOut);
-        document.getElementById('add-coins-btn').addEventListener('click', initiateAddCoins);
+        
+        // Add event listeners for the new plan buttons
+        document.querySelectorAll('.plan-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const amount = button.dataset.amount;
+                const isSubscription = button.dataset.planType === 'subscription';
+                // The existing initiateAddCoins function is not fully ready for this,
+                // but this is how it would be called.
+                // For now, it will just show an alert.
+                alert(`Starting payment for ₹${amount}. Is subscription: ${isSubscription}`);
+                // In the next step, you would replace the alert with:
+                // initiateAddCoins(amount, isSubscription);
+            });
+        });
+
 
         window.goBackToTracker = goBackToTracker;
         window.showSideMenu = showSideMenu;
