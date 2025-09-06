@@ -10,6 +10,7 @@ const path = require('path');
 const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data'); // Face++ API के लिए ज़रूरी
+const crypto = require('crypto'); // Razorpay Signature को वेरिफाई करने के लिए ज़रूरी
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें
@@ -224,12 +225,10 @@ app.post('/analyze-skin', async (req, res) => {
     try {
         const { imageBase64, token } = req.body;
 
-        // --- 1. इनपुट की जाँच करें ---
         if (!token || !imageBase64) {
             return res.status(400).json({ error: "Token and image data are required." });
         }
         
-        // --- 2. यूजर और क्रेडिट की जाँच करें ---
         const decodedToken = await admin.auth().verifyIdToken(token);
         const userRef = db.collection('users').doc(decodedToken.uid);
         const userDoc = await userRef.get();
@@ -238,12 +237,11 @@ app.post('/analyze-skin', async (req, res) => {
         }
 
         const userData = userDoc.data();
-        const COIN_COST = 1; // जैसा आपने कहा था, 1 क्रेडिट का उपयोग होगा
+        const COIN_COST = 1;
         if (userData.coins < COIN_COST) {
             return res.status(403).json({ error: "You don't have enough credits for a Quick Scan." });
         }
 
-        // --- 3. Face++ API को कॉल करें ---
         const apiKey = process.env.FACEPP_API_KEY;
         const apiSecret = process.env.FACEPP_API_SECRET;
         if (!apiKey || !apiSecret) {
@@ -254,32 +252,27 @@ app.post('/analyze-skin', async (req, res) => {
         formData.append('api_key', apiKey);
         formData.append('api_secret', apiSecret);
         formData.append('image_base64', imageBase64);
-        // skinstatus से हमें मुंहासे, धब्बे, डार्क सर्कल और त्वचा की सेहत की जानकारी मिलती है
         formData.append('return_attributes', 'skinstatus');
         
         const faceppResponse = await axios.post('https://api-us.faceplusplus.com/facepp/v3/detect', formData, {
             headers: formData.getHeaders()
         });
 
-        // --- 4. API के जवाब को प्रोसेस करें ---
         if (faceppResponse.data && faceppResponse.data.faces && faceppResponse.data.faces.length > 0) {
             
-            // क्रेडिट काटें क्योंकि API कॉल सफल रही
             await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
 
             const skinStatus = faceppResponse.data.faces[0].attributes.skinstatus;
             
-            // फ्रंटएंड के लिए एक साफ-सुथरा ऑब्जेक्ट बनाएँ
             const analysisResult = {
-                health: skinStatus.health, // स्मूथनेस स्कोर
-                blemishes: skinStatus.acne.length + skinStatus.stain.length, // मुंहासे और धब्बे
-                darkCircle: skinStatus.dark_circle, // डार्क सर्कल का स्तर
+                health: skinStatus.health,
+                blemishes: skinStatus.acne.length + skinStatus.stain.length,
+                darkCircle: skinStatus.dark_circle,
             };
 
             res.json({ success: true, data: analysisResult });
 
         } else {
-            // अगर API ने कोई चेहरा नहीं पहचाना
             res.status(404).json({ error: "Could not detect a face in the image. Please try again with a clearer picture." });
         }
 
@@ -421,42 +414,142 @@ app.get('/get-info-by-barcode', async(req, res) => {
 });
 
 
-// --- (मौजूदा) Razorpay पेमेंट बनाने वाले Endpoints ---
+// =================================================================
+// --- PAYMENT ENDPOINTS (नए प्लान्स के लिए अपडेट किए गए) ---
+// =================================================================
+
+// --- (ZAROORI BADLAV) यह Endpoint अब अलग-अलग अमाउंट को हैंडल कर सकता है ---
 app.post('/create-payment', async(req, res) => {
     try {
-        const { amount, token } = req.body;
+        const { amount, token, isSubscription } = req.body;
         if (!token || !amount) return res.status(400).json({ error: "Amount and user token are required." });
+        
+        // यूजर को वेरिफाई करें
         await admin.auth().verifyIdToken(token);
-        const options = { amount, currency: "INR", receipt: `receipt_order_${Date.now()}` };
+        
+        // --- सब्सक्रिप्शन का लॉजिक यहाँ आएगा ---
+        if (isSubscription) {
+            // यह एक एडवांस टॉपिक है। यहाँ आपको Razorpay का 'plan' बनाना होगा और फिर 'subscription' बनाना होगा।
+            // अभी के लिए, हम इसे एक सामान्य पेमेंट की तरह ही प्रोसेस करेंगे।
+            // असल में, आपको यहाँ यह कोड लिखना होगा:
+            // 1. razorpay.plans.create(...) से एक प्लान बनाएँ (e.g., ₹100 हर 18 घंटे में)।
+            // 2. razorpay.subscriptions.create(...) से उस प्लान के लिए सब्सक्रिप्शन बनाएँ।
+            // 3. क्लाइंट को subscription_id भेजें।
+            console.log("Subscription flow initiated, but acting as a normal payment for now.");
+        }
+
+        const options = { 
+            amount: amount, // अमाउंट अब क्लाइंट से आ रहा है (पैसों में)
+            currency: "INR", 
+            receipt: `receipt_order_${Date.now()}` 
+        };
+
         const order = await razorpay.orders.create(options);
         res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
+
     } catch (error) {
         console.error("Error in /create-payment endpoint:", error);
         res.status(500).json({ error: "Could not create payment order." });
     }
 });
 
+// --- (ZAROORI BADLAV) यह Endpoint अब प्लान के हिसाब से सही सिक्के क्रेडिट करेगा ---
 app.post('/verify-payment', async(req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, token } = req.body;
-        const crypto = require('crypto');
-        if (!token) return res.status(400).json({ error: "User token is required." });
+        
+        if (!token || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({ error: "All payment details and token are required." });
+        }
+        
         const decodedToken = await admin.auth().verifyIdToken(token);
+        
         const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(body.toString()).digest('hex');
+        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+                                      .update(body.toString())
+                                      .digest('hex');
+
         if (expectedSignature === razorpay_signature) {
-            const userRef = db.collection('users').doc(decodedToken.uid);
-            await userRef.update({ coins: admin.firestore.FieldValue.increment(5) });
-            res.json({ status: 'success', message: 'Payment verified and coins added.' });
+            // सिग्नेचर सही है, अब पेमेंट की डिटेल्स Razorpay से प्राप्त करें
+            const paymentDetails = await razorpay.orders.fetch(razorpay_order_id);
+            const amountPaid = paymentDetails.amount / 100; // रकम को रुपये में बदलें
+
+            let coinsToAdd = 0;
+            // प्लान के हिसाब से सिक्के तय करें
+            switch(amountPaid) {
+                case 1:
+                    coinsToAdd = 55;
+                    break;
+                case 100:
+                    coinsToAdd = 520;
+                    break;
+                case 200:
+                    coinsToAdd = 1030;
+                    break;
+                case 500:
+                    coinsToAdd = 2550;
+                    break;
+                case 1000:
+                    coinsToAdd = 5200;
+                    break;
+                default:
+                    console.log(`No specific coin plan for amount: ₹${amountPaid}`);
+                    // आप चाहें तो यहाँ एक डिफ़ॉल्ट लॉजिक भी लगा सकते हैं
+            }
+            
+            // यूजर के अकाउंट में सिक्के अपडेट करें
+            if (coinsToAdd > 0) {
+                const userRef = db.collection('users').doc(decodedToken.uid);
+                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd) });
+            }
+
+            res.json({ status: 'success', message: `Payment verified. ${coinsToAdd} coins added.` });
+
         } else {
             res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
         }
     } catch (error) {
         console.error("Error in /verify-payment endpoint:", error);
-        res.status(500).json({ error: "An internal server error occurred." });
+        res.status(500).json({ error: "An internal server error occurred during verification." });
     }
 });
 
+
+// --- (Naya Placeholder) ऑटो-पेमेंट को हैंडल करने के लिए Webhook Endpoint ---
+/*
+app.post('/razorpay-webhook', (req, res) => {
+    // यह फंक्शन तब चलेगा जब Razorpay 18 घंटे बाद ऑटो-पेमेंट करेगा
+    
+    // 1. Webhook की सीक्रेट की (Secret Key) को वेरिफाई करें
+    // यह पक्का करने के लिए कि रिक्वेस्ट सच में Razorpay से आई है
+    const secret = 'AAPKA_WEBHOOK_SECRET'; // इसे Razorpay डैशबोर्ड में सेट करें
+    const shasum = crypto.createHmac('sha256', secret);
+    shasum.update(JSON.stringify(req.body));
+    const digest = shasum.digest('hex');
+
+    if (digest === req.headers['x-razorpay-signature']) {
+        console.log('Request is legitimate');
+        
+        // 2. देखें कि कौनसा इवेंट आया है
+        const event = req.body.event;
+        if (event === 'subscription.charged') {
+            const subscriptionData = req.body.payload.subscription.entity;
+            const customerId = subscriptionData.customer_id; // यहाँ से आपको यूजर की पहचान करनी होगी
+
+            // 3. डेटाबेस में उस यूजर को खोजें और सिक्के क्रेडिट करें
+            // उदाहण:
+            // const userRef = db.collection('users').doc(USER_ID_FROM_DB);
+            // await userRef.update({ coins: admin.firestore.FieldValue.increment(520) });
+
+            console.log('Subscription charged successfully for customer:', customerId);
+        }
+    } else {
+        console.log('Invalid webhook signature');
+    }
+    
+    res.json({ status: 'ok' });
+});
+*/
 
 // =================================================================
 // 5. वेबसाइट की फाइलों को दिखाने के लिए कोड
