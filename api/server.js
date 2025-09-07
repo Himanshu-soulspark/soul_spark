@@ -438,10 +438,8 @@ app.post('/create-payment', async (req, res) => {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
-            // === START: ZAROORI BADLAV (Customer Checking Logic) ===
             let customerId = userData.razorpayCustomerId;
 
-            // Agar customer ID Firebase mein nahi hai, tabhi naya banayein
             if (!customerId) {
                 const customer = await razorpay.customers.create({
                     name: userData.name || 'Shubhmed User',
@@ -450,7 +448,6 @@ app.post('/create-payment', async (req, res) => {
                 });
                 customerId = customer.id;
             }
-            // === END: ZAROORI BADLAV ===
             
             const startTime = new Date();
             startTime.setHours(startTime.getHours() + 12);
@@ -458,7 +455,7 @@ app.post('/create-payment', async (req, res) => {
 
             const subscriptionOptions = {
                 plan_id: process.env.RAZORPAY_PLAN_ID_A, // ₹2000 wala plan
-                customer_id: customerId, // Use existing or new customer ID
+                customer_id: customerId,
                 total_count: 12, 
                 start_at: startAtTimestamp,
                 addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}],
@@ -467,15 +464,18 @@ app.post('/create-payment', async (req, res) => {
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
+            // === START: ZAROORI BADLAV (Receipt ID Fixed) ===
             const mandateOrderOptions = {
                 amount: 100, // ₹1
                 currency: "INR",
-                receipt: `mandate_rcpt_${decodedToken.uid}_${Date.now()}`,
+                receipt: `m_rcpt_${Date.now()}`, // Shorter and unique receipt
                 payment_capture: 1,
                 notes: {
                     subscription_id: subscription.id
                 }
             };
+            // === END: ZAROORI BADLAV ===
+            
             const mandateOrder = await razorpay.orders.create(mandateOrderOptions);
 
             await userRef.update({ 
@@ -495,7 +495,13 @@ app.post('/create-payment', async (req, res) => {
         else {
             const { amount } = req.body;
             if(!amount) return res.status(400).json({ error: "Amount is required for one-time payments." });
-            const options = { amount, currency: "INR", receipt: `receipt_order_${Date.now()}` };
+            // === START: ZAROORI BADLAV (Receipt ID Fixed for one-time payment) ===
+            const options = { 
+                amount, 
+                currency: "INR", 
+                receipt: `rcpt_${Date.now()}` // Shorter receipt
+            };
+            // === END: ZAROORI BADLAV ===
             const order = await razorpay.orders.create(options);
             return res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
         }
