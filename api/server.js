@@ -16,13 +16,11 @@ const crypto = require('crypto'); // Razorpay Signature को वेरिफ�
 // 2. सर्वर और सर्विसेज़ को शुरू करें
 // =================================================================
 
-// Express सर्वर बनाएँ
 const app = express();
 app.use(cors());
 
 // IMPORTANT: Webhook ko handle karne ke liye raw body zaroori hai.
 // Isliye, hum sirf specific routes ke liye JSON parser use karenge.
-// Yeh line '/razorpay-webhook' ko chhodkar baki sabke liye JSON parsing enable karegi.
 app.use((req, res, next) => {
     if (req.path === '/razorpay-webhook') {
         // Webhook ke liye raw body parser ka istemal karein
@@ -439,7 +437,6 @@ app.post('/create-payment', async (req, res) => {
 
         // Agar user subscription plan le raha hai (₹1 wala)
         if (isSubscription) {
-            // NOTE: Agar user ka pehle se subscription hai, to naya banane se rokein.
             if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
@@ -450,25 +447,43 @@ app.post('/create-payment', async (req, res) => {
                 contact: userData.phone || undefined
             });
 
+            // Pehla charge 12 ghante baad ke liye schedule karein
+            const startTime = new Date();
+            startTime.setHours(startTime.getHours() + 12);
+            const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
+
             const subscriptionOptions = {
                 plan_id: process.env.RAZORPAY_PLAN_ID_A, // ₹2000 wala plan
                 customer_id: customer.id,
                 total_count: 12, 
-                quantity: 1,
-                customer_notify: 0,
+                start_at: startAtTimestamp, // Important: Schedule for later
                 addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}],
+                customer_notify: 1
             };
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
+            // Ek alag se ₹1 ka order banayein UPI AutoPay mandate ke liye
+            const mandateOrderOptions = {
+                amount: 100, // ₹1
+                currency: "INR",
+                receipt: `mandate_rcpt_${decodedToken.uid}`,
+                payment_capture: 1,
+                notes: {
+                    subscription_id: subscription.id // Link this order to the subscription
+                }
+            };
+            const mandateOrder = await razorpay.orders.create(mandateOrderOptions);
+
             await userRef.update({ 
                 razorpayCustomerId: customer.id,
                 razorpaySubscriptionId: subscription.id,
-                currentPlan: 'PlanA' 
+                currentPlan: 'PlanA',
+                subscriptionStatus: 'pending_payment'
             });
             
             return res.json({
-                subscription_id: subscription.id,
+                order_id: mandateOrder.id, // Frontend is order se payment karega
                 key_id: process.env.RAZORPAY_KEY_ID
             });
         }
@@ -491,38 +506,30 @@ app.post('/create-payment', async (req, res) => {
 
 app.post('/verify-payment', async (req, res) => {
     try {
-        const { razorpay_payment_id, razorpay_subscription_id, razorpay_order_id, razorpay_signature, token } = req.body;
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, token } = req.body;
         if (!token) return res.status(400).json({ error: "Token is required." });
         const decodedToken = await admin.auth().verifyIdToken(token);
         const userRef = db.collection('users').doc(decodedToken.uid);
 
-        let body;
-        let expectedSignature;
-
-        if (razorpay_subscription_id) { // This is a subscription payment
-            body = razorpay_payment_id + "|" + razorpay_subscription_id;
-            expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        let body = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
                                       .update(body.toString()).digest('hex');
+
+        if (expectedSignature === razorpay_signature) {
+            const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
-            if (expectedSignature === razorpay_signature) {
-                await userRef.update({ 
+            // Check if this was a subscription mandate payment
+            if (orderDetails.notes && orderDetails.notes.subscription_id) {
+                 await userRef.update({ 
                     coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
+                    subscriptionStatus: 'active' // Ab subscription active hai
                 });
                 return res.json({ status: 'success', message: 'Subscription successful! 55 coins added.' });
             }
-        } 
-        
-        else if (razorpay_order_id) { // This is a one-time payment
-            body = razorpay_order_id + "|" + razorpay_payment_id;
-            expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-                                      .update(body.toString()).digest('hex');
-
-            if (expectedSignature === razorpay_signature) {
-                const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
+            // Otherwise, it's a one-time payment
+            else {
                 const amountPaid = orderDetails.amount / 100;
                 let coinsToAdd = 0;
-                // Plan ke hisaab se coins dein
                 if (amountPaid === 100) coinsToAdd = 520;
                 else if (amountPaid === 200) coinsToAdd = 1030;
                 else if (amountPaid === 500) coinsToAdd = 2550;
@@ -533,11 +540,9 @@ app.post('/verify-payment', async (req, res) => {
                 }
                 return res.json({ status: 'success', message: `${coinsToAdd} coins added.` });
             }
+        } else {
+            return res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
         }
-
-        // Agar signature match nahi hota ya zaroori details nahi hain
-        return res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
-
     } catch (error) {
         console.error("Error in /verify-payment:", error);
         res.status(500).json({ error: "Verification failed on server." });
@@ -602,9 +607,10 @@ app.post('/razorpay-webhook', async (req, res) => {
                 
                 await razorpay.subscriptions.cancel(subscriptionId);
 
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const startAtTimestamp = Math.floor(tomorrow.getTime() / 1000);
+                // Naya subscription 24 ghante baad ke liye schedule karein
+                const startTime = new Date();
+                startTime.setHours(startTime.getHours() + 24);
+                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
                 
                 const newSubscription = await razorpay.subscriptions.create({
                     plan_id: process.env.RAZORPAY_PLAN_ID_B, // ₹200 wala plan
@@ -639,7 +645,10 @@ app.use(express.static(path.join(__dirname, '..')));
 app.get('/Features/water.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'water.html')));
 app.get('/Features/Diet.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Diet.html')));
 app.get('/Features/Health.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Health.html')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')));
+// Yeh सुनिश्चित karega ki koi bhi anjaan route index.html par redirect ho
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
 
 
 // =================================================================
