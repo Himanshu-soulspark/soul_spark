@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Exo+2:wght@800&display=swap" rel="stylesheet">
 
-    <!-- Razorpay Script (यह पेमेंट के लिए ज़रूरी है) -->
+    <!-- Razorpay Script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <script type="importmap">
@@ -25,7 +25,7 @@
     body {
         margin: 0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        overflow-x: hidden; /* Prevents horizontal scrollbars */
+        overflow-x: hidden;
         background-color: #f0f2f5;
     }
 
@@ -38,7 +38,7 @@
         height: 100%;
         background: radial-gradient(circle, #0077a2, #003f5c);
         display: flex;
-        flex-direction: column; /* Centering content vertically */
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         transition: opacity 1.5s ease-out, visibility 1.5s;
@@ -46,7 +46,6 @@
         overflow: hidden;
     }
     
-    /* Animated background elements (more subtle) */
     #splash-screen::before, #splash-screen::after {
         content: '';
         position: absolute;
@@ -66,20 +65,18 @@
         100% { transform: translateY(0) translateX(0); }
     }
 
-    /* Caduceus Icon (w.jpg) */
     #caduceus-icon {
-        width: clamp(80px, 20vw, 150px); /* Adjust size as needed */
-        height: clamp(80px, 20vw, 150px); /* Make height equal to width for circle */
-        border-radius: 50%; /* Make it circular */
-        object-fit: cover; /* Ensure image covers the circle */
-        margin-bottom: 20px; /* Space between icon and welcome text */
+        width: clamp(80px, 20vw, 150px);
+        height: clamp(80px, 20vw, 150px);
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 20px;
         z-index: 10;
         opacity: 0;
         animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
-        animation-delay: 0.2s; /* Appear slightly before welcome text */
+        animation-delay: 0.2s;
     }
 
-    /* Welcome & Shubhmed Texts */
     .splash-text {
         font-family: 'Exo 2', sans-serif;
         font-weight: 800;
@@ -92,39 +89,36 @@
         animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
     }
     #welcome-text {
-        font-size: clamp(3.5em, 14vw, 7em); /* Made bigger */
+        font-size: clamp(3.5em, 14vw, 7em);
         animation-delay: 0.5s;
-        margin-bottom: 10px; /* Pushed down slightly */
+        margin-bottom: 10px;
     }
     #shubhmed-text {
-        font-size: clamp(1.2em, 5vw, 2.2em); /* Made smaller */
-        margin-top: -20px; /* Adjusted position */
+        font-size: clamp(1.2em, 5vw, 2.2em);
+        margin-top: -20px;
         animation-delay: 0.8s;
     }
 
-    /* Tagline */
     #tagline {
-        font-family: 'Poppins', sans-serif; /* Changed to Poppins for a different feel */
+        font-family: 'Poppins', sans-serif;
         font-weight: 700;
         color: white;
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6);
         letter-spacing: 1px;
-        font-size: clamp(0.9em, 4vw, 1.5em); /* Adjust size as needed */
+        font-size: clamp(0.9em, 4vw, 1.5em);
         text-align: center;
-        margin-top: 15px; /* Space below model card */
+        margin-top: 15px;
         z-index: 10;
         opacity: 0;
         filter: blur(8px);
         animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
-        animation-delay: 1.5s; /* Appear after model card */
+        animation-delay: 1.5s;
         line-height: 1.4;
     }
 
-
-    /* 1:1 Card for 3D Model */
     .model-card {
-        width: 80%; /* Made smaller */
-        max-width: 320px; /* Made smaller */
+        width: 80%;
+        max-width: 320px;
         aspect-ratio: 1 / 1;
         margin: 20px 0;
         border-radius: 25px;
@@ -137,144 +131,42 @@
         animation: card-appear 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) 1.2s forwards;
     }
     
-    #welcome-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
+    #welcome-image { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    @keyframes card-appear {
-        100% { opacity: 1; transform: scale(1); }
-    }
+    @keyframes card-appear { 100% { opacity: 1; transform: scale(1); } }
+    @keyframes text-focus-in { 0% { filter: blur(12px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
 
-    @keyframes text-focus-in {
-        0% { filter: blur(12px); opacity: 0; }
-        100% { filter: blur(0px); opacity: 1; }
-    }
+    #buffer-loader { width: 60px; height: 60px; border: 5px solid rgba(0, 230, 255, 0.3); border-top-color: #00e5ff; border-radius: 50%; animation: spin 1.5s linear infinite; z-index: 15; display: none; margin-top: 20px; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* Buffer Loader */
-    #buffer-loader {
-        width: 60px; height: 60px; border: 5px solid rgba(0, 230, 255, 0.3);
-        border-top-color: #00e5ff; border-radius: 50%;
-        animation: spin 1.5s linear infinite; z-index: 15;
-        display: none; margin-top: 20px;
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    /* 3D Glowing Get Started button */
-    #start-button {
-        padding: 18px 40px; font-size: 1.3em; font-weight: bold;
-        cursor: pointer; color: white; background: #008CBA;
-        border: none; border-radius: 15px; margin-top: 20px;
-        display: none; /* Hidden by default */
-        box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5);
-        text-shadow: 0 0 5px #fff, 0 0 10px #00e5ff;
-        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-        z-index: 10; animation: glowing-button 2s infinite ease-in-out;
-    }
-    @keyframes glowing-button {
-        0%, 100% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5); }
-        50% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 25px #00e5ff, inset 0 0 10px rgba(255,255,255,0.8); }
-    }
+    #start-button { padding: 18px 40px; font-size: 1.3em; font-weight: bold; cursor: pointer; color: white; background: #008CBA; border: none; border-radius: 15px; margin-top: 20px; display: none; box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5); text-shadow: 0 0 5px #fff, 0 0 10px #00e5ff; transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; z-index: 10; animation: glowing-button 2s infinite ease-in-out; }
+    @keyframes glowing-button { 0%, 100% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5); } 50% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 25px #00e5ff, inset 0 0 10px rgba(255,255,255,0.8); } }
     #start-button:hover { transform: translateY(-2px); }
     #start-button:active { transform: translateY(4px); box-shadow: 0 4px 0 #005f7a, 0 8px 15px rgba(0,0,0,0.35); }
 
-    /* Dashboard Selection Screen */
-    #dashboard-selection-screen {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #f0f2f5; display: none; flex-direction: column;
-        justify-content: center; align-items: center; z-index: 90;
-        padding: 20px; box-sizing: border-box;
-    }
-    .dashboard-btn {
-        width: 100%; max-width: 400px; padding: 20px; margin: 15px 0;
-        font-size: 1.2em; font-weight: bold; color: #fff;
-        background: linear-gradient(145deg, #0097c9, #007095); border: none;
-        border-radius: 12px; cursor: pointer;
-        box-shadow: 0 6px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3);
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        transition: all 0.2s ease-in-out;
-    }
+    #dashboard-selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 90; padding: 20px; box-sizing: border-box; }
+    .dashboard-btn { width: 100%; max-width: 400px; padding: 20px; margin: 15px 0; font-size: 1.2em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; }
     .dashboard-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
     .dashboard-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
 
-    /* General Page Styling */
-    .page {
-        display: none; flex-direction: column; width: 100%;
-        min-height: 100vh; box-sizing: border-box;
-    }
-    #header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding: 12px 15px; 
-        background-color: #ffffff; 
-        border-bottom: 1px solid #ddd; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        position: sticky; 
-        top: 0; 
-        z-index: 50; 
-    }
+    .page { display: none; flex-direction: column; width: 100%; min-height: 100vh; box-sizing: border-box; }
+    #header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #ffffff; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50; }
     .menu-icon { font-size: 28px; cursor: pointer; color: #333; padding: 5px; }
-    .search-container { 
-        display: flex; 
-        align-items: center; 
-        flex-grow: 1; 
-        margin: 0 10px;
-        border: 1px solid #ccc;
-        border-radius: 50px;
-        overflow: hidden;
-    }
-    .search-bar { 
-        width: 100%; 
-        padding: 10px 15px; 
-        border: none;
-        outline: none; 
-        font-size: 16px; 
-        background-color: transparent;
-    }
-    .search-button { 
-        padding: 10px 15px; 
-        border: none;
-        background-color: #f8f8f8; 
-        cursor: pointer; 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
+    .search-container { display: flex; align-items: center; flex-grow: 1; margin: 0 10px; border: 1px solid #ccc; border-radius: 50px; overflow: hidden; }
+    .search-bar { width: 100%; padding: 10px 15px; border: none; outline: none; font-size: 16px; background-color: transparent; }
+    .search-button { padding: 10px 15px; border: none; background-color: #f8f8f8; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-    .coin-display {
-        display: flex;
-        align-items: center;
-        margin-left: 10px;
-        font-weight: bold;
-        color: #333;
-        flex-shrink: 0;
-    }
-    .coin-display .coin-icon-emoji {
-        font-size: 24px;
-        margin-right: 5px;
-    }
-    #profile-page #header .menu-icon,
-    #profile-page #header .search-container,
-    #profile-page #header .coin-display {
-        display: none;
-    }
+    .coin-display { display: flex; align-items: center; margin-left: 10px; font-weight: bold; color: #333; flex-shrink: 0; }
+    .coin-display .coin-icon-emoji { font-size: 24px; margin-right: 5px; }
+    #profile-page #header .menu-icon, #profile-page #header .search-container, #profile-page #header .coin-display { display: none; }
     #profile-page #header { justify-content: center; }
     #profile-page #header > div:first-child { margin: 0 auto; }
 
     .main-content { padding: 15px; overflow-y: auto; flex-grow: 1; padding-bottom: 85px; }
-    .card-16-9 { width: 100%; padding-top: 56.25%; position: relative; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); cursor: pointer; margin-bottom: 20px;}
+    .card-16-9 { width: 100%; padding-top: 56.25%; position: relative; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); cursor: pointer; margin-bottom: 20px; }
     .card-16-9 img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-    
     .action-button { display: block; width: 100%; margin-bottom: 20px; padding: 15px 20px; font-size: 1.2em; font-weight: bold; color: white; background: linear-gradient(145deg, #4CAF50, #2E7D32); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #1B5E20, 0 10px 18px rgba(0,0,0,0.3); transition: all 0.2s ease-in-out; }
     .action-button:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.35); }
-
     .cards-1-1-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
     .card-1-1 { width: 100%; aspect-ratio: 1 / 1; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); cursor: pointer; position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease; }
     .card-1-1:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
@@ -282,14 +174,12 @@
 
     .features-container-16-9 { position: relative; width: 100%; padding-top: 56.25%; border-radius: 15px; overflow: hidden; background: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.1); margin-top: 15px; }
     .features-section { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; overflow-y: scroll; }
-    .features-section h2 { text-align: center; font-size: 1.6em; color: #333; margin-top: 0; margin-bottom: 15px; }
     .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; }
     .feature-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; background-color: #f9f9f9; padding: 10px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .feature-item:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
     .feature-item svg { width: 40px; height: 40px; fill: #008CBA; margin-bottom: 8px; filter: drop-shadow(0 0 5px rgba(0,230,255,0.5)); }
     .feature-item span { font-size: 0.8em; color: #555; font-weight: 600; }
-
-    /* Care Page Styles */
+    
     .care-page-grid { display: flex; flex-direction: column; gap: 25px; }
     .care-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
     .care-card-wrapper { display: flex; flex-direction: column; align-items: center; }
@@ -300,7 +190,6 @@
     .care-3d-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); }
     .care-3d-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #004d66, 0 5px 12px rgba(0,0,0,0.3); }
 
-    /* Tracker Page Styles */
     .tracker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; margin-top: 20px; }
     .tracker-card-item { display: flex; flex-direction: column; align-items: center; background-color: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; padding-bottom: 15px; }
     .tracker-card-item:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
@@ -310,21 +199,18 @@
     .tracker-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #004d66, 0 5px 12px rgba(0,0,0,0.3); }
     .tracker-btn.water-tracker-link { text-decoration: none; display: inline-block; }
 
-    /* Disease Pages Buttons */
     .prediction-info-buttons { display: flex; flex-direction: column; gap: 15px; padding: 20px; }
     .prediction-info-btn { padding: 18px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #4CAF50, #2E7D32); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; white-space: nowrap; }
     .prediction-info-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35); }
     .prediction-info-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3); }
     .back-icon { font-size: 1.1em; font-weight: bold; color: #008CBA; cursor: pointer; padding: 10px; }
 
-    /* Floating Medical Assistant */
     #medical-assistant-float { position: fixed; bottom: 90px; right: 20px; background: linear-gradient(145deg, #0097c9, #007095); color: white; border-radius: 50%; width: 70px; height: 70px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); cursor: grab; z-index: 40; transition: transform 0.1s ease; text-align: center; overflow: hidden; }
     #medical-assistant-float:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
     #medical-assistant-float:active { cursor: grabbing; }
     #medical-assistant-float img { width: 100%; height: 100%; object-fit: cover; }
     #medical-assistant-float span { display: none; }
 
-    /* Side Menu */
     #side-menu { position: fixed; top: 0; left: -80vw; width: 80vw; max-width: 300px; height: 100%; background-color: #fff; box-shadow: 5px 0 15px rgba(0,0,0,0.2); z-index: 1000; transition: left 0.3s ease-in-out; display: flex; flex-direction: column; padding-top: 20px; }
     #side-menu.open { left: 0; }
     .menu-header { font-size: 1.8em; font-weight: bold; color: #333; padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -334,14 +220,16 @@
     .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
     .menu-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
 
-    /* Profile Page specific styles */
+    /* === START: PROFILE PAGE STYLES UPDATED === */
     #profile-page { align-items: center; padding-top: 60px; }
-    #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
-    #profile-form .form-group { display: flex; flex-direction: column; }
+    .profile-info-display, #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
+    .info-group { padding: 10px 0; border-bottom: 1px solid #eee; }
+    .info-group label { font-weight: 600; color: #333; font-size: 0.9em; margin-bottom: 4px; display: block; }
+    .info-group p { margin: 0; font-size: 1em; color: #555; }
     #profile-form label { margin-bottom: 5px; font-weight: 600; color: #333; }
     #profile-form input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
+    /* === END: PROFILE PAGE STYLES UPDATED === */
 
-    /* Buttons container for Profile Page */
     .profile-buttons { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-top: 20px; }
     .profile-btn { padding: 16px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
     .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
@@ -350,7 +238,6 @@
     .profile-btn.logout-btn:hover { box-shadow: 0 10px 0 #7f0000, 0 15px 25px rgba(0,0,0,0.35); }
     .profile-btn.logout-btn:active { box-shadow: 0 4px 0 #7f0000, 0 8px 15px rgba(0,0,0,0.3); }
 
-    /* Generic Modal Styles (for Wallet, Terms, etc.) */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1100; display: none; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
     .modal-content { background-color: #f0f2f5; width: 90%; max-width: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
     .modal-header { padding: 15px; display: flex; align-items: center; position: relative; border-bottom: 1px solid #ddd; }
@@ -358,7 +245,6 @@
     .modal-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 1.3em; font-weight: 700; color: #333; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Wallet Specific Styles */
     .wallet-body { padding: 20px 30px 30px 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; max-height: 450px; overflow-y: auto; }
     .wallet-coin-card { width: 100%; aspect-ratio: 16 / 9; background-color: #fff; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
     .wallet-coin-card .coin-icon { font-size: 2.5em; }
@@ -373,9 +259,7 @@
     .plan-btn.subscription-btn:active { box-shadow: 0 4px 0 #bf360c, 0 8px 15px rgba(0,0,0,0.3); }
     .plan-price { font-size: 1.2em; }
     .plan-coins { font-size: 0.9em; opacity: 0.9; }
-    .plan-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: translateY(0); box-shadow: 0 8px 0 #bf360c, 0 12px 20px rgba(0,0,0,0.3); }
     
-    /* Pre-Payment Consent Modal Styles */
     .pre-payment-content { max-width: 320px; }
     .pre-payment-body { padding: 25px; text-align: center; }
     .pre-payment-body p { font-size: 1em; color: #333; margin-bottom: 20px; line-height: 1.5; }
@@ -388,13 +272,11 @@
     .pre-payment-cancel-btn { background-color: #f44336; color: white; }
     .pre-payment-proceed-btn:disabled { background-color: #aaa; cursor: not-allowed; }
 
-    /* Terms Modal Specific Styles */
     .terms-body { padding: 0 25px 25px 25px; max-height: 60vh; overflow-y: auto; }
     .terms-body h4 { margin-top: 20px; margin-bottom: 10px; color: #005f7a; }
     .terms-body p, .terms-body ul li { font-size: 0.9em; line-height: 1.6; color: #555; margin-bottom: 15px; }
     .terms-body ul { padding-left: 20px; }
 
-    /* Bottom Navigation Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: #fff; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50; }
     .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #999; transition: color 0.3s; }
     .nav-item svg { width: 28px; height: 28px; fill: currentColor; margin-bottom: 4px; }
@@ -603,12 +485,36 @@
         <div style="font-weight: bold; font-size: 1.2em; color: #333;">Profile</div>
     </header>
     <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
-        <form id="profile-form">
+        
+        <!-- === START: PROFILE INFO DISPLAY === -->
+        <div id="profile-info-display" class="profile-info-display">
+            <div class="info-group">
+                <label>Name</label>
+                <p id="info-name">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Email</label>
+                <p id="info-email">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Phone Number</label>
+                <p id="info-phone">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Address</label>
+                <p id="info-address">Not set</p>
+            </div>
+        </div>
+        <!-- === END: PROFILE INFO DISPLAY === -->
+
+        <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
+        <form id="profile-form" style="display: none;">
             <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
             <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
             <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
             <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
         </form>
+        <!-- === END: PROFILE EDIT FORM === -->
 
         <div id="profile-main-buttons" class="profile-buttons">
             <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
@@ -905,13 +811,11 @@
             if (!userDoc.exists()) {
                 await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date() });
                 updateCoinDisplays(0);
+                updateProfileDisplay({ name: "Not set", email: "Not set", phone: "Not set", address: "Not set" });
             } else {
                 const userData = userDoc.data();
                 updateCoinDisplays(userData.coins || 0);
-                document.getElementById('profile-name').value = userData.name || "";
-                document.getElementById('profile-email').value = userData.email || "";
-                document.getElementById('profile-phone').value = userData.phone || "";
-                document.getElementById('profile-address').value = userData.address || "";
+                updateProfileDisplay(userData);
             }
         } else {
             signInAnonymously(auth).catch((error) => console.error("Anonymous sign-in failed:", error));
@@ -926,17 +830,26 @@
         });
     }
 
+    function updateProfileDisplay(userData) {
+        document.getElementById('info-name').textContent = userData.name || "Not set";
+        document.getElementById('info-email').textContent = userData.email || "Not set";
+        document.getElementById('info-phone').textContent = userData.phone || "Not set";
+        document.getElementById('info-address').textContent = userData.address || "Not set";
+    }
+
     async function saveProfileData() {
         const user = auth.currentUser;
         if (!user) { alert("You are not logged in."); return; }
         const userRef = doc(db, "users", user.uid);
+        const newData = {
+            name: document.getElementById('profile-name').value,
+            email: document.getElementById('profile-email').value,
+            phone: document.getElementById('profile-phone').value,
+            address: document.getElementById('profile-address').value
+        };
         try {
-            await updateDoc(userRef, {
-                name: document.getElementById('profile-name').value,
-                email: document.getElementById('profile-email').value,
-                phone: document.getElementById('profile-phone').value,
-                address: document.getElementById('profile-address').value
-            });
+            await updateDoc(userRef, newData);
+            updateProfileDisplay(newData);
             alert("Profile saved successfully!");
             showMainProfileView(); 
         } catch (error) { console.error("Error saving profile: ", error); alert("Failed to save profile."); }
@@ -1005,8 +918,25 @@
     const profileMainButtons = document.getElementById('profile-main-buttons');
     const profileEditButtons = document.getElementById('profile-edit-buttons');
     const profileForm = document.getElementById('profile-form');
-    function showEditProfileView() { profileMainButtons.style.display = 'none'; profileForm.style.display = 'flex'; profileEditButtons.style.display = 'flex'; }
-    function showMainProfileView() { profileMainButtons.style.display = 'flex'; profileForm.style.display = 'none'; profileEditButtons.style.display = 'none'; }
+    const profileInfoDisplay = document.getElementById('profile-info-display');
+
+    function showEditProfileView() {
+        document.getElementById('profile-name').value = document.getElementById('info-name').textContent;
+        document.getElementById('profile-email').value = document.getElementById('info-email').textContent;
+        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent;
+        document.getElementById('profile-address').value = document.getElementById('info-address').textContent;
+
+        profileMainButtons.style.display = 'none';
+        profileInfoDisplay.style.display = 'none';
+        profileForm.style.display = 'flex';
+        profileEditButtons.style.display = 'flex';
+    }
+    function showMainProfileView() {
+        profileMainButtons.style.display = 'flex';
+        profileInfoDisplay.style.display = 'flex';
+        profileForm.style.display = 'none';
+        profileEditButtons.style.display = 'none';
+    }
 
     // GLOBAL FUNCTIONS
     window.showFuturePlan = function() { alert('This feature is part of a future update.'); }
@@ -1028,6 +958,7 @@
     // INITIALIZATION on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
         initializeWelcomeSequence();
+        showMainProfileView();
         
         document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
         document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
