@@ -20,13 +20,10 @@ const app = express();
 app.use(cors());
 
 // IMPORTANT: Webhook ko handle karne ke liye raw body zaroori hai.
-// Isliye, hum sirf specific routes ke liye JSON parser use karenge.
 app.use((req, res, next) => {
     if (req.path === '/razorpay-webhook') {
-        // Webhook ke liye raw body parser ka istemal karein
         express.raw({ type: 'application/json' })(req, res, next);
     } else {
-        // Baki sabhi routes ke liye JSON parser ka istemal karein
         express.json({ limit: '10mb' })(req, res, next);
     }
 });
@@ -441,49 +438,55 @@ app.post('/create-payment', async (req, res) => {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
-            const customer = await razorpay.customers.create({
-                name: userData.name || 'Shubhmed User',
-                email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
-                contact: userData.phone || undefined
-            });
+            // === START: ZAROORI BADLAV (Customer Checking Logic) ===
+            let customerId = userData.razorpayCustomerId;
 
-            // Pehla charge 12 ghante baad ke liye schedule karein
+            // Agar customer ID Firebase mein nahi hai, tabhi naya banayein
+            if (!customerId) {
+                const customer = await razorpay.customers.create({
+                    name: userData.name || 'Shubhmed User',
+                    email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
+                    contact: userData.phone || undefined
+                });
+                customerId = customer.id;
+            }
+            // === END: ZAROORI BADLAV ===
+            
             const startTime = new Date();
             startTime.setHours(startTime.getHours() + 12);
             const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
 
             const subscriptionOptions = {
                 plan_id: process.env.RAZORPAY_PLAN_ID_A, // ₹2000 wala plan
-                customer_id: customer.id,
+                customer_id: customerId, // Use existing or new customer ID
                 total_count: 12, 
-                start_at: startAtTimestamp, // Important: Schedule for later
+                start_at: startAtTimestamp,
                 addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}],
                 customer_notify: 1
             };
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
-            // Ek alag se ₹1 ka order banayein UPI AutoPay mandate ke liye
             const mandateOrderOptions = {
                 amount: 100, // ₹1
                 currency: "INR",
-                receipt: `mandate_rcpt_${decodedToken.uid}`,
+                receipt: `mandate_rcpt_${decodedToken.uid}_${Date.now()}`,
                 payment_capture: 1,
                 notes: {
-                    subscription_id: subscription.id // Link this order to the subscription
+                    subscription_id: subscription.id
                 }
             };
             const mandateOrder = await razorpay.orders.create(mandateOrderOptions);
 
             await userRef.update({ 
-                razorpayCustomerId: customer.id,
+                razorpayCustomerId: customerId,
                 razorpaySubscriptionId: subscription.id,
                 currentPlan: 'PlanA',
                 subscriptionStatus: 'pending_payment'
             });
             
             return res.json({
-                order_id: mandateOrder.id, // Frontend is order se payment karega
+                order_id: mandateOrder.id,
                 key_id: process.env.RAZORPAY_KEY_ID
             });
         }
@@ -518,15 +521,13 @@ app.post('/verify-payment', async (req, res) => {
         if (expectedSignature === razorpay_signature) {
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
-            // Check if this was a subscription mandate payment
             if (orderDetails.notes && orderDetails.notes.subscription_id) {
                  await userRef.update({ 
                     coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active' // Ab subscription active hai
+                    subscriptionStatus: 'active'
                 });
                 return res.json({ status: 'success', message: 'Subscription successful! 55 coins added.' });
             }
-            // Otherwise, it's a one-time payment
             else {
                 const amountPaid = orderDetails.amount / 100;
                 let coinsToAdd = 0;
@@ -557,7 +558,7 @@ app.post('/razorpay-webhook', async (req, res) => {
 
     try {
         const shasum = crypto.createHmac('sha256', secret);
-        shasum.update(req.body); // req.body yahan raw buffer hai
+        shasum.update(req.body); 
         const digest = shasum.digest('hex');
 
         if (digest !== signature) {
@@ -607,7 +608,6 @@ app.post('/razorpay-webhook', async (req, res) => {
                 
                 await razorpay.subscriptions.cancel(subscriptionId);
 
-                // Naya subscription 24 ghante baad ke liye schedule karein
                 const startTime = new Date();
                 startTime.setHours(startTime.getHours() + 24);
                 const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
@@ -645,7 +645,6 @@ app.use(express.static(path.join(__dirname, '..')));
 app.get('/Features/water.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'water.html')));
 app.get('/Features/Diet.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Diet.html')));
 app.get('/Features/Health.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Health.html')));
-// Yeh सुनिश्चित karega ki koi bhi anjaan route index.html par redirect ho
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
