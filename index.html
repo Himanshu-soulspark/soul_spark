@@ -744,7 +744,7 @@
         function drag(e) {
             if (isDragging) {
                 e.preventDefault(); wasDragged = true; 
-                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.clientY - initialY; } 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.touches[0].clientY - initialY; } 
                 else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
                 xOffset = currentX; yOffset = currentY;
                 setTranslate(currentX, currentY, medicalAssistantFloat);
@@ -810,6 +810,7 @@
     window.closeTerms = function() { termsModal.style.display = 'none'; }
     window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
+    // === START: ZAROORI BADLAV (Final Payment Logic) ===
     async function initiatePayment(options) {
         const user = auth.currentUser;
         if (!user) { alert("Please log in to proceed."); return; }
@@ -821,24 +822,24 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...options, token: idToken })
             });
-            const order = await response.json();
-            if (!response.ok) { throw new Error(order.error || 'Failed to create payment.'); }
+            const data = await response.json();
+            if (!response.ok) { throw new Error(data.error || 'Failed to initiate payment.'); }
             
-            // === START: ZAROORI BADLAV (The Final Fix) ===
             // Agar server 'auth_link' bhejta hai, to user ko redirect karo
-            if (order.auth_link) {
-                window.location.href = order.auth_link;
-                return; // Yahan function ko rok do
+            if (data.auth_link) {
+                closeWallet();
+                window.location.href = data.auth_link;
+                return; 
             }
-            // === END: ZAROORI BADLAV ===
             
+            // Agar server 'order_id' bhejta hai (one-time payment ke liye)
             const rzpOptions = {
-                key: order.key_id,
-                amount: order.amount,
+                key: data.key_id,
+                amount: data.amount,
                 currency: "INR",
                 name: "Shubhmed",
                 description: "Service Purchase",
-                order_id: order.id, // 'id' ya 'order_id' dono handle karein
+                order_id: data.id,
                 handler: async function (response) {
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
@@ -864,6 +865,7 @@
             rzp.open();
         } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
     }
+    // === END: ZAROORI BADLAV ===
 
     function logOut() {
         signOut(auth).then(() => {
