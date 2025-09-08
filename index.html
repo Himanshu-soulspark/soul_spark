@@ -220,7 +220,6 @@
     .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
     .menu-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
 
-    /* === START: PROFILE PAGE STYLES UPDATED === */
     #profile-page { align-items: center; padding-top: 60px; }
     .profile-info-display, #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
     .info-group { padding: 10px 0; border-bottom: 1px solid #eee; }
@@ -228,8 +227,6 @@
     .info-group p { margin: 0; font-size: 1em; color: #555; }
     #profile-form label { margin-bottom: 5px; font-weight: 600; color: #333; }
     #profile-form input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
-    /* === END: PROFILE PAGE STYLES UPDATED === */
-
     .profile-buttons { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-top: 20px; }
     .profile-btn { padding: 16px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
     .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
@@ -486,7 +483,6 @@
     </header>
     <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
         
-        <!-- === START: PROFILE INFO DISPLAY === -->
         <div id="profile-info-display" class="profile-info-display">
             <div class="info-group">
                 <label>Name</label>
@@ -505,16 +501,13 @@
                 <p id="info-address">Not set</p>
             </div>
         </div>
-        <!-- === END: PROFILE INFO DISPLAY === -->
 
-        <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
         <form id="profile-form" style="display: none;">
             <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
             <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
             <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
             <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
         </form>
-        <!-- === END: PROFILE EDIT FORM === -->
 
         <div id="profile-main-buttons" class="profile-buttons">
             <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
@@ -745,7 +738,6 @@
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
-
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
@@ -793,7 +785,6 @@
 
                 xOffset = currentX;
                 yOffset = currentY;
-
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
@@ -876,12 +867,11 @@
             
             const rzpOptions = {
                 key: order.key_id,
-                amount: order.amount, // For one-time payments
+                amount: order.amount,
                 currency: "INR",
                 name: "Shubhmed",
                 description: "Service Purchase",
-                subscription_id: order.subscription_id, // For subscriptions
-                order_id: order.id, // For one-time payments
+                order_id: order.id || order.order_id,
                 handler: async function (response) {
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
@@ -921,10 +911,10 @@
     const profileInfoDisplay = document.getElementById('profile-info-display');
 
     function showEditProfileView() {
-        document.getElementById('profile-name').value = document.getElementById('info-name').textContent;
-        document.getElementById('profile-email').value = document.getElementById('info-email').textContent;
-        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent;
-        document.getElementById('profile-address').value = document.getElementById('info-address').textContent;
+        document.getElementById('profile-name').value = document.getElementById('info-name').textContent === "Not set" ? "" : document.getElementById('info-name').textContent;
+        document.getElementById('profile-email').value = document.getElementById('info-email').textContent === "Not set" ? "" : document.getElementById('info-email').textContent;
+        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent === "Not set" ? "" : document.getElementById('info-phone').textContent;
+        document.getElementById('profile-address').value = document.getElementById('info-address').textContent === "Not set" ? "" : document.getElementById('info-address').textContent;
 
         profileMainButtons.style.display = 'none';
         profileInfoDisplay.style.display = 'none';
@@ -967,20 +957,17 @@
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('terms-btn').addEventListener('click', () => termsModal.style.display = 'flex');
 
-        // One-time payment buttons
         document.querySelectorAll('.plan-btn[data-amount]').forEach(button => {
             button.addEventListener('click', () => {
-                const amount = parseInt(button.dataset.amount, 10) * 100; // in paise
+                const amount = parseInt(button.dataset.amount, 10) * 100;
                 initiatePayment({ amount: amount, isSubscription: false });
             });
         });
 
-        // Subscription start button
         document.getElementById('subscription-start-btn').addEventListener('click', () => {
             prePaymentModal.style.display = 'flex';
         });
 
-        // Pre-payment consent modal logic
         const finalConsentCheckbox = document.getElementById('final-consent-checkbox');
         const proceedBtn = document.getElementById('pre-payment-proceed-btn');
         finalConsentCheckbox.addEventListener('change', () => {
@@ -992,7 +979,6 @@
             initiatePayment({ isSubscription: true });
         });
         
-        // Tracker page buttons
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 if(button.classList.contains('water-tracker-link')) return; 
@@ -1005,7 +991,6 @@
             });
         });
         
-        // Search bar enter key
         const homeSearchInput = document.querySelector('#home-page .search-bar');
         if (homeSearchInput) {
             homeSearchInput.addEventListener('keypress', function(event) {
