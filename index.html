@@ -1,529 +1,985 @@
-// =================================================================
-// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें
-// =================================================================
-const express = require('express');
-const cors = require('cors');
-const admin = require('firebase-admin');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Razorpay = require('razorpay');
-const path = require('path');
-const axios = require('axios');
-const { google } = require('googleapis');
-const FormData = require('form-data'); // Face++ API के लिए ज़रूरी
-const crypto = require('crypto'); // Razorpay Signature को वेरिफाई करने के लिए ज़रूरी
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome & Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Exo+2:wght@800&display=swap" rel="stylesheet">
 
-// =================================================================
-// 2. सर्वर और सर्विसेज़ को शुरू करें
-// =================================================================
+    <!-- Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-const app = express();
-app.use(cors());
-
-// IMPORTANT: Webhook ko handle karne ke liye raw body zaroori hai.
-app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'];
-    try {
-        const shasum = crypto.createHmac('sha256', secret);
-        shasum.update(req.body); 
-        const digest = shasum.digest('hex');
-        if (digest !== signature) {
-            console.warn('Webhook signature mismatch!');
-            return res.status(400).json({ status: 'Signature mismatch' });
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
         }
-        const body = JSON.parse(req.body.toString());
-        const event = body.event;
-        const payload = body.payload;
+    </script>
+
+<style>
+    /* Basic body styling */
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+        background-color: #f0f2f5;
+    }
+
+    /* Splash screen container */
+    #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, #0077a2, #003f5c);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 1.5s ease-out, visibility 1.5s;
+        z-index: 100;
+        overflow: hidden;
+    }
+    
+    #splash-screen::before, #splash-screen::after {
+        content: '';
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 50%;
+        animation: float 25s infinite linear;
+        z-index: 1;
+    }
+    #splash-screen::before { top: -80px; left: -80px; }
+    #splash-screen::after { bottom: -80px; right: -80px; animation-delay: -12.5s; }
+
+    @keyframes float {
+        0% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(20px) translateX(-20px); }
+        100% { transform: translateY(0) translateX(0); }
+    }
+
+    #caduceus-icon {
+        width: clamp(80px, 20vw, 150px);
+        height: clamp(80px, 20vw, 150px);
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 20px;
+        z-index: 10;
+        opacity: 0;
+        animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+        animation-delay: 0.2s;
+    }
+
+    .splash-text {
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 25px rgba(0, 255, 255, 0.7), 0 0 45px rgba(0, 0, 0, 0.5);
+        letter-spacing: 3px;
+        z-index: 10;
+        opacity: 0;
+        filter: blur(10px);
+        animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+    }
+    #welcome-text {
+        font-size: clamp(3.5em, 14vw, 7em);
+        animation-delay: 0.5s;
+        margin-bottom: 10px;
+    }
+    #shubhmed-text {
+        font-size: clamp(1.2em, 5vw, 2.2em);
+        margin-top: -20px;
+        animation-delay: 0.8s;
+    }
+
+    #tagline {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6);
+        letter-spacing: 1px;
+        font-size: clamp(0.9em, 4vw, 1.5em);
+        text-align: center;
+        margin-top: 15px;
+        z-index: 10;
+        opacity: 0;
+        filter: blur(8px);
+        animation: text-focus-in 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) forwards;
+        animation-delay: 1.5s;
+        line-height: 1.4;
+    }
+
+    .model-card {
+        width: 80%;
+        max-width: 320px;
+        aspect-ratio: 1 / 1;
+        margin: 20px 0;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 15px rgba(0, 230, 255, 0.5);
+        border: 2px solid rgba(0, 230, 255, 0.7);
+        z-index: 10;
+        opacity: 0;
+        transform: scale(0.8);
+        animation: card-appear 1.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) 1.2s forwards;
+    }
+    
+    #welcome-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    @keyframes card-appear { 100% { opacity: 1; transform: scale(1); } }
+    @keyframes text-focus-in { 0% { filter: blur(12px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
+
+    #buffer-loader { width: 60px; height: 60px; border: 5px solid rgba(0, 230, 255, 0.3); border-top-color: #00e5ff; border-radius: 50%; animation: spin 1.5s linear infinite; z-index: 15; display: none; margin-top: 20px; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    #start-button { padding: 18px 40px; font-size: 1.3em; font-weight: bold; cursor: pointer; color: white; background: #008CBA; border: none; border-radius: 15px; margin-top: 20px; display: none; box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5); text-shadow: 0 0 5px #fff, 0 0 10px #00e5ff; transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; z-index: 10; animation: glowing-button 2s infinite ease-in-out; }
+    @keyframes glowing-button { 0%, 100% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 10px #00e5ff, inset 0 0 5px rgba(255,255,255,0.5); } 50% { box-shadow: 0 8px 0 #005f7a, 0 12px 20px rgba(0,0,0,0.4), 0 0 25px #00e5ff, inset 0 0 10px rgba(255,255,255,0.8); } }
+    #start-button:hover { transform: translateY(-2px); }
+    #start-button:active { transform: translateY(4px); box-shadow: 0 4px 0 #005f7a, 0 8px 15px rgba(0,0,0,0.35); }
+
+    #dashboard-selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 90; padding: 20px; box-sizing: border-box; }
+    .dashboard-btn { width: 100%; max-width: 400px; padding: 20px; margin: 15px 0; font-size: 1.2em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; }
+    .dashboard-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
+    .dashboard-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
+
+    .page { display: none; flex-direction: column; width: 100%; min-height: 100vh; box-sizing: border-box; }
+    #header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #ffffff; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50; }
+    .menu-icon { font-size: 28px; cursor: pointer; color: #333; padding: 5px; }
+    .search-container { display: flex; align-items: center; flex-grow: 1; margin: 0 10px; border: 1px solid #ccc; border-radius: 50px; overflow: hidden; }
+    .search-bar { width: 100%; padding: 10px 15px; border: none; outline: none; font-size: 16px; background-color: transparent; }
+    .search-button { padding: 10px 15px; border: none; background-color: #f8f8f8; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .coin-display { display: flex; align-items: center; margin-left: 10px; font-weight: bold; color: #333; flex-shrink: 0; }
+    .coin-display .coin-icon-emoji { font-size: 24px; margin-right: 5px; }
+    #profile-page #header .menu-icon, #profile-page #header .search-container, #profile-page #header .coin-display { display: none; }
+    #profile-page #header { justify-content: center; }
+    #profile-page #header > div:first-child { margin: 0 auto; }
+
+    .main-content { padding: 15px; overflow-y: auto; flex-grow: 1; padding-bottom: 85px; }
+    .card-16-9 { width: 100%; padding-top: 56.25%; position: relative; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); cursor: pointer; margin-bottom: 20px; }
+    .card-16-9 img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .action-button { display: block; width: 100%; margin-bottom: 20px; padding: 15px 20px; font-size: 1.2em; font-weight: bold; color: white; background: linear-gradient(145deg, #4CAF50, #2E7D32); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #1B5E20, 0 10px 18px rgba(0,0,0,0.3); transition: all 0.2s ease-in-out; }
+    .action-button:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.35); }
+    .cards-1-1-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+    .card-1-1 { width: 100%; aspect-ratio: 1 / 1; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); cursor: pointer; position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-1-1:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+    .card-1-1 img { width: 100%; height: 100%; object-fit: cover; }
+
+    .features-container-16-9 { position: relative; width: 100%; padding-top: 56.25%; border-radius: 15px; overflow: hidden; background: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.1); margin-top: 15px; }
+    .features-section { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; overflow-y: scroll; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; }
+    .feature-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; background-color: #f9f9f9; padding: 10px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .feature-item:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+    .feature-item svg { width: 40px; height: 40px; fill: #008CBA; margin-bottom: 8px; filter: drop-shadow(0 0 5px rgba(0,230,255,0.5)); }
+    .feature-item span { font-size: 0.8em; color: #555; font-weight: 600; }
+    
+    .care-page-grid { display: flex; flex-direction: column; gap: 25px; }
+    .care-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .care-card-wrapper { display: flex; flex-direction: column; align-items: center; }
+    .care-card-wrapper img { width: 100%; aspect-ratio: 1 / 1; border-radius: 15px; object-fit: cover; box-shadow: 0 8px 25px rgba(0,0,0,0.15); background-color: #e0e0e0; }
+    .care-card-wrapper-16-9 { width: 100%; }
+    .care-card-wrapper-16-9 img { width: 100%; aspect-ratio: 16 / 9; border-radius: 15px; object-fit: cover; box-shadow: 0 8px 25px rgba(0,0,0,0.15); background-color: #e0e0e0; }
+    .care-3d-btn { width: 90%; padding: 12px; margin-top: 15px; font-size: 1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 0 #004d66, 0 8px 15px rgba(0,0,0,0.25); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; white-space: nowrap; }
+    .care-3d-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); }
+    .care-3d-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #004d66, 0 5px 12px rgba(0,0,0,0.3); }
+
+    .tracker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; margin-top: 20px; }
+    .tracker-card-item { display: flex; flex-direction: column; align-items: center; background-color: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; padding-bottom: 15px; }
+    .tracker-card-item:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+    .tracker-card-item img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 15px 15px 0 0; margin-bottom: 10px; }
+    .tracker-btn { width: calc(100% - 20px); padding: 12px 15px; font-size: 0.9em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 5px 0 #004d66, 0 8px 15px rgba(0,0,0,0.25); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; white-space: normal; word-wrap: break-word; }
+    .tracker-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); }
+    .tracker-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #004d66, 0 5px 12px rgba(0,0,0,0.3); }
+    .tracker-btn.water-tracker-link { text-decoration: none; display: inline-block; }
+
+    .prediction-info-buttons { display: flex; flex-direction: column; gap: 15px; padding: 20px; }
+    .prediction-info-btn { padding: 18px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #4CAF50, #2E7D32); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; white-space: nowrap; }
+    .prediction-info-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35); }
+    .prediction-info-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3); }
+    .back-icon { font-size: 1.1em; font-weight: bold; color: #008CBA; cursor: pointer; padding: 10px; }
+
+    #medical-assistant-float { position: fixed; bottom: 90px; right: 20px; background: linear-gradient(145deg, #0097c9, #007095); color: white; border-radius: 50%; width: 70px; height: 70px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); cursor: grab; z-index: 40; transition: transform 0.1s ease; text-align: center; overflow: hidden; }
+    #medical-assistant-float:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+    #medical-assistant-float:active { cursor: grabbing; }
+    #medical-assistant-float img { width: 100%; height: 100%; object-fit: cover; }
+    #medical-assistant-float span { display: none; }
+
+    #side-menu { position: fixed; top: 0; left: -80vw; width: 80vw; max-width: 300px; height: 100%; background-color: #fff; box-shadow: 5px 0 15px rgba(0,0,0,0.2); z-index: 1000; transition: left 0.3s ease-in-out; display: flex; flex-direction: column; padding-top: 20px; }
+    #side-menu.open { left: 0; }
+    .menu-header { font-size: 1.8em; font-weight: bold; color: #333; padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .close-menu { font-size: 2em; cursor: pointer; color: #999; }
+    .menu-options { display: flex; flex-direction: column; padding: 20px; gap: 15px; }
+    .menu-btn { width: 100%; padding: 15px 20px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #004d66, 0 10px 18px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
+    .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
+    .menu-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
+
+    #profile-page { align-items: center; padding-top: 60px; }
+    .profile-info-display, #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
+    .info-group { padding: 10px 0; border-bottom: 1px solid #eee; }
+    .info-group label { font-weight: 600; color: #333; font-size: 0.9em; margin-bottom: 4px; display: block; }
+    .info-group p { margin: 0; font-size: 1em; color: #555; }
+    #profile-form label { margin-bottom: 5px; font-weight: 600; color: #333; }
+    #profile-form input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
+    .profile-buttons { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-top: 20px; }
+    .profile-btn { padding: 16px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
+    .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
+    .profile-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #004d66, 0 8px 15px rgba(0,0,0,0.3); }
+    .profile-btn.logout-btn { background: linear-gradient(145deg, #e53935, #b71c1c); box-shadow: 0 8px 0 #7f0000, 0 12px 20px rgba(0,0,0,0.3); }
+    .profile-btn.logout-btn:hover { box-shadow: 0 10px 0 #7f0000, 0 15px 25px rgba(0,0,0,0.35); }
+    .profile-btn.logout-btn:active { box-shadow: 0 4px 0 #7f0000, 0 8px 15px rgba(0,0,0,0.3); }
+
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1100; display: none; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
+    .modal-content { background-color: #f0f2f5; width: 90%; max-width: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; }
+    .modal-header { padding: 15px; display: flex; align-items: center; position: relative; border-bottom: 1px solid #ddd; }
+    .modal-back-btn { font-size: 1.5em; font-weight: bold; color: #333; cursor: pointer; }
+    .modal-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 1.3em; font-weight: 700; color: #333; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .wallet-body { padding: 20px 30px 30px 30px; display: flex; flex-direction: column; align-items: center; gap: 20px; max-height: 450px; overflow-y: auto; }
+    .wallet-coin-card { width: 100%; aspect-ratio: 16 / 9; background-color: #fff; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; flex-shrink: 0; }
+    .wallet-coin-card .coin-icon { font-size: 2.5em; }
+    .wallet-coin-card .coin-balance { font-size: 2em; font-weight: 800; color: #0077a2; }
+    .wallet-coin-card .coin-label { font-size: 0.9em; color: #666; }
+    .wallet-plans-container { width: 100%; display: flex; flex-direction: column; gap: 15px; }
+    .plan-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #4CAF50, #2E7D32); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #1B5E20, 0 12px 20px rgba(0,0,0,0.3); transition: all 0.2s ease-in-out; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .plan-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #1B5E20, 0 15px 25px rgba(0,0,0,0.35); }
+    .plan-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #1B5E20, 0 8px 15px rgba(0,0,0,0.3); }
+    .plan-btn.subscription-btn { background: linear-gradient(145deg, #ff9800, #e65100); box-shadow: 0 8px 0 #bf360c, 0 12px 20px rgba(0,0,0,0.3); }
+    .plan-btn.subscription-btn:hover { box-shadow: 0 10px 0 #bf360c, 0 15px 25px rgba(0,0,0,0.35); }
+    .plan-btn.subscription-btn:active { box-shadow: 0 4px 0 #bf360c, 0 8px 15px rgba(0,0,0,0.3); }
+    .plan-price { font-size: 1.2em; }
+    .plan-coins { font-size: 0.9em; opacity: 0.9; }
+    
+    .pre-payment-content { max-width: 320px; }
+    .pre-payment-body { padding: 25px; text-align: center; }
+    .pre-payment-body p { font-size: 1em; color: #333; margin-bottom: 20px; line-height: 1.5; }
+    .pre-payment-body .consent-box { display: flex; align-items: center; justify-content: center; text-align: left; margin-bottom: 20px; }
+    .pre-payment-body .consent-box input { margin-right: 10px; }
+    .pre-payment-body .consent-box label { font-size: 0.9em; }
+    .pre-payment-actions { display: flex; gap: 10px; justify-content: center; }
+    .pre-payment-actions button { padding: 12px 25px; font-size: 1em; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .pre-payment-proceed-btn { background-color: #4CAF50; color: white; }
+    .pre-payment-cancel-btn { background-color: #f44336; color: white; }
+    .pre-payment-proceed-btn:disabled { background-color: #aaa; cursor: not-allowed; }
+
+    .terms-body { padding: 0 25px 25px 25px; max-height: 60vh; overflow-y: auto; }
+    .terms-body h4 { margin-top: 20px; margin-bottom: 10px; color: #005f7a; }
+    .terms-body p, .terms-body ul li { font-size: 0.9em; line-height: 1.6; color: #555; margin-bottom: 15px; }
+    .terms-body ul { padding-left: 20px; }
+
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: #fff; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 50; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #999; transition: color 0.3s; }
+    .nav-item svg { width: 28px; height: 28px; fill: currentColor; margin-bottom: 4px; }
+    .nav-item span { font-size: 12px; }
+    .nav-item.active, .nav-item:hover { color: #008CBA; }
+</style>
+</head>
+<body>
+
+<div id="splash-screen">
+    <img src="image/w.jpg" alt="Welcome Icon" id="caduceus-icon">
+    <div id="welcome-text" class="splash-text">Welcome</div>
+    <div id="shubhmed-text" class="splash-text">Shubhmed</div>
+    <div class="model-card">
+        <img src="image/Welcome.png" alt="Welcome Image" id="welcome-image">
+    </div>
+    <div id="tagline" class="splash-text">See Your Health<br>Shape Your Future</div>
+    <div id="buffer-loader"></div>
+    <button id="start-button">Get Started</button>
+</div>
+
+<div id="dashboard-selection-screen">
+    <button class="dashboard-btn" id="patient-dashboard-btn">Patient Dashboard</button>
+    <button class="dashboard-btn" onclick="showFuturePlan()">Doctor Dashboard</button>
+    <button class="dashboard-btn" onclick="showFuturePlan()">Pharmacy Dashboard</button>
+    <button class="dashboard-btn" onclick="showFuturePlan()">Lab Dashboard</button>
+</div>
+
+<!-- HOME PAGE -->
+<div id="home-page" class="page">
+    <header id="header">
+        <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Search for anything...">
+            <button class="search-button" onclick="performSearch()">&#128269;</button>
+        </div>
+        <div class="coin-display">
+            <span class="coin-icon-emoji">🪙</span>
+            <span id="header-coin-balance">0</span>
+        </div>
+    </header>
+    <div class="main-content">
+        <div class="card-16-9" onclick="showFuturePlan()">
+            <img src="https://i.ibb.co/4gwqRdRN/Fsz7-K1w-Qn6-TMo-AZNqj-Ehg.webp" alt="Health Banner">
+        </div>
+        <button class="action-button" onclick="window.location.href='Features/Medicinewaste.html'">Medicine Waste Change</button>
+        <div class="cards-1-1-container">
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DPC0kqZn/s-EQOZCNKT2-Cvj-NMiih4nvg.webp" alt="Pharmacy"></div>
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/LDqDXny5/5-MSTd-FGm-S1m-GCrb-Yg-z-Bg-A.webp" alt="Service 2"></div>
+            <div class="card-1-1" onclick="showFuturePlan()"><img src="https://i.ibb.co/DHSVkn7T/Go9-8-Wo-STXCv-AO-SIQOoiw.webp" alt="Service 3"></div>
+        </div>
+        <h2 style="text-align: center; font-size: 1.6em; color: #333; margin-bottom: 15px;">Features</h2>
+        <div class="features-container-16-9">
+            <div class="features-section">
+                <div class="features-grid">
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L8.43 7L12 3.43L10.57 2L9.14 3.43L7.71 2L5.57 4.14L4.14 2.71L2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57l3.43-3.43L17 20.57l1.43-1.43L20.57 22l2.14-2.14l-1.43-1.43l1.43-1.43l-1.43-1.43z M12 10.57L13.43 12L10.57 14.86L9.14 13.43z"></path></svg><span>Exercise Planner</span></div>
+                    <div class="feature-item" onclick="window.location.href='Features/Health.html'"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg><span>Health Habit Builder</span></div>
+                    <div class="feature-item" onclick="window.location.href='Features/Diet.html'"><svg viewBox="0 0 24 24"><path d="M16.5 4.5c1.9 0 3.5 1.6 3.5 3.5s-1.6 3.5-3.5 3.5-3.5-1.6-3.5-3.5 1.6-3.5 3.5-3.5m-3.9 6.5h-1.2c-1.1 0-2.2.4-2.9 1.2s-1.2 1.8-1.2 2.9v1.2c0 .6-.4 1-1 1s-1-.4-1-1v-1.2c0-1.7.7-3.4 1.9-4.6s2.9-1.9 4.6-1.9h1.2c.6 0 1 .4 1 1s-.4 1-1 1zm-1.6-6c-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.5-1.1 2.5-2.5-1.1-2.5-2.5-2.5zm4.5 6.5c-.3 0-.5.1-.7.3-.2.2-.3.4-.3.7s.1.5.3.7c.2.2.4.3.7.3s.5-.1.7-.3c.2-.2.3-.4.3-.7s-.1-.5-.3-.7c-.2-.2-.4-.3-.7-.3zM9 19H4v-5h5v5zm-1-4v3h-3v-3h3zm12-2h-5v5h5v-5zm-1 4v-3h-3v3h3z"></path></svg><span>AI Diet Planner</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6m0-10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg><span>Advance Care</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11.5,17L12.5,14H11V8L12.5,11H14L12.5,14H14V17H11.5M12.5,10.5C13.06,10.5 13.5,10.06 13.5,9.5S13.06,8.5 12.5,8.5S11.5,8.94 11.5,9.5S11.94,10.5 12.5,10.5Z"></path></svg><span>Spine Health</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-12h2v6h-2z"></path></svg><span>Mental Health</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3.5 10c.83 0 1.5-.67 1.5-1.5S17.33 9 16.5 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.83 9 9 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"></path></svg><span>CBT</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2h6l-3.5 4.5-2.5-2.5-4 5V6z"></path></svg><span>Virtual Therapy</span></div>
+                    <div class="feature-item" onclick="showFuturePlan()"><svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v4h-2zm0 6h2v2h-2z"></path></svg><span>Pre Habilitation</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="medical-assistant-float" onclick="window.location.href='Features/Assistant.html'">
+    <img src="image/Assistant.jpg" alt="Medical Assistant">
+</div>
+
+<!-- CARE PAGE -->
+<div id="care-page" class="page">
+    <header id="header">
+        <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Search care services...">
+            <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
+        </div>
+        <div class="coin-display">
+            <span class="coin-icon-emoji">🪙</span>
+            <span id="care-header-coin-balance">0</span>
+        </div>
+    </header>
+    <div class="main-content">
+        <div class="care-page-grid">
+            <div class="care-row">
+                <div class="care-card-wrapper" onclick="window.location.href='Features/Skin.html'">
+                    <img src="image/skincare.jpg" alt="Skin Care">
+                    <button class="care-3d-btn">Skin Care</button>
+                </div>
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/dental care .jpg" alt="Dental Care">
+                    <button class="care-3d-btn">Dental Care</button>
+                </div>
+                <div class="care-card-wrapper" onclick="window.location.href='Features/Eye.html'">
+                    <img src="image/eye care .jpg" alt="Eye Care">
+                    <button class="care-3d-btn">Eye Care</button>
+                </div>
+            </div>
+            <div class="care-card-wrapper-16-9" onclick="showFuturePlan()">
+                <img src="image/women's health .jpg" alt="Women Health Care">
+                <button class="care-3d-btn">Women Health Care</button>
+            </div>
+            <div class="care-row">
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/ear.jpg" alt="Ear Care">
+                    <button class="care-3d-btn">Ear Care</button>
+                </div>
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/sexual health.jpg" alt="Sexual Health Care">
+                    <button class="care-3d-btn">Sexual Health</button>
+                </div>
+                <div class="care-card-wrapper" onclick="showFuturePlan()">
+                    <img src="image/elder care .jpg" alt="Elder Care">
+                    <button class="care-3d-btn">Elder Care</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TRACKER PAGE -->
+<div id="tracker-page" class="page">
+    <header id="header">
+        <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Search for trackers...">
+            <button class="search-button" onclick="showFuturePlan()">&#128269;</button>
+        </div>
+        <div class="coin-display">
+            <span class="coin-icon-emoji">🪙</span>
+            <span id="tracker-header-coin-balance">0</span>
+        </div>
+    </header>
+    <div class="main-content">
+        <div class="tracker-grid">
+            <div class="tracker-card-item"><img src="image/water intake tracker .jpg" alt="Water Intake Tracker"><a href="Features/water.html" class="tracker-btn water-tracker-link">Water Intake Tracker</a></div>
+            <div class="tracker-card-item"><img src="image/child.jpg" alt="Child Growth Tracker"><button class="tracker-btn" onclick="showFuturePlan()">Child Growth Tracker</button></div>
+            <div class="tracker-card-item"><img src="image/copd.jpg" alt="COPD Tracker"><button class="tracker-btn" onclick="showFuturePlan()">COPD Tracker</button></div>
+            <div class="tracker-card-item"><img src="image/sleep.jpg" alt="Sleep Tracker"><button class="tracker-btn" onclick="showFuturePlan()">Sleep Tracker</button></div>
+            <div class="tracker-card-item"><img src="image/prenatal fitness .jpg" alt="Prenatal Fitness"><button class="tracker-btn" onclick="showFuturePlan()">Prenatal Fitness</button></div>
+            <div class="tracker-card-item"><img src="image/brain.jpg" alt="Brain Training"><button class="tracker-btn" onclick="showFuturePlan()">Brain Training</button></div>
+            <div class="tracker-card-item"><img src="image/gut analysers.jpg" alt="Gut Analyser"><button class="tracker-btn" onclick="showFuturePlan()">Gut Analyser</button></div>
+            <div class="tracker-card-item"><img src="image/meditation.jpg" alt="Meditation"><button class="tracker-btn" onclick="window.location.href='Features/Meditation.html'">Meditation</button></div>
+            <div class="tracker-card-item"><img src="image/elder health tracker.jpg" alt="Elder Health Tracker"><button class="tracker-btn" onclick="showFuturePlan()">Elder Health Tracker</button></div>
+            <div class="tracker-card-item"><img src="image/family health hub.jpg" alt="Family Health Hub"><button class="tracker-btn" onclick="showFuturePlan()">Family Health Hub</button></div>
+            <div class="tracker-card-item"><img src="image/disease prediction.jpg" alt="Disease Prediction"><button class="tracker-btn" data-target-page="disease-prediction">Disease Prediction</button></div>
+            <div class="tracker-card-item"><img src="image/disease info.jpg" alt="Disease Info"><button class="tracker-btn" data-target-page="disease-info">Disease Info</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- DISEASE PREDICTION PAGE -->
+<div id="disease-prediction-page" class="page">
+    <header id="header">
+        <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
+        <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Disease Prediction</div>
+        <div class="coin-display"><span class="coin-icon-emoji">🪙</span><span id="prediction-header-coin-balance">0</span></div>
+    </header>
+    <div class="main-content prediction-info-buttons">
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Heart Attack Prediction</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Stroke Risk Prediction</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Chronic Disease Prediction</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Cancer Screening</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Diabetes Prediction</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Allergy Prediction</button>
+    </div>
+</div>
+
+<!-- DISEASE INFO PAGE -->
+<div id="disease-info-page" class="page">
+    <header id="header">
+        <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
+        <div style="flex-grow: 1; text-align: center; font-weight: bold; font-size: 1.2em; color: #333;">Disease Information</div>
+        <div class="coin-display"><span class="coin-icon-emoji">🪙</span><span id="info-header-coin-balance">0</span></div>
+    </header>
+    <div class="main-content prediction-info-buttons">
+        <button class="prediction-info-btn" onclick="showFuturePlan()">CPR Learning</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Rare Disease Learning</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Emergency Medical Info</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">First Aid Guide</button>
+        <button class="prediction-info-btn" onclick="showFuturePlan()">Longevity Health Span</button>
+    </div>
+</div>
+
+<!-- CONSULTANT PAGE -->
+<div id="consultant-page" class="page">
+    <header id="header">
+        <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
+        <div class="search-container"><input type="text" class="search-bar" placeholder="Search for doctors..."><button class="search-button" onclick="showFuturePlan()">&#128269;</button></div>
+        <div class="coin-display"><span class="coin-icon-emoji">🪙</span><span id="consultant-header-coin-balance">0</span></div>
+    </header>
+    <div class="main-content">
+        <h2 style="text-align: center; font-size: 1.6em; color: #333; margin-top: 15px;">Our Consultants</h2>
+        <p style="text-align: center; color: #666;">Doctor list will appear here in a future update.</p>
+    </div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div id="profile-page" class="page">
+    <header id="header">
+        <div style="font-weight: bold; font-size: 1.2em; color: #333;">Profile</div>
+    </header>
+    <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
         
-        if (event === 'subscription.charged') {
-            const subscription = payload.subscription.entity;
-            const payment = payload.payment.entity;
-            const amount = payment.amount / 100;
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if (usersQuery.empty) {
-                console.error(`Webhook Error: No user found for subscription ID ${subscription.id}`);
-                return res.json({ status: 'ok' });
-            }
-            const userRef = usersQuery.docs[0].ref;
-            let coinsToAdd = 0;
-            if (amount === 2000) coinsToAdd = 11000;
-            else if (amount === 200) coinsToAdd = 1000;
-            if (coinsToAdd > 0) {
-                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
-                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
-            }
-        } else if (event === 'payment.failed') {
-            const subscriptionId = payload.payment.entity.notes.subscription_id;
-            if (!subscriptionId) {
-                return res.json({ status: 'ok, but no subscription ID found' });
-            }
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscriptionId).limit(1).get();
-            if (usersQuery.empty) return res.json({ status: 'ok' });
-            const user = usersQuery.docs[0].data();
-            const userRef = usersQuery.docs[0].ref;
-            if (user.currentPlan === 'PlanA') {
-                console.log(`INFO: Plan A (₹2000) failed for user ${userRef.id}. Downgrading to Plan B.`);
-                await razorpay.subscriptions.cancel(subscriptionId);
-                const startTime = new Date();
-                startTime.setMinutes(startTime.getMinutes() + 15);
-                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
-                const newSubscription = await razorpay.subscriptions.create({
-                    plan_id: process.env.RAZORPAY_PLAN_ID_B,
-                    customer_id: user.razorpayCustomerId,
-                    total_count: 24,
-                    start_at: startAtTimestamp,
-                    customer_notify: 1
-                });
-                await userRef.update({
-                    razorpaySubscriptionId: newSubscription.id,
-                    currentPlan: 'PlanB',
-                    subscriptionStatus: 'downgraded_pending'
-                });
-                console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B. Next charge in 15 minutes.`);
+        <div id="profile-info-display" class="profile-info-display">
+            <div class="info-group">
+                <label>Name</label>
+                <p id="info-name">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Email</label>
+                <p id="info-email">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Phone Number</label>
+                <p id="info-phone">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Address</label>
+                <p id="info-address">Not set</p>
+            </div>
+        </div>
+
+        <form id="profile-form" style="display: none;">
+            <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
+            <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
+            <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
+            <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
+        </form>
+
+        <div id="profile-main-buttons" class="profile-buttons">
+            <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
+            <button class="profile-btn" id="wallet-btn">Wallet</button>
+            <button class="profile-btn" id="terms-btn">Terms & Conditions</button>
+            <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
+        </div>
+
+        <div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
+            <button class="profile-btn" id="save-profile-btn">Save Profile</button>
+            <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- SIDE MENU -->
+<div id="side-menu">
+    <div class="menu-header">Menu <span class="close-menu" onclick="hideSideMenu()">&times;</span></div>
+    <div class="menu-options">
+        <button class="menu-btn" onclick="showFuturePlan()">Appointment Management</button>
+        <button class="menu-btn" onclick="showFuturePlan()">Holistic Chronic Pain Management</button>
+        <button class="menu-btn" onclick="showFuturePlan()">Health Insurance</button>
+        <button class="menu-btn" onclick="showFuturePlan()">Medical Bill</button>
+    </div>
+</div>
+
+<!-- WALLET MODAL -->
+<div id="wallet-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-back-btn" onclick="closeWallet()">&#8592;</span>
+            <span class="modal-title">Wallet</span>
+        </div>
+        <div class="wallet-body">
+            <div class="wallet-coin-card">
+                <div class="coin-icon">🪙</div>
+                <div class="coin-balance" id="wallet-coin-balance-display">0</div>
+                <div class="coin-label">Available Coins</div>
+            </div>
+            <div class="wallet-plans-container">
+                <button class="plan-btn subscription-btn" id="subscription-start-btn">
+                    <span class="plan-price">Start Subscription with ₹1</span>
+                    <span class="plan-coins">Get 55 Coins Instantly</span>
+                </button>
+                <button class="plan-btn" data-amount="100" data-coins="520"><span class="plan-price">₹100</span><span class="plan-coins">Get 520 Coins</span></button>
+                <button class="plan-btn" data-amount="200" data-coins="1030"><span class="plan-price">₹200</span><span class="plan-coins">Get 1030 Coins</span></button>
+                <button class="plan-btn" data-amount="500" data-coins="2550"><span class="plan-price">₹500</span><span class="plan-coins">Get 2550 Coins</span></button>
+                <button class="plan-btn" data-amount="1000" data-coins="5200"><span class="plan-price">₹1000</span><span class="plan-coins">Get 5200 Coins</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TERMS & CONDITIONS MODAL -->
+<div id="terms-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-back-btn" onclick="closeTerms()">&#8592; Back</span>
+            <span class="modal-title">Terms & Conditions</span>
+        </div>
+        <div class="terms-body">
+            <h4>1. General Terms</h4>
+            <p>By accessing and using the Shubhmed application, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you may not use our service.</p>
+
+            <h4>2. Coin and Payment Policy</h4>
+            <p>Our service operates on a "Coin" system. These coins are virtual goods and have no real-world monetary value. All purchases of Coin packs are final and strictly non-refundable under any circumstances.</p>
+            
+            <h4>3. Subscription Service & Auto-Payment</h4>
+            <p>By activating our ₹1 trial, you are enrolling in an auto-renewing subscription service. This grants you immediate access to premium features for an initial fee of ₹1, for which you receive 55 Coins.</p>
+            <p>You explicitly agree and authorize Shubhmed to automatically charge your selected payment method for the full subscription amount of **₹2000** at the end of your 3-month billing cycle.</p>
+            
+            <h4>4. Automated Downgrade on Payment Failure (Fallback Plan)</h4>
+            <p>This is a critical part of our subscription agreement. If the automated attempt to charge **₹2000** for your 3-month plan fails for any reason (e.g., insufficient funds), you explicitly authorize Shubhmed to perform the following actions automatically:</p>
+            <ul>
+                <li>Cancel your primary ₹2000 subscription plan.</li>
+                <li>Enroll you in our 15-day fallback subscription plan.</li>
+                <li>Attempt to charge your payment method **₹200** for this 15-day plan on the following day.</li>
+            </ul>
+            <p>This automated downgrade ensures that your access to our services continues with minimal interruption. If the ₹200 charge is successful, you will receive 1000 Coins.</p>
+
+            <h4>5. User Responsibilities</h4>
+            <p>You are responsible for maintaining sufficient funds in your account for auto-payment and for keeping your payment information up to date. Shubhmed is not responsible for any overdraft or other fees charged by your bank.</p>
+        </div>
+    </div>
+</div>
+
+<!-- PRE-PAYMENT CONSENT MODAL -->
+<div id="pre-payment-modal" class="modal">
+    <div class="modal-content pre-payment-content">
+        <div class="pre-payment-body">
+            <p>You are starting an auto-renewing subscription.</p>
+            <div class="consent-box">
+                <input type="checkbox" id="final-consent-checkbox">
+                <label for="final-consent-checkbox">I have read and agree to the <b>Terms & Conditions</b>, including the auto-payment and automated downgrade clauses.</label>
+            </div>
+            <div class="pre-payment-actions">
+                <button class="pre-payment-cancel-btn" id="pre-payment-cancel-btn">Cancel</button>
+                <button class="pre-payment-proceed-btn" id="pre-payment-proceed-btn" disabled>Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home"><svg viewBox="0 0 24 24"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"></path></svg><span>Home</span></div>
+    <div class="nav-item" id="nav-consultant"><svg viewBox="0 0 24 24"><path d="M20,6H16V2H8V6H4C2.9,6 2,6.9 2,8V19C2,20.1 2.9,21 4,21H20C21.1,21 22,20.1 22,19V8C22,6.9 21.1,6 20,6M10,4H14V6H10V4M20,19H4V8H20V19M12,10.5L14,12.5L12,14.5L10,12.5L12,10.5Z"></path></svg><span>Consultant</span></div>
+    <div class="nav-item" id="nav-care"><svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,20C7.59,20 4,16.41 4,12C4,11.56 4.05,11.12 4.14,10.7C5.9,10.14 7.5,9 7.5,7C7.5,6.05 7.08,5.19 6.4,4.58C7.5,3.14 9.12,2.29 11,2.06C11.33,3.15 12.28,4 13.5,4C14.72,4 15.67,3.15 16,2.06C17.88,2.29 19.5,3.14 20.6,4.58C19.92,5.19 19.5,6.05 19.5,7C19.5,9 21.1,10.14 22.86,10.7C22.95,11.12 23,11.56 23,12C22.97,16.41 19.41,20 15,20H9Z"></path></svg><span>Care</span></div>
+    <div class="nav-item" id="nav-tracker"><svg viewBox="0 0 24 24"><path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"></path></svg><span>Tracker</span></div>
+    <div class="nav-item" id="nav-profile"><svg viewBox="0 0 24 24"><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"></path></svg><span>Profile</span></div>
+</nav>
+
+<script type="module">
+    // FIREBASE SDK IMPORTS
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+    // FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7ojmyQMg2ljB7kT4MQSmIhz43QNHpE0w",
+      authDomain: "shubhmed-9f05d.firebaseapp.com",
+      databaseURL: "https://shubhmed-9f05d-default-rtdb.firebaseio.com",
+      projectId: "shubhmed-9f05d",
+      storageBucket: "shubhmed-9f05d.firebasestorage.app",
+      messagingSenderId: "42179676197",
+      appId: "1:42179676197:web:1796559543fb869c5297cc",
+      measurementId: "G-VD9YFFECTC"
+    };
+
+    // FIREBASE INITIALIZATION
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    // ELEMENT REFERENCES
+    const splashScreen = document.getElementById('splash-screen');
+    const dashboardSelectionScreen = document.getElementById('dashboard-selection-screen');
+    const allPages = document.querySelectorAll('.page');
+    const homePage = document.getElementById('home-page');
+    const carePage = document.getElementById('care-page');
+    const trackerPage = document.getElementById('tracker-page'); 
+    const diseasePredictionPage = document.getElementById('disease-prediction-page'); 
+    const diseaseInfoPage = document.getElementById('disease-info-page'); 
+    const consultantPage = document.getElementById('consultant-page'); 
+    const profilePage = document.getElementById('profile-page'); 
+    const sideMenu = document.getElementById('side-menu'); 
+    const loader = document.getElementById('buffer-loader');
+    const startButton = document.getElementById('start-button');
+    const patientDashboardButton = document.getElementById('patient-dashboard-btn');
+    const navItems = document.querySelectorAll('.nav-item');
+    const medicalAssistantFloat = document.getElementById('medical-assistant-float');
+    const walletModal = document.getElementById('wallet-modal');
+    const termsModal = document.getElementById('terms-modal');
+    const prePaymentModal = document.getElementById('pre-payment-modal');
+
+    // PAGE NAVIGATION LOGIC
+    function switchPage(pageToShow) {
+        allPages.forEach(p => p.style.display = 'none');
+        if (pageToShow) {
+            pageToShow.style.display = 'flex';
+            if (sideMenu.classList.contains('open')) { hideSideMenu(); }
+        }
+    }
+    function updateActiveNav(activeItem) {
+        navItems.forEach(item => item.classList.remove('active'));
+        if (activeItem) { activeItem.classList.add('active'); }
+    }
+    document.getElementById('nav-home').onclick = () => { switchPage(homePage); updateActiveNav(document.getElementById('nav-home')); };
+    document.getElementById('nav-consultant').onclick = () => { switchPage(consultantPage); updateActiveNav(document.getElementById('nav-consultant')); };
+    document.getElementById('nav-care').onclick = () => { switchPage(carePage); updateActiveNav(document.getElementById('nav-care')); };
+    document.getElementById('nav-tracker').onclick = () => { switchPage(trackerPage); updateActiveNav(document.getElementById('nav-tracker')); };
+    document.getElementById('nav-profile').onclick = () => { switchPage(profilePage); updateActiveNav(document.getElementById('nav-profile')); };
+    
+    // SPLASH SCREEN LOGIC
+    function initializeWelcomeSequence() {
+        setTimeout(() => {
+            if(loader) loader.style.display = 'block';
+            setTimeout(() => {
+                if(loader) loader.style.display = 'none';
+                if(startButton) startButton.style.display = 'block';
+            }, 3000); 
+        }, 2000);
+    }
+    if (startButton) { startButton.onclick = () => {
+        splashScreen.style.opacity = '0';
+        splashScreen.style.visibility = 'hidden';
+        setTimeout(() => { splashScreen.style.display = 'none'; }, 1500);
+        dashboardSelectionScreen.style.display = 'flex';
+    }}
+    if (patientDashboardButton) { patientDashboardButton.onclick = function() {
+        dashboardSelectionScreen.style.display = 'none';
+        switchPage(homePage);
+        updateActiveNav(document.getElementById('nav-home'));
+        document.body.style.overflow = 'auto';
+    }}
+    
+    // SIDE MENU LOGIC
+    window.showSideMenu = function() {
+        sideMenu.classList.add('open');
+        const overlay = document.createElement('div');
+        overlay.id = 'menu-overlay';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;';
+        overlay.onclick = hideSideMenu;
+        document.body.appendChild(overlay);
+    }
+    window.hideSideMenu = function() {
+        sideMenu.classList.remove('open');
+        const overlay = document.getElementById('menu-overlay');
+        if (overlay) { overlay.remove(); }
+    }
+
+    // BACK BUTTON LOGIC
+    window.goBackToTracker = function() { switchPage(trackerPage); updateActiveNav(document.getElementById('nav-tracker')); }
+
+    // DRAGGABLE BUTTON LOGIC
+    if (medicalAssistantFloat) {
+        let isDragging = false, wasDragged = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+        medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
+        medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
+        medicalAssistantFloat.addEventListener("touchmove", drag, false);
+        medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
+        medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
+        medicalAssistantFloat.addEventListener("mousemove", drag, false);
+        medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
+        function dragStart(e) {
+            wasDragged = false; 
+            if (e.type === "touchstart") { initialX = e.touches[0].clientX - xOffset; initialY = e.touches[0].clientY - yOffset; } 
+            else { initialX = e.clientX - xOffset; initialY = e.clientY - yOffset; }
+            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
+        }
+        function dragEnd(e) { initialX = currentX; initialY = currentY; isDragging = false; }
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault(); wasDragged = true; 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.touches[0].clientY - initialY; } 
+                else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
+                xOffset = currentX; yOffset = currentY;
+                setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
-        else if (event === 'subscription.activated') {
-            const subscription = payload.subscription.entity;
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if(!usersQuery.empty) {
-                const userRef = usersQuery.docs[0].ref;
-                await userRef.update({
-                    coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
-                });
-                console.log(`SUCCESS: Subscription activated for user ${userRef.id}. 55 coins added.`);
+        function setTranslate(xPos, yPos, el) { el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"; }
+    }
+
+    // AUTH, PROFILE, AND PAYMENT LOGIC
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date() });
+                updateCoinDisplays(0);
+                updateProfileDisplay({ name: "Not set", email: "Not set", phone: "Not set", address: "Not set" });
+            } else {
+                const userData = userDoc.data();
+                updateCoinDisplays(userData.coins || 0);
+                updateProfileDisplay(userData);
             }
-        }
-        
-        res.json({ status: 'ok' });
-    } catch (error) {
-        console.error('Error processing webhook:', error);
-        res.status(500).send('Webhook processing error.');
-    }
-});
-// Baki sabhi routes ke liye JSON parser ka istemal karein
-app.use(express.json({ limit: '10mb' }));
-
-// --- Firebase Admin SDK को शुरू करें ---
-try {
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT) throw new Error('FIREBASE_SERVICE_ACCOUNT env variable is not set!');
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  console.log("✅ Firebase Admin SDK initialized successfully.");
-} catch (error) {
-  console.error("\n\n❌❌❌ FATAL ERROR: Firebase Admin SDK could not be initialized. ❌❌❌");
-  console.error("REASON:", error.message);
-  console.error("\nSOLUTION: Please check your 'FIREBASE_SERVICE_ACCOUNT' environment variable in Render.\n");
-  process.exit(1);
-}
-const db = admin.firestore();
-
-// --- Baki Services (AI, YouTube, etc.) ---
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
-const youtube = google.youtube({ version: 'v3', auth: process.env.YOUTUBE_API_KEY });
-console.log("✅ All services initialized.");
-
-
-// =================================================================
-// 3. API Endpoints (Non-Payment - Poora Purana Code Yahan Hai)
-// =================================================================
-
-// --- AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
-app.post('/get-food-interaction', async (req, res) => {
-    try {
-        const { medicines, token } = req.body;
-        if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-        const COIN_COST = 2;
-        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
-        const improvedPrompt = `
-      You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
-      Your task is to provide a detailed food interaction guide. The response MUST be a valid JSON object ONLY, with no extra text or markdown. The entire response, including all food names and reasons, MUST be in simple Hindi (Devanagari script).
-      The JSON object must have three keys: "avoid", "limit", and "safe".
-      "avoid": An array of objects for foods to completely avoid. Each object must have "item" and "reason" keys.
-      "limit": An array of objects for foods to eat in limited quantity. Each object must also have "item" and "reason" keys.
-      "safe": An array of strings listing at least 5 examples of safe foods in Hindi.
-      For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
-    `;
-        const result = await aiModel.generateContent(improvedPrompt);
-        const aiAnswer = result.response.text();
-        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-        res.json({ answer: aiAnswer });
-    } catch (error) {
-        console.error("Error in /get-food-interaction:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
-});
-
-// --- AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
-app.post('/ask-ai', async (req, res) => {
-    try {
-        const { question, token } = req.body;
-        if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-        const COIN_COST = 1;
-        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
-        const result = await aiModel.generateContent(question);
-        const aiAnswer = result.response.text();
-        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-        res.json({ answer: aiAnswer });
-    } catch (error) {
-        console.error("Error in /ask-ai:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
-});
-
-// --- AI MEDICAL ASSISTANT ENDPOINT ---
-app.post('/assistant-chat', async (req, res) => {
-    try {
-        const { question, token } = req.body;
-        if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-        const assistantPrompt = `
-      You are a caring and empathetic female AI medical assistant named 'Shubh'.
-      Respond in the same language as the user's question.
-      You can generate a detailed response, up to 4500 characters if needed.
-      When a user mentions a medical symptom or illness (like 'पेट दर्द', 'fever', 'headache', etc.), you MUST follow this three-part structure in your response:
-      Immediate Relief: Start by suggesting some simple, safe home remedies or general advice for initial comfort. For example, for a stomach ache, suggest warm water, ginger tea, or avoiding spicy food.
-      General Medication: Suggest ONLY common, general-purpose, over-the-counter (OTC) medicines that are typically used for the symptom. For a stomach ache, you could mention an antacid. Be very generic.
-      Crucial Disclaimer: ALWAYS end your response with a strong, clear disclaimer. You must state: 'यह सलाह केवल शुरुआती राहत के लिए है। किसी भी दवा को लेने से पहले कृपया डॉक्टर से सलाह ज़रूर लें। आपकी सही स्थिति का मूल्यांकन एक योग्य चिकित्सक ही कर सकते हैं।' (This advice is for initial relief only. Please consult a doctor before taking any medication. Only a qualified physician can properly evaluate your condition.)
-      User's question is: "${question}"
-    `;
-        const result = await aiModel.generateContent(assistantPrompt);
-        const aiAnswer = result.response.text();
-        const responseLength = aiAnswer.length;
-        let coinCost = Math.ceil(responseLength / 1000) * 2;
-        if (coinCost === 0 && responseLength > 0) coinCost = 2;
-        if (coinCost > 0) {
-            if (userData.coins < coinCost) {
-                return res.status(403).json({ answer: `इस जवाब के लिए ${coinCost} सिक्कों की ज़रूरत है, लेकिन आपके पास पर्याप्त सिक्के नहीं हैं।` });
-            }
-            await userRef.update({ coins: admin.firestore.FieldValue.increment(-coinCost) });
-        }
-        res.json({ answer: aiAnswer });
-    } catch (error) {
-        console.error("Error in /assistant-chat:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
-});
-
-// --- AI डाइट प्लान बनाने वाला Endpoint ---
-app.post('/generate-diet-plan', async (req, res) => {
-    try {
-        const { prompt, token } = req.body;
-        if (!token || !prompt) return res.status(400).json({ error: "Token and prompt are required." });
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-        const COIN_COST = 1;
-        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
-        const result = await aiModel.generateContent(prompt);
-        const aiAnswer = result.response.text();
-        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-        res.json({ answer: aiAnswer });
-    } catch (error) {
-        console.error("Error in /generate-diet-plan:", error);
-        res.status(500).json({ error: "Internal server error." });
-    }
-});
-
-// --- FACE++ स्किन एनालिसिस ENDPOINT ---
-app.post('/analyze-skin', async (req, res) => {
-    try {
-        const { imageBase64, token } = req.body;
-        if (!token || !imageBase64) return res.status(400).json({ error: "Token and image data are required." });
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-        const COIN_COST = 1;
-        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough credits for a Quick Scan." });
-        const apiKey = process.env.FACEPP_API_KEY;
-        const apiSecret = process.env.FACEPP_API_SECRET;
-        if (!apiKey || !apiSecret) throw new Error("Face++ API credentials are not set on the server.");
-        const formData = new FormData();
-        formData.append('api_key', apiKey);
-        formData.append('api_secret', apiSecret);
-        formData.append('image_base64', imageBase64);
-        formData.append('return_attributes', 'skinstatus');
-        const faceppResponse = await axios.post('https://api-us.faceplusplus.com/facepp/v3/detect', formData, { headers: formData.getHeaders() });
-        if (faceppResponse.data && faceppResponse.data.faces && faceppResponse.data.faces.length > 0) {
-            await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-            const skinStatus = faceppResponse.data.faces[0].attributes.skinstatus;
-            const analysisResult = {
-                health: skinStatus.health,
-                blemishes: skinStatus.acne.length + skinStatus.stain.length,
-                darkCircle: skinStatus.dark_circle,
-            };
-            res.json({ success: true, data: analysisResult });
         } else {
-            res.status(404).json({ error: "Could not detect a face in the image. Please try again with a clearer picture." });
+            signInAnonymously(auth).catch((error) => console.error("Anonymous sign-in failed:", error));
         }
-    } catch (error) {
-        console.error("Error in /analyze-skin:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: "An error occurred during skin analysis." });
+    });
+    
+    function updateCoinDisplays(balance) {
+        ['header-coin-balance', 'care-header-coin-balance', 'tracker-header-coin-balance', 'prediction-header-coin-balance', 'info-header-coin-balance', 'consultant-header-coin-balance', 'wallet-coin-balance-display']
+        .forEach(id => { 
+            const el = document.getElementById(id);
+            if (el) el.textContent = balance; 
+        });
     }
-});
 
-// --- YouTube वीडियो खोजने वाला Endpoint ---
-app.get('/get-youtube-videos', async (req, res) => {
-    const { query } = req.query;
-    if (!query) return res.status(400).json({error: 'Search query is required.' });
-    try {
-        const response = await youtube.search.list({ part: 'snippet', q: `${query} exercise tutorial hindi`, maxResults: 5, type: 'video' });
-        res.json(response.data.items);
-    } catch (error) {
-        console.error('Error fetching YouTube videos:', error);
-        res.status(500).json({ error: 'Could not fetch YouTube videos.' });
+    function updateProfileDisplay(userData) {
+        document.getElementById('info-name').textContent = userData.name || "Not set";
+        document.getElementById('info-email').textContent = userData.email || "Not set";
+        document.getElementById('info-phone').textContent = userData.phone || "Not set";
+        document.getElementById('info-address').textContent = userData.address || "Not set";
     }
-});
 
-// --- मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
-app.get('/get-weather-advice', async (req, res) => {
-    const { city } = req.query;
-    if (!city) return res.status(400).json({ error: 'City is required.' });
-    try {
-        const weatherResponse = await axios.get('https://api.openweathermap.org/data/2.5/weather', { params: { q: city, appid: process.env.WEATHER_API_KEY, units: 'metric' } });
-        const weather = weatherResponse.data;
-        const advicePrompt = `Based on this weather in ${city}: temperature is ${weather.main.temp}°C, humidity is ${weather.main.humidity}%, and condition is ${weather.weather[0].description}. Provide a short, simple health tip in Hindi.`;
-        const result = await aiModel.generateContent(advicePrompt);
-        const advice = result.response.text();
-        res.json({ advice });
-    } catch (error) {
-        console.error('Error getting weather advice:', error);
-        res.status(500).json({ error: 'Could not get weather advice.' });
-    }
-});
-
-// --- LocationIQ से पता प्राप्त करने वाला Endpoint ---
-app.get('/get-address-from-coords', async (req, res) => {
-    const { lat, lon } = req.query;
-    if (!lat || !lon) return res.status(400).json({ error: 'Latitude (lat) and Longitude (lon) are required.' });
-    try {
-        const response = await axios.get('https://us1.locationiq.com/v1/reverse.php', { params: { key: process.env.LOCATIONIQ_API_KEY, lat: lat, lon: lon, format: 'json' } });
-        if (response.data && response.data.display_name) {
-            res.json({ address: response.data.display_name });
-        } else {
-            res.status(404).json({ error: 'Could not find address for these coordinates.' });
-        }
-    } catch (error) {
-        console.error('Error fetching address from LocationIQ:', error.message);
-        res.status(500).json({ error: 'Failed to get address from location service.' });
-    }
-});
-
-// --- भोजन की पोषण जानकारी देने वाला Endpoint ---
-app.get('/get-nutrition-info', async (req, res) => {
-    const { food } = req.query;
-    if (!food) return res.status(400).json({ error: 'Food item is required.' });
-    try {
-        const nutritionixResponse = await axios.post('https://trackapi.nutritionix.com/v2/natural/nutrients', { query: food }, { headers: { 'x-app-id': process.env.NUTRITIONIX_APP_ID, 'x-app-key': process.env.NUTRITIONIX_API_KEY } });
-        if (nutritionixResponse.data && nutritionixResponse.data.foods && nutritionixResponse.data.foods.length > 0) {
-            return res.json({ source: 'Nutritionix', data: nutritionixResponse.data.foods[0] });
-        }
-    } catch (nutritionixError) {
-        console.log("Nutritionix failed, trying USDA...");
+    async function saveProfileData() {
+        const user = auth.currentUser;
+        if (!user) { alert("You are not logged in."); return; }
+        const userRef = doc(db, "users", user.uid);
+        const newData = {
+            name: document.getElementById('profile-name').value,
+            email: document.getElementById('profile-email').value,
+            phone: document.getElementById('profile-phone').value,
+            address: document.getElementById('profile-address').value
+        };
         try {
-            const usdaResponse = await axios.get('https://api.nal.usda.gov/fdc/v1/foods/search', { params: { query: food, api_key: process.env.USDA_API_KEY } });
-            if (usdaResponse.data && usdaResponse.data.foods && usdaResponse.data.foods.length > 0) {
-                return res.json({ source: 'USDA', data: usdaResponse.data.foods[0] });
-            }
-        } catch (usdaError) {
-            console.error('USDA API Error:', usdaError);
-        }
+            await updateDoc(userRef, newData);
+            updateProfileDisplay(newData);
+            alert("Profile saved successfully!");
+            showMainProfileView(); 
+        } catch (error) { console.error("Error saving profile: ", error); alert("Failed to save profile."); }
     }
-    res.status(404).json({ error: 'Could not find nutritional information for this item.' });
-});
+    
+    // MODAL VISIBILITY FUNCTIONS
+    window.closeWallet = function() { walletModal.style.display = 'none'; }
+    window.closeTerms = function() { termsModal.style.display = 'none'; }
+    window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
-// --- बारकोड से भोजन की जानकारी देने वाला Endpoint ---
-app.get('/get-info-by-barcode', async (req, res) => {
-    const { upc } = req.query;
-    if (!upc) return res.status(400).json({ error: 'UPC (barcode) is required.' });
-    try {
-        const response = await axios.get('https://trackapi.nutritionix.com/v2/search/item', { params: { upc: upc }, headers: { 'x-app-id': process.env.NUTRITIONIX_APP_ID, 'x-app-key': process.env.NUTRITIONIX_API_KEY } });
-        if (response.data && response.data.foods && response.data.foods.length > 0) {
-            res.json({ source: 'Nutritionix UPC', data: response.data.foods[0] });
-        } else {
-            res.status(404).json({ error: 'Could not find food item for this barcode.' });
-        }
-    } catch (error) {
-        console.error('Error fetching data from Nutritionix UPC lookup:', error);
-        res.status(500).json({ error: 'Failed to get data for barcode.' });
-    }
-});
+    // === START: ZAROORI BADLAV (Final Payment Logic) ===
+    async function initiatePayment(options) {
+        const user = auth.currentUser;
+        if (!user) { alert("Please log in to proceed."); return; }
+        const idToken = await user.getIdToken();
+        
+        try {
+            const response = await fetch('/create-payment', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...options, token: idToken })
+            });
 
-
-// =================================================================
-// 4. PAYMENT & SUBSCRIPTION ENDPOINTS
-// =================================================================
-
-app.post('/create-payment', async (req, res) => {
-    try {
-        const { token, isSubscription } = req.body;
-        if (!token) return res.status(400).json({ error: "User token is required." });
-
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-        const userData = userDoc.data();
-
-        if (isSubscription) {
-            // === START: ZAROORI BADLAV (The Final Fix) ===
-            console.log("Subscription flow started. Using Auth Link method.");
-            if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
-                return res.status(400).json({ error: "User already has an active subscription." });
-            }
-
-            let customerId = userData.razorpayCustomerId;
-            const userEmail = userData.email || `${decodedToken.uid}@shubhmed-app.com`;
+            // Yahan hum response ko text ki tarah padhenge, taaki HTML error bhi pakad sakein
+            const responseText = await response.text();
             
-            if (!customerId) {
-                try {
-                    const customers = await razorpay.customers.all({ email: userEmail });
-                    if (customers.items.length > 0) {
-                        customerId = customers.items[0].id;
-                        console.log(`Found existing customer on Razorpay: ${customerId}`);
-                    }
-                } catch (searchError) {
-                    console.error("Error searching for customer, will create a new one.", searchError);
+            let data;
+            try {
+                // Koshish karo ki response ko JSON ki tarah parse karein
+                data = JSON.parse(responseText);
+            } catch (e) {
+                // Agar parse nahi hota, matlab server ne HTML ya koi aur text bheja hai
+                console.error("Server response was not valid JSON:", responseText);
+                throw new Error("Server returned an invalid response. Please check server logs.");
+            }
+
+            if (!response.ok) { throw new Error(data.error || 'Failed to initiate payment.'); }
+            
+            // Agar server 'auth_link' bhejta hai, to user ko redirect karo
+            if (data.auth_link) {
+                closeWallet();
+                window.location.href = data.auth_link;
+                return; 
+            }
+            
+            // Agar server 'order_id' bhejta hai (one-time payment ke liye)
+            const rzpOptions = {
+                key: data.key_id,
+                amount: data.amount,
+                currency: "INR",
+                name: "Shubhmed",
+                description: "Service Purchase",
+                order_id: data.id,
+                handler: async function (response) {
+                    const verificationResponse = await fetch('/verify-payment', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ ...response, token: idToken })
+                    });
+                    const result = await verificationResponse.json();
+                    if(result.status === 'success') {
+                        alert(result.message || 'Payment successful!');
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if(userDoc.exists()) { updateCoinDisplays(userDoc.data().coins); }
+                        closeWallet();
+                    } else { alert('Payment verification failed.'); }
+                },
+                prefill: {
+                    name: document.getElementById('profile-name').value || "User",
+                    email: document.getElementById('profile-email').value || "",
+                    contact: document.getElementById('profile-phone').value || ""
+                },
+                theme: { color: "#0077a2" }
+            };
+            const rzp = new Razorpay(rzpOptions);
+            rzp.open();
+        } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
+    }
+    // === END: ZAROORI BADLAV ===
+
+    function logOut() {
+        signOut(auth).then(() => {
+            alert('Logged out successfully!');
+            window.location.reload();
+        }).catch((error) => console.error("Logout failed:", error));
+    }
+
+    const profileMainButtons = document.getElementById('profile-main-buttons');
+    const profileEditButtons = document.getElementById('profile-edit-buttons');
+    const profileForm = document.getElementById('profile-form');
+    const profileInfoDisplay = document.getElementById('profile-info-display');
+
+    function showEditProfileView() {
+        document.getElementById('profile-name').value = document.getElementById('info-name').textContent === "Not set" ? "" : document.getElementById('info-name').textContent;
+        document.getElementById('profile-email').value = document.getElementById('info-email').textContent === "Not set" ? "" : document.getElementById('info-email').textContent;
+        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent === "Not set" ? "" : document.getElementById('info-phone').textContent;
+        document.getElementById('profile-address').value = document.getElementById('info-address').textContent === "Not set" ? "" : document.getElementById('info-address').textContent;
+        profileMainButtons.style.display = 'none';
+        profileInfoDisplay.style.display = 'none';
+        profileForm.style.display = 'flex';
+        profileEditButtons.style.display = 'flex';
+    }
+    function showMainProfileView() {
+        profileMainButtons.style.display = 'flex';
+        profileInfoDisplay.style.display = 'flex';
+        profileForm.style.display = 'none';
+        profileEditButtons.style.display = 'none';
+    }
+
+    // GLOBAL FUNCTIONS
+    window.showFuturePlan = function() { alert('This feature is part of a future update.'); }
+    window.performSearch = function() {
+        const searchInput = document.querySelector('#home-page .search-bar');
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        if (searchTerm === "") { alert("Please enter a search term."); return; }
+        if (searchTerm.includes("care")) { switchPage(carePage); updateActiveNav(document.getElementById('nav-care')); } 
+        else if (searchTerm.includes("tracker")) { switchPage(trackerPage); updateActiveNav(document.getElementById('nav-tracker')); } 
+        else if (searchTerm.includes("consultant")) { switchPage(consultantPage); updateActiveNav(document.getElementById('nav-consultant')); } 
+        else if (searchTerm.includes("profile")) { switchPage(profilePage); updateActiveNav(document.getElementById('nav-profile')); }
+        else if (searchTerm.includes("meditation")) { window.location.href = 'Features/Meditation.html'; } 
+        else if (searchTerm.includes("diet")) { window.location.href = 'Features/Diet.html'; } 
+        else if (searchTerm.includes("health habit")) { window.location.href = 'Features/Health.html'; } 
+        else if (searchTerm.includes("medicine waste")) { window.location.href = 'Features/Medicinewaste.html'; }
+        else { alert(`No results found for "${searchInput.value}".`); }
+    }
+
+    // INITIALIZATION on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeWelcomeSequence();
+        showMainProfileView();
+        
+        document.getElementById('edit-profile-btn').addEventListener('click', showEditProfileView);
+        document.getElementById('cancel-edit-btn').addEventListener('click', showMainProfileView);
+        document.getElementById('save-profile-btn').addEventListener('click', saveProfileData);
+        document.getElementById('wallet-btn').addEventListener('click', () => walletModal.style.display = 'flex');
+        document.getElementById('logout-btn').addEventListener('click', logOut);
+        document.getElementById('terms-btn').addEventListener('click', () => termsModal.style.display = 'flex');
+
+        document.querySelectorAll('.plan-btn[data-amount]').forEach(button => {
+            button.addEventListener('click', () => {
+                const amount = parseInt(button.dataset.amount, 10) * 100;
+                initiatePayment({ amount: amount, isSubscription: false });
+            });
+        });
+
+        document.getElementById('subscription-start-btn').addEventListener('click', () => {
+            prePaymentModal.style.display = 'flex';
+        });
+
+        const finalConsentCheckbox = document.getElementById('final-consent-checkbox');
+        const proceedBtn = document.getElementById('pre-payment-proceed-btn');
+        finalConsentCheckbox.addEventListener('change', () => {
+            proceedBtn.disabled = !finalConsentCheckbox.checked;
+        });
+        document.getElementById('pre-payment-cancel-btn').addEventListener('click', closePrePayment);
+        proceedBtn.addEventListener('click', () => {
+            closePrePayment();
+            initiatePayment({ isSubscription: true });
+        });
+        
+        document.querySelectorAll('.tracker-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                if(button.classList.contains('water-tracker-link')) return; 
+                const pageTarget = button.getAttribute('data-target-page');
+                if (pageTarget) {
+                    event.preventDefault(); 
+                    if (pageTarget === 'disease-prediction') { switchPage(diseasePredictionPage); } 
+                    else if (pageTarget === 'disease-info') { switchPage(diseaseInfoPage); }
                 }
-            }
-            
-            if (!customerId) {
-                console.log("No existing customer found. Creating a new one.");
-                const customer = await razorpay.customers.create({
-                    name: userData.name || 'Shubhmed User',
-                    email: userEmail,
-                    contact: userData.phone || undefined
-                });
-                customerId = customer.id;
-            }
-            
-            const startTime = new Date();
-            startTime.setMinutes(startTime.getMinutes() + 10);
-            const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
-
-            const subscriptionOptions = {
-                plan_id: process.env.RAZORPAY_PLAN_ID_A,
-                customer_id: customerId,
-                total_count: 12, 
-                start_at: startAtTimestamp,
-                customer_notify: 1,
-                addons: [{ item: { name: "Trial Fee", amount: 100, currency: "INR" } }]
-            };
-
-            const subscription = await razorpay.subscriptions.create(subscriptionOptions);
-
-            await userRef.update({ 
-                razorpayCustomerId: customerId,
-                razorpaySubscriptionId: subscription.id,
-                currentPlan: 'PlanA',
-                subscriptionStatus: 'created'
             });
-            
-            return res.json({
-                auth_link: subscription.short_url,
+        });
+        
+        const homeSearchInput = document.querySelector('#home-page .search-bar');
+        if (homeSearchInput) {
+            homeSearchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') { event.preventDefault(); performSearch(); }
             });
-            // === END: ZAROORI BADLAV ===
         }
-        else {
-            const { amount } = req.body;
-            if(!amount) return res.status(400).json({ error: "Amount is required for one-time payments." });
-            const options = { 
-                amount, 
-                currency: "INR", 
-                receipt: `rcpt_${Date.now()}`
-            };
-            const order = await razorpay.orders.create(options);
-            return res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
-        }
+    });
+</script>
 
-    } catch (error) {
-        console.error("Error in /create-payment:", error);
-        res.status(500).json({ error: "Could not create payment/subscription." });
-    }
-});
-
-
-app.post('/verify-payment', async (req, res) => {
-    // Yeh function sirf one-time payments ke liye hai.
-    try {
-        const { razorpay_payment_id, razorpay_order_id, razorpay_signature, token } = req.body;
-        if (!token || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-             return res.status(400).json({ status: 'failure', message: 'Missing payment details.' });
-        }
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = db.collection('users').doc(decodedToken.uid);
-
-        let body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-                                      .update(body.toString()).digest('hex');
-
-        if (expectedSignature === razorpay_signature) {
-            
-            const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
-            if (paymentDetails.status === 'authorized') {
-                await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
-            }
-
-            const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
-            
-            const amountPaid = orderDetails.amount / 100;
-            let coinsToAdd = 0;
-            if (amountPaid === 100) coinsToAdd = 520;
-            else if (amountPaid === 200) coinsToAdd = 1030;
-            else if (amountPaid === 500) coinsToAdd = 2550;
-            else if (amountPaid === 1000) coinsToAdd = 5200;
-
-            if (coinsToAdd > 0) {
-                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd) });
-            }
-            return res.json({ status: 'success', message: `${coinsToAdd} coins added.` });
-            
-        } else {
-            return res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
-        }
-    } catch (error) {
-        console.error("Error in /verify-payment:", error);
-        res.status(500).json({ error: "Verification failed on server." });
-    }
-});
-
-
-// =================================================================
-// 5. WEBSITE SERVING & SERVER START
-// =================================================================
-app.use(express.static(path.join(__dirname, '..')));
-app.get('/Features/water.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'water.html')));
-app.get('/Features/Diet.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Diet.html')));
-app.get('/Features/Health.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'Health.html')));
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
-
-
-// =================================================================
-// 6. सर्वर को चालू करें
-// =================================================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-});
+</body>
+</html>
