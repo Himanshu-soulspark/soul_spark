@@ -35,7 +35,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
         const event = body.event;
         const payload = body.payload;
         
-        // Jab subscription successfully charge hota hai (chahe ₹2000 ya ₹200)
         if (event === 'subscription.charged') {
             const subscription = payload.subscription.entity;
             const payment = payload.payment.entity;
@@ -53,9 +52,7 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
                 console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
             }
-        } 
-        // Jab ₹2000 wala payment fail hota hai
-        else if (event === 'payment.failed') {
+        } else if (event === 'payment.failed') {
             const subscriptionId = payload.payment.entity.notes.subscription_id;
             if (!subscriptionId) {
                 return res.json({ status: 'ok, but no subscription ID found' });
@@ -85,7 +82,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B. Next charge in 15 minutes.`);
             }
         }
-        // Jab Auth Link se payment successful hota hai, to subscription active ho jata hai
         else if (event === 'subscription.activated') {
             const subscription = payload.subscription.entity;
             const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
@@ -105,7 +101,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
         res.status(500).send('Webhook processing error.');
     }
 });
-// Baki sabhi routes ke liye JSON parser ka istemal karein
 app.use(express.json({ limit: '10mb' }));
 
 // --- Firebase Admin SDK को शुरू करें ---
@@ -135,18 +130,19 @@ console.log("✅ All services initialized.");
 // =================================================================
 
 // --- AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
-app.post('/get-food-interaction', async(req, res) => {
-  try {
-    const { medicines, token } = req.body;
-    if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    const userData = userDoc.data();
-    const COIN_COST = 2;
-    if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
-    const improvedPrompt = `
+app.post('/get-food-interaction', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
+    try {
+        const { medicines, token } = req.body;
+        if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+        const userData = userDoc.data();
+        const COIN_COST = 2;
+        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 2 required)." });
+        const improvedPrompt = `
       You are an expert AI Health Assistant. A user is taking these medicines: ${medicines}.
       Your task is to provide a detailed food interaction guide. The response MUST be a valid JSON object ONLY, with no extra text or markdown. The entire response, including all food names and reasons, MUST be in simple Hindi (Devanagari script).
       The JSON object must have three keys: "avoid", "limit", and "safe".
@@ -155,49 +151,51 @@ app.post('/get-food-interaction', async(req, res) => {
       "safe": An array of strings listing at least 5 examples of safe foods in Hindi.
       For the medicines ${medicines}, be sure to include critical interactions. If there's no specific info for a category, provide an empty array [].
     `;
-    const result = await aiModel.generateContent(improvedPrompt);
-    const aiAnswer = result.response.text();
-    await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-    res.json({ answer: aiAnswer });
-  } catch (error) {
-    console.error("Error in /get-food-interaction:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+        const result = await aiModel.generateContent(improvedPrompt);
+        const aiAnswer = result.response.text();
+        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        res.json({ answer: aiAnswer });
+    } catch (error) {
+        console.error("Error in /get-food-interaction:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
 });
 
 // --- AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
-app.post('/ask-ai', async(req, res) => {
-  try {
-    const { question, token } = req.body;
-    if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    const userData = userDoc.data();
-    const COIN_COST = 1;
-    if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
-    const result = await aiModel.generateContent(question);
-    const aiAnswer = result.response.text();
-    await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
-    res.json({ answer: aiAnswer });
-  } catch (error) {
-    console.error("Error in /ask-ai:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+app.post('/ask-ai', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
+    try {
+        const { question, token } = req.body;
+        if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+        const userData = userDoc.data();
+        const COIN_COST = 1;
+        if (userData.coins < COIN_COST) return res.status(403).json({ error: "You don't have enough coins (minimum 1 required)." });
+        const result = await aiModel.generateContent(question);
+        const aiAnswer = result.response.text();
+        await userRef.update({ coins: admin.firestore.FieldValue.increment(-COIN_COST) });
+        res.json({ answer: aiAnswer });
+    } catch (error) {
+        console.error("Error in /ask-ai:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
 });
 
 // --- AI MEDICAL ASSISTANT ENDPOINT ---
-app.post('/assistant-chat', async(req, res) => {
-  try {
-    const { question, token } = req.body;
-    if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const userRef = db.collection('users').doc(decodedToken.uid);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    const userData = userDoc.data();
-    const assistantPrompt = `
+app.post('/assistant-chat', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
+    try {
+        const { question, token } = req.body;
+        if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const userRef = db.collection('users').doc(decodedToken.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
+        const userData = userDoc.data();
+        const assistantPrompt = `
       You are a caring and empathetic female AI medical assistant named 'Shubh'.
       Respond in the same language as the user's question.
       You can generate a detailed response, up to 4500 characters if needed.
@@ -207,26 +205,27 @@ app.post('/assistant-chat', async(req, res) => {
       Crucial Disclaimer: ALWAYS end your response with a strong, clear disclaimer. You must state: 'यह सलाह केवल शुरुआती राहत के लिए है। किसी भी दवा को लेने से पहले कृपया डॉक्टर से सलाह ज़रूर लें। आपकी सही स्थिति का मूल्यांकन एक योग्य चिकित्सक ही कर सकते हैं।' (This advice is for initial relief only. Please consult a doctor before taking any medication. Only a qualified physician can properly evaluate your condition.)
       User's question is: "${question}"
     `;
-    const result = await aiModel.generateContent(assistantPrompt);
-    const aiAnswer = result.response.text();
-    const responseLength = aiAnswer.length;
-    let coinCost = Math.ceil(responseLength / 1000) * 2;
-    if (coinCost === 0 && responseLength > 0) coinCost = 2;
-    if (coinCost > 0) {
-      if (userData.coins < coinCost) {
-        return res.status(403).json({ answer: `इस जवाब के लिए ${coinCost} सिक्कों की ज़रूरत है, लेकिन आपके पास पर्याप्त सिक्के नहीं हैं।` });
-      }
-      await userRef.update({ coins: admin.firestore.FieldValue.increment(-coinCost) });
+        const result = await aiModel.generateContent(assistantPrompt);
+        const aiAnswer = result.response.text();
+        const responseLength = aiAnswer.length;
+        let coinCost = Math.ceil(responseLength / 1000) * 2;
+        if (coinCost === 0 && responseLength > 0) coinCost = 2;
+        if (coinCost > 0) {
+            if (userData.coins < coinCost) {
+                return res.status(403).json({ answer: `इस जवाब के लिए ${coinCost} सिक्कों की ज़रूरत है, लेकिन आपके पास पर्याप्त सिक्के नहीं हैं।` });
+            }
+            await userRef.update({ coins: admin.firestore.FieldValue.increment(-coinCost) });
+        }
+        res.json({ answer: aiAnswer });
+    } catch (error) {
+        console.error("Error in /assistant-chat:", error);
+        res.status(500).json({ error: "Internal server error." });
     }
-    res.json({ answer: aiAnswer });
-  } catch (error) {
-    console.error("Error in /assistant-chat:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
 });
 
 // --- AI डाइट प्लान बनाने वाला Endpoint ---
-app.post('/generate-diet-plan', async(req, res) => {
+app.post('/generate-diet-plan', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { prompt, token } = req.body;
         if (!token || !prompt) return res.status(400).json({ error: "Token and prompt are required." });
@@ -249,6 +248,7 @@ app.post('/generate-diet-plan', async(req, res) => {
 
 // --- FACE++ स्किन एनालिसिस ENDPOINT ---
 app.post('/analyze-skin', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { imageBase64, token } = req.body;
         if (!token || !imageBase64) return res.status(400).json({ error: "Token and image data are required." });
@@ -288,6 +288,7 @@ app.post('/analyze-skin', async (req, res) => {
 
 // --- YouTube वीडियो खोजने वाला Endpoint ---
 app.get('/get-youtube-videos', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { query } = req.query;
     if (!query) return res.status(400).json({error: 'Search query is required.' });
     try {
@@ -301,6 +302,7 @@ app.get('/get-youtube-videos', async (req, res) => {
 
 // --- मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
 app.get('/get-weather-advice', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { city } = req.query;
     if (!city) return res.status(400).json({ error: 'City is required.' });
     try {
@@ -318,6 +320,7 @@ app.get('/get-weather-advice', async (req, res) => {
 
 // --- LocationIQ से पता प्राप्त करने वाला Endpoint ---
 app.get('/get-address-from-coords', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { lat, lon } = req.query;
     if (!lat || !lon) return res.status(400).json({ error: 'Latitude (lat) and Longitude (lon) are required.' });
     try {
@@ -335,6 +338,7 @@ app.get('/get-address-from-coords', async (req, res) => {
 
 // --- भोजन की पोषण जानकारी देने वाला Endpoint ---
 app.get('/get-nutrition-info', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { food } = req.query;
     if (!food) return res.status(400).json({ error: 'Food item is required.' });
     try {
@@ -358,6 +362,7 @@ app.get('/get-nutrition-info', async (req, res) => {
 
 // --- बारकोड से भोजन की जानकारी देने वाला Endpoint ---
 app.get('/get-info-by-barcode', async (req, res) => {
+    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { upc } = req.query;
     if (!upc) return res.status(400).json({ error: 'UPC (barcode) is required.' });
     try {
@@ -390,17 +395,37 @@ app.post('/create-payment', async (req, res) => {
         const userData = userDoc.data();
 
         if (isSubscription) {
+            // === START: ZAROORI BADLAV (The Final Fix) ===
+            console.log("Subscription flow started. Using Auth Link method.");
             if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
             let customerId = userData.razorpayCustomerId;
+            const userEmail = userData.email || `${decodedToken.uid}@shubhmed-app.com`;
+            const userPhone = userData.phone || undefined;
+            const userName = userData.name || 'Shubhmed User';
 
+            // Agar Firebase me customer ID nahi hai, to pehle Razorpay me search karo
             if (!customerId) {
+                try {
+                    const customers = await razorpay.customers.all({ email: userEmail });
+                    if (customers.items.length > 0) {
+                        customerId = customers.items[0].id;
+                        console.log(`Found existing customer on Razorpay: ${customerId}`);
+                    }
+                } catch (searchError) {
+                    console.error("Error searching for customer, will create a new one.", searchError);
+                }
+            }
+
+            // Agar ab bhi customer ID nahi hai, tabhi naya banayein
+            if (!customerId) {
+                console.log("No existing customer found. Creating a new one.");
                 const customer = await razorpay.customers.create({
-                    name: userData.name || 'Shubhmed User',
-                    email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
-                    contact: userData.phone || undefined
+                    name: userName,
+                    email: userEmail,
+                    contact: userPhone
                 });
                 customerId = customer.id;
             }
@@ -415,7 +440,7 @@ app.post('/create-payment', async (req, res) => {
                 total_count: 12, 
                 start_at: startAtTimestamp,
                 customer_notify: 1,
-                addons: [{ item: { name: "Trial Fee", amount: 100, currency: "INR" } }] // ₹1 ka trial
+                addons: [{ item: { name: "Trial Fee", amount: 100, currency: "INR" } }]
             };
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
@@ -430,6 +455,7 @@ app.post('/create-payment', async (req, res) => {
             return res.json({
                 auth_link: subscription.short_url,
             });
+            // === END: ZAROORI BADLAV ===
         }
         else {
             const { amount } = req.body;
@@ -451,9 +477,13 @@ app.post('/create-payment', async (req, res) => {
 
 
 app.post('/verify-payment', async (req, res) => {
+    // Auth Link ke case me, verification ki zaroorat nahi hoti hai.
+    // Yeh function sirf one-time payments ke liye hai.
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, token } = req.body;
-        if (!token) return res.status(400).json({ error: "Token is required." });
+        if (!token || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+             return res.status(400).json({ status: 'failure', message: 'Missing payment details.' });
+        }
         const decodedToken = await admin.auth().verifyIdToken(token);
         const userRef = db.collection('users').doc(decodedToken.uid);
 
@@ -470,7 +500,6 @@ app.post('/verify-payment', async (req, res) => {
 
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
-            // Yeh sirf one-time payments ke liye chalega
             const amountPaid = orderDetails.amount / 100;
             let coinsToAdd = 0;
             if (amountPaid === 100) coinsToAdd = 520;
