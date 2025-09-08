@@ -19,14 +19,97 @@ const crypto = require('crypto'); // Razorpay Signature को वेरिफ�
 const app = express();
 app.use(cors());
 
-// IMPORTANT: Webhook ko handle karne ke liye raw body zaroori hai.
-app.use((req, res, next) => {
-    if (req.path === '/razorpay-webhook') {
-        express.raw({ type: 'application/json' })(req, res, next);
-    } else {
-        express.json({ limit: '10mb' })(req, res, next);
+// === START: ZAROORI BADLAV (Body Parser Fix) ===
+// Webhook ke liye raw body parser ko alag se handle karein
+app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    // Webhook ka poora logic ab is function ke andar aa gaya hai
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const signature = req.headers['x-razorpay-signature'];
+
+    try {
+        const shasum = crypto.createHmac('sha256', secret);
+        shasum.update(req.body); 
+        const digest = shasum.digest('hex');
+
+        if (digest !== signature) {
+            console.warn('Webhook signature mismatch!');
+            return res.status(400).json({ status: 'Signature mismatch' });
+        }
+
+        const body = JSON.parse(req.body.toString());
+        const event = body.event;
+        const payload = body.payload;
+
+        if (event === 'subscription.charged') {
+            const subscription = payload.subscription.entity;
+            const payment = payload.payment.entity;
+            const amount = payment.amount / 100;
+            
+            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+            if (usersQuery.empty) {
+                console.error(`Webhook Error: No user found for subscription ID ${subscription.id}`);
+                return res.json({ status: 'ok' });
+            }
+            const userRef = usersQuery.docs[0].ref;
+
+            let coinsToAdd = 0;
+            if (amount === 2000) coinsToAdd = 11000;
+            else if (amount === 200) coinsToAdd = 1000;
+            
+            if (coinsToAdd > 0) {
+                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
+                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
+            }
+
+        } else if (event === 'payment.failed') {
+            const subscriptionId = payload.payment.entity.notes.subscription_id;
+            if (!subscriptionId) {
+                return res.json({ status: 'ok, but no subscription ID found in payment notes' });
+            }
+            
+            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscriptionId).limit(1).get();
+            if (usersQuery.empty) return res.json({ status: 'ok' });
+            
+            const user = usersQuery.docs[0].data();
+            const userRef = usersQuery.docs[0].ref;
+            
+            if (user.currentPlan === 'PlanA') {
+                console.log(`INFO: Plan A failed for user ${userRef.id}. Downgrading to Plan B.`);
+                
+                await razorpay.subscriptions.cancel(subscriptionId);
+
+                const startTime = new Date();
+                startTime.setHours(startTime.getHours() + 24);
+                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
+                
+                const newSubscription = await razorpay.subscriptions.create({
+                    plan_id: process.env.RAZORPAY_PLAN_ID_B,
+                    customer_id: user.razorpayCustomerId,
+                    total_count: 24,
+                    start_at: startAtTimestamp,
+                    customer_notify: 1
+                });
+
+                await userRef.update({
+                    razorpaySubscriptionId: newSubscription.id,
+                    currentPlan: 'PlanB',
+                    subscriptionStatus: 'downgraded_pending'
+                });
+                console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B.`);
+            }
+        }
+        
+        res.json({ status: 'ok' });
+
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+        res.status(500).send('Webhook processing error.');
     }
 });
+
+// Baki sabhi routes ke liye JSON parser ka istemal karein
+app.use(express.json({ limit: '10mb' }));
+// === END: ZAROORI BADLAV ===
 
 
 // --- Firebase Admin SDK को शुरू करें ---
@@ -418,7 +501,7 @@ app.get('/get-info-by-barcode', async(req, res) => {
 
 
 // =================================================================
-// 4. PAYMENT & SUBSCRIPTION ENDPOINTS (ZAROORI BADLAV YAHAN HAIN)
+// 4. PAYMENT & SUBSCRIPTION ENDPOINTS
 // =================================================================
 
 app.post('/create-payment', async (req, res) => {
@@ -432,7 +515,6 @@ app.post('/create-payment', async (req, res) => {
         if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
         const userData = userDoc.data();
 
-        // Agar user subscription plan le raha hai (₹1 wala)
         if (isSubscription) {
             if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
                 return res.status(400).json({ error: "User already has an active subscription." });
@@ -468,9 +550,6 @@ app.post('/create-payment', async (req, res) => {
                 amount: 100,
                 currency: "INR",
                 receipt: `m_rcpt_${Date.now()}`,
-                // === START: ZAROORI BADLAV #1 (payment_capture hata diya) ===
-                // payment_capture: 1, // We will capture manually via API
-                // === END: ZAROORI BADLAV #1 ===
                 notes: {
                     subscription_id: subscription.id
                 }
@@ -490,16 +569,13 @@ app.post('/create-payment', async (req, res) => {
                 key_id: process.env.RAZORPAY_KEY_ID
             });
         }
-        
-        // Agar user normal one-time payment kar raha hai
         else {
             const { amount } = req.body;
             if(!amount) return res.status(400).json({ error: "Amount is required for one-time payments." });
             const options = { 
                 amount, 
                 currency: "INR", 
-                receipt: `rcpt_${Date.now()}`,
-                // payment_capture: 1 // For one-time payments, auto-capture is fine.
+                receipt: `rcpt_${Date.now()}`
             };
             const order = await razorpay.orders.create(options);
             return res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
@@ -525,14 +601,12 @@ app.post('/verify-payment', async (req, res) => {
 
         if (expectedSignature === razorpay_signature) {
             
-            // === START: ZAROORI BADLAV #2 (Manual Capture Logic Added) ===
             const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
             if (paymentDetails.status === 'authorized') {
                 console.log(`Payment ${razorpay_payment_id} is authorized. Capturing it now.`);
                 await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
                 console.log(`Payment ${razorpay_payment_id} captured successfully.`);
             }
-            // === END: ZAROORI BADLAV #2 ===
 
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
@@ -562,95 +636,6 @@ app.post('/verify-payment', async (req, res) => {
     } catch (error) {
         console.error("Error in /verify-payment:", error);
         res.status(500).json({ error: "Verification failed on server." });
-    }
-});
-
-
-// --- THE BRAIN: Webhook Handler ---
-app.post('/razorpay-webhook', async (req, res) => {
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'];
-
-    try {
-        const shasum = crypto.createHmac('sha256', secret);
-        shasum.update(req.body); 
-        const digest = shasum.digest('hex');
-
-        if (digest !== signature) {
-            console.warn('Webhook signature mismatch!');
-            return res.status(400).json({ status: 'Signature mismatch' });
-        }
-
-        const body = JSON.parse(req.body.toString());
-        const event = body.event;
-        const payload = body.payload;
-
-        if (event === 'subscription.charged') {
-            const subscription = payload.subscription.entity;
-            const payment = payload.payment.entity;
-            const amount = payment.amount / 100;
-            
-            // Note: Auto-captured payments from subscriptions don't need manual capture.
-            
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if (usersQuery.empty) {
-                console.error(`Webhook Error: No user found for subscription ID ${subscription.id}`);
-                return res.json({ status: 'ok' });
-            }
-            const userRef = usersQuery.docs[0].ref;
-
-            let coinsToAdd = 0;
-            if (amount === 2000) coinsToAdd = 11000;
-            else if (amount === 200) coinsToAdd = 1000;
-            
-            if (coinsToAdd > 0) {
-                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
-                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
-            }
-
-        } else if (event === 'payment.failed') {
-            const subscriptionId = payload.payment.entity.notes.subscription_id;
-            if (!subscriptionId) {
-                return res.json({ status: 'ok, but no subscription ID found in payment notes' });
-            }
-            
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscriptionId).limit(1).get();
-            if (usersQuery.empty) return res.json({ status: 'ok' });
-            
-            const user = usersQuery.docs[0].data();
-            const userRef = usersQuery.docs[0].ref;
-            
-            if (user.currentPlan === 'PlanA') {
-                console.log(`INFO: Plan A failed for user ${userRef.id}. Downgrading to Plan B.`);
-                
-                await razorpay.subscriptions.cancel(subscriptionId);
-
-                const startTime = new Date();
-                startTime.setHours(startTime.getHours() + 24);
-                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
-                
-                const newSubscription = await razorpay.subscriptions.create({
-                    plan_id: process.env.RAZORPAY_PLAN_ID_B,
-                    customer_id: user.razorpayCustomerId,
-                    total_count: 24,
-                    start_at: startAtTimestamp,
-                    customer_notify: 1
-                });
-
-                await userRef.update({
-                    razorpaySubscriptionId: newSubscription.id,
-                    currentPlan: 'PlanB',
-                    subscriptionStatus: 'downgraded_pending'
-                });
-                console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B.`);
-            }
-        }
-        
-        res.json({ status: 'ok' });
-
-    } catch (error) {
-        console.error('Error processing webhook:', error);
-        res.status(500).send('Webhook processing error.');
     }
 });
 
