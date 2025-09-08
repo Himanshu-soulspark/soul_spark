@@ -1,5 +1,3 @@
-
-
 // =================================================================
 // 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें
 // =================================================================
@@ -456,7 +454,7 @@ app.post('/create-payment', async (req, res) => {
             const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
 
             const subscriptionOptions = {
-                plan_id: process.env.RAZORPAY_PLAN_ID_A, // ₹2000 wala plan
+                plan_id: process.env.RAZORPAY_PLAN_ID_A,
                 customer_id: customerId,
                 total_count: 12, 
                 start_at: startAtTimestamp,
@@ -467,10 +465,12 @@ app.post('/create-payment', async (req, res) => {
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
             const mandateOrderOptions = {
-                amount: 100, // ₹1
+                amount: 100,
                 currency: "INR",
                 receipt: `m_rcpt_${Date.now()}`,
-                payment_capture: 1, // Auto-capture this mandate payment
+                // === START: ZAROORI BADLAV #1 (payment_capture hata diya) ===
+                // payment_capture: 1, // We will capture manually via API
+                // === END: ZAROORI BADLAV #1 ===
                 notes: {
                     subscription_id: subscription.id
                 }
@@ -499,14 +499,14 @@ app.post('/create-payment', async (req, res) => {
                 amount, 
                 currency: "INR", 
                 receipt: `rcpt_${Date.now()}`,
-                payment_capture: 1 // Auto-capture one-time payments
+                // payment_capture: 1 // For one-time payments, auto-capture is fine.
             };
             const order = await razorpay.orders.create(options);
             return res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
         }
 
     } catch (error) {
-        console.error("Error in /create-payment:", error.response ? error.response.data : error);
+        console.error("Error in /create-payment:", error);
         res.status(500).json({ error: "Could not create payment/subscription." });
     }
 });
@@ -525,18 +525,14 @@ app.post('/verify-payment', async (req, res) => {
 
         if (expectedSignature === razorpay_signature) {
             
-            // === START: ZAROORI BADLAV (Manual Capture Logic) ===
-            // Humne order banate waqt "payment_capture: 1" set kar diya hai.
-            // Iska matlab Razorpay payment ko apne aap capture kar lega.
-            // Hume alag se capture command bhejne ki zaroorat nahi hai.
-            // Yeh code ab on-hold hai, agar zaroorat padi to use kar sakte hain.
-            /*
+            // === START: ZAROORI BADLAV #2 (Manual Capture Logic Added) ===
             const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
             if (paymentDetails.status === 'authorized') {
+                console.log(`Payment ${razorpay_payment_id} is authorized. Capturing it now.`);
                 await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
+                console.log(`Payment ${razorpay_payment_id} captured successfully.`);
             }
-            */
-            // === END: ZAROORI BADLAV ===
+            // === END: ZAROORI BADLAV #2 ===
 
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
@@ -594,6 +590,8 @@ app.post('/razorpay-webhook', async (req, res) => {
             const payment = payload.payment.entity;
             const amount = payment.amount / 100;
             
+            // Note: Auto-captured payments from subscriptions don't need manual capture.
+            
             const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
             if (usersQuery.empty) {
                 console.error(`Webhook Error: No user found for subscription ID ${subscription.id}`);
@@ -632,7 +630,7 @@ app.post('/razorpay-webhook', async (req, res) => {
                 const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
                 
                 const newSubscription = await razorpay.subscriptions.create({
-                    plan_id: process.env.RAZORPAY_PLAN_ID_B, // ₹200 wala plan
+                    plan_id: process.env.RAZORPAY_PLAN_ID_B,
                     customer_id: user.razorpayCustomerId,
                     total_count: 24,
                     start_at: startAtTimestamp,
