@@ -726,72 +726,31 @@
 
     // DRAGGABLE BUTTON LOGIC
     if (medicalAssistantFloat) {
-        let isDragging = false;
-        let wasDragged = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
-
+        let isDragging = false, wasDragged = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
-
-        medicalAssistantFloat.addEventListener('click', (e) => {
-            if (wasDragged) {
-                e.preventDefault(); 
-                wasDragged = false; 
-            }
-        });
-
+        medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
         function dragStart(e) {
             wasDragged = false; 
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
-
-            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) {
-                isDragging = true;
-            }
+            if (e.type === "touchstart") { initialX = e.touches[0].clientX - xOffset; initialY = e.touches[0].clientY - yOffset; } 
+            else { initialX = e.clientX - xOffset; initialY = e.clientY - yOffset; }
+            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
         }
-
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-        }
-
+        function dragEnd(e) { initialX = currentX; initialY = currentY; isDragging = false; }
         function drag(e) {
             if (isDragging) {
-                e.preventDefault();
-                wasDragged = true; 
-
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
+                e.preventDefault(); wasDragged = true; 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.clientY - initialY; } 
+                else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
+                xOffset = currentX; yOffset = currentY;
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
-        }
+        function setTranslate(xPos, yPos, el) { el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"; }
     }
 
     // AUTH, PROFILE, AND PAYMENT LOGIC
@@ -865,13 +824,21 @@
             const order = await response.json();
             if (!response.ok) { throw new Error(order.error || 'Failed to create payment.'); }
             
+            // === START: ZAROORI BADLAV (The Final Fix) ===
+            // Agar server 'auth_link' bhejta hai, to user ko redirect karo
+            if (order.auth_link) {
+                window.location.href = order.auth_link;
+                return; // Yahan function ko rok do
+            }
+            // === END: ZAROORI BADLAV ===
+            
             const rzpOptions = {
                 key: order.key_id,
                 amount: order.amount,
                 currency: "INR",
                 name: "Shubhmed",
                 description: "Service Purchase",
-                order_id: order.id || order.order_id,
+                order_id: order.id, // 'id' ya 'order_id' dono handle karein
                 handler: async function (response) {
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
@@ -915,7 +882,6 @@
         document.getElementById('profile-email').value = document.getElementById('info-email').textContent === "Not set" ? "" : document.getElementById('info-email').textContent;
         document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent === "Not set" ? "" : document.getElementById('info-phone').textContent;
         document.getElementById('profile-address').value = document.getElementById('info-address').textContent === "Not set" ? "" : document.getElementById('info-address').textContent;
-
         profileMainButtons.style.display = 'none';
         profileInfoDisplay.style.display = 'none';
         profileForm.style.display = 'flex';
