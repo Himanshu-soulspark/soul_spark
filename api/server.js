@@ -101,6 +101,7 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
         res.status(500).send('Webhook processing error.');
     }
 });
+// Baki sabhi routes ke liye JSON parser ka istemal karein
 app.use(express.json({ limit: '10mb' }));
 
 // --- Firebase Admin SDK को शुरू करें ---
@@ -131,7 +132,6 @@ console.log("✅ All services initialized.");
 
 // --- AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
 app.post('/get-food-interaction', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { medicines, token } = req.body;
         if (!token || !medicines) return res.status(400).json({ error: "Token and medicines are required." });
@@ -163,7 +163,6 @@ app.post('/get-food-interaction', async (req, res) => {
 
 // --- AI से सामान्य सवाल और आर्टिकल पूछने वाला Endpoint ---
 app.post('/ask-ai', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { question, token } = req.body;
         if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
@@ -186,7 +185,6 @@ app.post('/ask-ai', async (req, res) => {
 
 // --- AI MEDICAL ASSISTANT ENDPOINT ---
 app.post('/assistant-chat', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { question, token } = req.body;
         if (!token || !question) return res.status(400).json({ error: "Token and question are required." });
@@ -225,7 +223,6 @@ app.post('/assistant-chat', async (req, res) => {
 
 // --- AI डाइट प्लान बनाने वाला Endpoint ---
 app.post('/generate-diet-plan', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { prompt, token } = req.body;
         if (!token || !prompt) return res.status(400).json({ error: "Token and prompt are required." });
@@ -248,7 +245,6 @@ app.post('/generate-diet-plan', async (req, res) => {
 
 // --- FACE++ स्किन एनालिसिस ENDPOINT ---
 app.post('/analyze-skin', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     try {
         const { imageBase64, token } = req.body;
         if (!token || !imageBase64) return res.status(400).json({ error: "Token and image data are required." });
@@ -288,7 +284,6 @@ app.post('/analyze-skin', async (req, res) => {
 
 // --- YouTube वीडियो खोजने वाला Endpoint ---
 app.get('/get-youtube-videos', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { query } = req.query;
     if (!query) return res.status(400).json({error: 'Search query is required.' });
     try {
@@ -302,7 +297,6 @@ app.get('/get-youtube-videos', async (req, res) => {
 
 // --- मौसम के हिसाब से स्वास्थ्य सलाह देने वाला Endpoint ---
 app.get('/get-weather-advice', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { city } = req.query;
     if (!city) return res.status(400).json({ error: 'City is required.' });
     try {
@@ -320,7 +314,6 @@ app.get('/get-weather-advice', async (req, res) => {
 
 // --- LocationIQ से पता प्राप्त करने वाला Endpoint ---
 app.get('/get-address-from-coords', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { lat, lon } = req.query;
     if (!lat || !lon) return res.status(400).json({ error: 'Latitude (lat) and Longitude (lon) are required.' });
     try {
@@ -338,7 +331,6 @@ app.get('/get-address-from-coords', async (req, res) => {
 
 // --- भोजन की पोषण जानकारी देने वाला Endpoint ---
 app.get('/get-nutrition-info', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { food } = req.query;
     if (!food) return res.status(400).json({ error: 'Food item is required.' });
     try {
@@ -362,7 +354,6 @@ app.get('/get-nutrition-info', async (req, res) => {
 
 // --- बारकोड से भोजन की जानकारी देने वाला Endpoint ---
 app.get('/get-info-by-barcode', async (req, res) => {
-    // ... Poora purana code yahan hai, bina kisi badlav ke ...
     const { upc } = req.query;
     if (!upc) return res.status(400).json({ error: 'UPC (barcode) is required.' });
     try {
@@ -403,10 +394,7 @@ app.post('/create-payment', async (req, res) => {
 
             let customerId = userData.razorpayCustomerId;
             const userEmail = userData.email || `${decodedToken.uid}@shubhmed-app.com`;
-            const userPhone = userData.phone || undefined;
-            const userName = userData.name || 'Shubhmed User';
-
-            // Agar Firebase me customer ID nahi hai, to pehle Razorpay me search karo
+            
             if (!customerId) {
                 try {
                     const customers = await razorpay.customers.all({ email: userEmail });
@@ -418,14 +406,13 @@ app.post('/create-payment', async (req, res) => {
                     console.error("Error searching for customer, will create a new one.", searchError);
                 }
             }
-
-            // Agar ab bhi customer ID nahi hai, tabhi naya banayein
+            
             if (!customerId) {
                 console.log("No existing customer found. Creating a new one.");
                 const customer = await razorpay.customers.create({
-                    name: userName,
+                    name: userData.name || 'Shubhmed User',
                     email: userEmail,
-                    contact: userPhone
+                    contact: userData.phone || undefined
                 });
                 customerId = customer.id;
             }
@@ -477,7 +464,6 @@ app.post('/create-payment', async (req, res) => {
 
 
 app.post('/verify-payment', async (req, res) => {
-    // Auth Link ke case me, verification ki zaroorat nahi hoti hai.
     // Yeh function sirf one-time payments ke liye hai.
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, token } = req.body;
