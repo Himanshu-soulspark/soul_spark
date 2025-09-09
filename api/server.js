@@ -79,7 +79,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 
                 await razorpay.subscriptions.cancel(subscriptionId);
 
-                // === जरूरी बदलाव: ऑटोपे का समय 24 घंटे से 15 मिनट किया गया ===
                 const startAtTimestamp = Math.floor((Date.now() / 1000) + 15 * 60); // 15 मिनट बाद
                 
                 const newSubscription = await razorpay.subscriptions.create({
@@ -153,8 +152,12 @@ console.log("🔑 Face++ API Key Loaded:", process.env.FACEPP_API_KEY ? "Yes" : 
 
 
 // =================================================================
-// 3. API Endpoints (आपके सर्वर के रास्ते - इनमें कोई बदलाव नहीं है)
+// 3. API Endpoints (इनमें कोई बदलाव नहीं है)
 // =================================================================
+// (यहाँ आपके बाकी के सभी API Endpoints जैसे get-food-interaction, ask-ai, आदि वैसे के वैसे ही रहेंगे)
+// ...
+// ... (सारे API endpoints यहाँ मौजूद हैं)
+// ...
 
 // --- (सुधारा हुआ) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
 app.post('/get-food-interaction', async(req, res) => {
@@ -500,8 +503,9 @@ app.get('/get-info-by-barcode', async(req, res) => {
 });
 
 
+
 // =================================================================
-// 4. PAYMENT & SUBSCRIPTION ENDPOINTS (सबसे ज़रूरी बदलाव यहाँ हैं)
+// 4. PAYMENT & SUBSCRIPTION ENDPOINTS
 // =================================================================
 
 app.post('/create-payment', async (req, res) => {
@@ -516,7 +520,6 @@ app.post('/create-payment', async (req, res) => {
         const userData = userDoc.data();
 
         if (isSubscription) {
-            // यह शर्त यूजर को दोबारा सब्सक्रिप्शन लेने से रोकेगी जब तक पुराना प्रोसेस में है
             if (userData.razorpaySubscriptionId && (userData.subscriptionStatus === 'active' || userData.subscriptionStatus === 'authenticated' || userData.subscriptionStatus === 'downgraded_pending')) {
                 return res.status(400).json({ error: "You already have a subscription in process." });
             }
@@ -532,21 +535,19 @@ app.post('/create-payment', async (req, res) => {
                 customerId = customer.id;
             }
             
-            // === जरूरी बदलाव: ऑटोपे का समय 12 घंटे से 10 मिनट किया गया ===
-            const startAtTimestamp = Math.floor((Date.now() / 1000) + 10 * 60); // अभी से 10 मिनट बाद
+            const startAtTimestamp = Math.floor((Date.now() / 1000) + 10 * 60);
 
             // ========================================================================
-            // =================== YAHI SABSE ZARURI BADLAV HAI =======================
+            // ========================= YAHAN BADLAV KIYA GAYA HAI ===================
             // ========================================================================
-            // yahan 'auth_type': 'upi' joda gaya hai taaki Razorpay ko pata chale
-            // ki use Card ke bajaye UPI Autopay ka istemal karna hai.
+            // 'auth_type': 'upi' wali line ko yahan se hata diya gaya hai kyunki
+            // 'addons' ke sath iski anumati nahi hai.
             const subscriptionOptions = {
-                plan_id: process.env.RAZORPAY_PLAN_ID_A, // यह आपका ₹2000 वाला प्लान है
+                plan_id: process.env.RAZORPAY_PLAN_ID_A,
                 customer_id: customerId,
                 total_count: 12, 
                 start_at: startAtTimestamp,
-                auth_type: 'upi', // <--- YAHI HAI AAPKA SOLUTION
-                addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}], // यह ₹1 का पेमेंट है
+                addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}],
                 customer_notify: 1
             };
             // ========================================================================
@@ -554,7 +555,6 @@ app.post('/create-payment', async (req, res) => {
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
-            // यह ₹1 की सहमति (mandate) लेने के लिए एक ऑर्डर है
             const mandateOrderOptions = {
                 amount: 100,
                 currency: "INR",
@@ -570,13 +570,12 @@ app.post('/create-payment', async (req, res) => {
                 razorpayCustomerId: customerId,
                 razorpaySubscriptionId: subscription.id,
                 currentPlan: 'PlanA',
-                subscriptionStatus: 'pending_payment' // शुरुआती स्टेटस
+                subscriptionStatus: 'pending_payment'
             });
             
-            // === जरूरी बदलाव: सबसे ज़रूरी! ब्राउज़र को subscription_id भी भेजना ===
             return res.json({
-                order_id: mandateOrder.id,        // मैंडेट (सहमति) के लिए
-                subscription_id: subscription.id, // असली सब्सक्रिप्शन को जोड़ने के लिए
+                order_id: mandateOrder.id,
+                subscription_id: subscription.id,
                 key_id: process.env.RAZORPAY_KEY_ID
             });
         }
@@ -619,26 +618,22 @@ app.post('/verify-payment', async (req, res) => {
 
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
-            // यह सब्सक्रिप्शन के ₹1 वाले पेमेंट को हैंडल करता है
             if (orderDetails.notes && orderDetails.notes.subscription_id) {
                  const userDoc = await userRef.get();
                  if (!userDoc.exists()) return res.status(404).json({ error: "User not found." });
                  const userData = userDoc.data();
 
-                // === जरूरी बदलाव: दोबारा ऑफर लेने से रोकने का लॉजिक ===
                 if (userData.isTrialTaken === true) {
-                    // अगर ऑफर पहले ही ले लिया है, तो सिर्फ 5 कॉइन दें
                     await userRef.update({ 
                         coins: admin.firestore.FieldValue.increment(5),
-                        subscriptionStatus: 'authenticated' // सही स्टेटस
+                        subscriptionStatus: 'authenticated'
                     });
                     return res.json({ status: 'success', message: 'Subscription mandate successful! 5 coins added.' });
                 } else {
-                    // पहली बार ऑफर लेने पर 55 कॉइन दें
                     await userRef.update({ 
                         coins: admin.firestore.FieldValue.increment(55),
-                        subscriptionStatus: 'authenticated', // सही स्टेटस! 'active' नहीं।
-                        isTrialTaken: true // फ्लैग सेट करें ताकि दोबारा 55 कॉइन न मिलें
+                        subscriptionStatus: 'authenticated',
+                        isTrialTaken: true
                     });
                     return res.json({ status: 'success', message: 'Subscription mandate successful! 55 coins added.' });
                 }
@@ -667,7 +662,7 @@ app.post('/verify-payment', async (req, res) => {
 
 
 // =================================================================
-// 5. WEBSITE SERVING & SERVER START (इनमें कोई बदलाव नहीं है)
+// 5. WEBSITE SERVING & SERVER START
 // =================================================================
 app.use(express.static(path.join(__dirname, '..')));
 app.get('/Features/water.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'water.html')));
@@ -679,7 +674,7 @@ app.get('*', (req, res) => {
 
 
 // =================================================================
-// 6. सर्वर को चालू करें (इनमें कोई बदलाव नहीं है)
+// 6. सर्वर को चालू करें
 // =================================================================
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
