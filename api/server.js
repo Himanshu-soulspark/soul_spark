@@ -372,6 +372,16 @@ app.post('/create-payment', async (req, res) => {
         const userDoc = await userRef.get();
         if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
         const userData = userDoc.data();
+        
+        const customerId = userData.razorpayCustomerId || (await razorpay.customers.create({
+            name: userData.name || 'Shubhmed User',
+            email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
+            contact: userData.phone || undefined
+        })).id;
+
+        if (!userData.razorpayCustomerId) {
+            await userRef.update({ razorpayCustomerId: customerId });
+        }
 
         // One-Time Payments ke liye
         if (!isSubscription) {
@@ -391,16 +401,6 @@ app.post('/create-payment', async (req, res) => {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
-            const customerId = userData.razorpayCustomerId || (await razorpay.customers.create({
-                name: userData.name || 'Shubhmed User',
-                email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
-                contact: userData.phone || undefined
-            })).id;
-
-            if (!userData.razorpayCustomerId) {
-                await userRef.update({ razorpayCustomerId: customerId });
-            }
-
             // === START: ZAROORI BADLAV (The Final Simplified Logic) ===
             // Hum ab ek saral ₹1 ka Order banayenge jisme mandate set hoga
             const mandateOrderOptions = {
@@ -416,7 +416,9 @@ app.post('/create-payment', async (req, res) => {
                 customer_id: customerId,
                 method: "upi",
                 token: {
-                    auth_type: "debit",
+                    // Yahan se "recurring" aur "auth_type" hata diya gaya hai,
+                    // Kyunki Razorpay naye system me iski zaroorat nahi batata
+                    // Lekin max_amount zaroori hai
                     max_amount: 200000 // ₹2000 in paise
                 }
             };
