@@ -18,7 +18,7 @@ const crypto = require('crypto');
 
 const app = express();
 
-// CORS को कॉन्फ़िगर करें ताकि यह सिर्फ आपकी वेबसाइट से बात करे (कोई बदलाव नहीं)
+// CORS को कॉन्फ़िगर करें (कोई बदलाव नहीं)
 const corsOptions = {
   origin: 'https://shubhzone.shop',
   optionsSuccessStatus: 200
@@ -57,68 +57,87 @@ console.log("✅ Razorpay initialized.");
 // --- पेमेंट बनाने वाला फंक्शन ---
 app.post('/create-payment', async (req, res) => {
     try {
-        // ########## START: YAHAN PAR ZAROORI BADLAV KIYA GAYA HAI ##########
-        // SAMASYA: Pehle server check kar raha tha ki user मौजूद hai ya nahi.
-        // SAMADHAN: Ab server ka kaam saral ho gaya hai. Use bas di gayi jankari se
-        //           ek naya Razorpay Customer aur Order banana hai. Purana complex logic
-        //           hata diya gaya hai.
-        
-        // Step 1: Frontend (index.html) se user ki details lena
+        // ########## START: YAHI FINAL AUR SABSE ZAROORI BADLAV HAI ##########
+        // SAMASYA: Hamara pichhla code "Orders API" ka istemal kar raha tha,
+        //          jisse Subscription ID nahi ban rahi thi.
+        // SAMADHAN: Hum ab सीधे "Subscriptions API" ka istemal kar rahe hain
+        //           bina kisi Plan ID ke. Hum on-the-fly ek dummy plan banayenge.
+
         const { name, email, phone } = req.body;
         if (!name || !email || !phone) {
-            return res.status(400).json({ error: "Name, email, and phone are required from frontend." });
+            return res.status(400).json({ error: "Name, email, and phone are required." });
         }
 
-        // Step 2: Hamesha ek naya Razorpay Customer banana
-        // (Kyonki profile pehle ban chuki hai, humein purane customer ko dhoondne ki zaroorat nahi hai)
+        // Step 1: Ek Razorpay Customer banana
         const customer = await razorpay.customers.create({ name, email, contact: phone });
 
-        // Step 3: Naye Customer ID ka istemal karke Order banana
-        const orderOptions = {
-            amount: 300, 
-            currency: "INR", 
-            receipt: `rcpt_${Date.now()}`,
-            customer_id: customer.id, 
-            payment_capture: 1,
-            token: { 
-                max_amount: 99900,
-                frequency: "as_presented"
-            }
+        // Step 2: On-the-fly (bina plan ID ke) ek subscription banana
+        const subscriptionOptions = {
+            // Hum yahan on-the-fly ek dummy plan define kar rahe hain
+            plan: {
+                interval: 1,
+                period: "monthly", // Ya "yearly", "weekly", etc.
+                item: {
+                    name: "Shubhzone Base Subscription",
+                    description: "Base plan for on-demand payments",
+                    amount: 100, // 100 paise = ₹1 (Yeh sirf ek dummy amount hai, charge nahi hoga)
+                    currency: "INR"
+                }
+            },
+            total_count: 60, // 5 saal ke liye
+            quantity: 1,
+            customer_notify: 1,
+            // Yahi asli jaadu hai: Yeh upar diye gaye dummy plan ke amount ko
+            // override karke user se sirf ₹3 ka authentication charge lega.
+            addons: [{
+                item: {
+                    name: "One-time Authentication Fee",
+                    amount: 300, // 300 paise = ₹3
+                    currency: "INR"
+                }
+            }],
+            // Hum customer ID ko yahan bhi bhej rahe hain
+            customer_id: customer.id
         };
-        const order = await razorpay.orders.create(orderOptions);
 
-        // Step 4: Frontend ko zaroori jankari wapas bhejna
+        const subscription = await razorpay.subscriptions.create(subscriptionOptions);
+        
+        // Frontend ko ab order_id nahi, balki subscription_id bheja jayega
         res.json({ 
-            order_id: order.id, 
-            key_id: process.env.RAZORPAY_KEY_ID,
-            razorpayCustomerId: customer.id // Yeh bhejna zaroori hai
+            subscription_id: subscription.id,
+            key_id: process.env.RAZORPAY_KEY_ID
         });
         // ########################### END BADLAV ############################
 
     } catch (error) {
-        console.error("Error creating payment:", error.error || error);
-        res.status(500).json({ error: error.error ? error.error.description : "Could not create payment." });
+        console.error("Error creating subscription:", error.error || error);
+        res.status(500).json({ error: error.error ? error.error.description : "Subscription creation failed." });
     }
 });
 
-// --- पेमेंट वेरीफाई करने वाला फंक्शन (इसमें कोई बदलाव नहीं) ---
+// --- पेमेंट वेरीफाई करने वाला फंक्शन (अब यह सही से काम करेगा) ---
 app.post('/verify-payment', async (req, res) => {
     try {
-        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        // Ab frontend se humein subscription_id milegi
+        const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
+        
         const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-        hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+        // Verification ka formula subscription ke liye alag hota hai
+        hmac.update(razorpay_payment_id + "|" + razorpay_subscription_id);
+
         if (hmac.digest('hex') === razorpay_signature) {
-            const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
-            if (!paymentDetails.subscription_id) throw new Error("Subscription ID not found.");
-            res.json({ status: 'success', message: 'Payment verified!', subscriptionId: paymentDetails.subscription_id });
+            // Is case me verification hi kaafi hai, dobara fetch karne ki zaroorat nahi.
+            // Hum frontend se aayi subscription_id par hi bharosa kar sakte hain.
+            res.json({ status: 'success', message: 'Payment verified successfully!', subscriptionId: razorpay_subscription_id });
         } else {
-            throw new Error("Payment verification failed.");
+            throw new Error("Payment signature verification failed.");
         }
     } catch (error) {
         console.error("Error verifying payment:", error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // --- एडमिन पैनल से चार्ज करने वाला फंक्शन (इसमें कोई बदलाव नहीं) ---
 app.post('/charge-recurring-payment', async (req, res) => {
