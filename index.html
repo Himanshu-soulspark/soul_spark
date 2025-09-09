@@ -486,7 +486,6 @@
     </header>
     <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
         
-        <!-- === START: PROFILE INFO DISPLAY === -->
         <div id="profile-info-display" class="profile-info-display">
             <div class="info-group">
                 <label>Name</label>
@@ -505,16 +504,13 @@
                 <p id="info-address">Not set</p>
             </div>
         </div>
-        <!-- === END: PROFILE INFO DISPLAY === -->
 
-        <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
         <form id="profile-form" style="display: none;">
             <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
             <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
             <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
             <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
         </form>
-        <!-- === END: PROFILE EDIT FORM === -->
 
         <div id="profile-main-buttons" class="profile-buttons">
             <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
@@ -555,21 +551,10 @@
                 <div class="coin-label">Available Coins</div>
             </div>
             <div class="wallet-plans-container">
-                
-                <!-- === जरूरी बदलाव: सिर्फ सब्सक्रिप्शन वाला बटन ही रखा गया है === -->
                 <button class="plan-btn subscription-btn" id="subscription-start-btn">
                     <span class="plan-price">Start Subscription with ₹1</span>
                     <span class="plan-coins">Get 55 Coins Instantly</span>
                 </button>
-
-                <!-- === जरूरी बदलाव: बाकी सारे One-Time पेमेंट वाले बटन छिपा दिए गए हैं === -->
-                <!--
-                <button class="plan-btn" data-amount="100" data-coins="520"><span class="plan-price">₹100</span><span class="plan-coins">Get 520 Coins</span></button>
-                <button class="plan-btn" data-amount="200" data-coins="1030"><span class="plan-price">₹200</span><span class="plan-coins">Get 1030 Coins</span></button>
-                <button class="plan-btn" data-amount="500" data-coins="2550"><span class="plan-price">₹500</span><span class="plan-coins">Get 2550 Coins</span></button>
-                <button class="plan-btn" data-amount="1000" data-coins="5200"><span class="plan-price">₹1000</span><span class="plan-coins">Get 5200 Coins</span></button>
-                -->
-
             </div>
         </div>
     </div>
@@ -585,14 +570,11 @@
         <div class="terms-body">
             <h4>1. General Terms</h4>
             <p>By accessing and using the Shubhmed application, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you may not use our service.</p>
-
             <h4>2. Coin and Payment Policy</h4>
             <p>Our service operates on a "Coin" system. These coins are virtual goods and have no real-world monetary value. All purchases of Coin packs are final and strictly non-refundable under any circumstances.</p>
-            
             <h4>3. Subscription Service & Auto-Payment</h4>
             <p>By activating our ₹1 trial, you are enrolling in an auto-renewing subscription service. This grants you immediate access to premium features for an initial fee of ₹1, for which you receive 55 Coins.</p>
             <p>You explicitly agree and authorize Shubhmed to automatically charge your selected payment method for the full subscription amount of **₹2000** at the end of your 3-month billing cycle.</p>
-            
             <h4>4. Automated Downgrade on Payment Failure (Fallback Plan)</h4>
             <p>This is a critical part of our subscription agreement. If the automated attempt to charge **₹2000** for your 3-month plan fails for any reason (e.g., insufficient funds), you explicitly authorize Shubhmed to perform the following actions automatically:</p>
             <ul>
@@ -601,7 +583,6 @@
                 <li>Attempt to charge your payment method **₹200** for this 15-day plan on the following day.</li>
             </ul>
             <p>This automated downgrade ensures that your access to our services continues with minimal interruption. If the ₹200 charge is successful, you will receive 1000 Coins.</p>
-
             <h4>5. User Responsibilities</h4>
             <p>You are responsible for maintaining sufficient funds in your account for auto-payment and for keeping your payment information up to date. Shubhmed is not responsible for any overdraft or other fees charged by your bank.</p>
         </div>
@@ -742,27 +723,17 @@
     if (medicalAssistantFloat) {
         let isDragging = false;
         let wasDragged = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
+        let currentX, currentY, initialX, initialY;
+        let xOffset = 0, yOffset = 0;
 
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
-
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
 
-        medicalAssistantFloat.addEventListener('click', (e) => {
-            if (wasDragged) {
-                e.preventDefault(); 
-                wasDragged = false; 
-            }
-        });
+        medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
 
         function dragStart(e) {
             wasDragged = false; 
@@ -773,10 +744,7 @@
                 initialX = e.clientX - xOffset;
                 initialY = e.clientY - yOffset;
             }
-
-            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) {
-                isDragging = true;
-            }
+            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
         }
 
         function dragEnd(e) {
@@ -789,7 +757,6 @@
             if (isDragging) {
                 e.preventDefault();
                 wasDragged = true; 
-
                 if (e.type === "touchmove") {
                     currentX = e.touches[0].clientX - initialX;
                     currentY = e.touches[0].clientY - initialY;
@@ -797,17 +764,12 @@
                     currentX = e.clientX - initialX;
                     currentY = e.clientY - initialY;
                 }
-
                 xOffset = currentX;
                 yOffset = currentY;
-
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
-        }
+        function setTranslate(xPos, yPos, el) { el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"; }
     }
 
     // AUTH, PROFILE, AND PAYMENT LOGIC
@@ -862,11 +824,13 @@
         } catch (error) { console.error("Error saving profile: ", error); alert("Failed to save profile."); }
     }
     
-    // MODAL VISIBILITY FUNCTIONS
     window.closeWallet = function() { walletModal.style.display = 'none'; }
     window.closeTerms = function() { termsModal.style.display = 'none'; }
     window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
+    // =========================================================================================
+    // === जरूरी बदलाव: यह फाइनल और सही किया हुआ फंक्शन है ===
+    // =========================================================================================
     async function initiatePayment(options) {
         const user = auth.currentUser;
         if (!user) { alert("Please log in to proceed."); return; }
@@ -884,11 +848,22 @@
             let rzpOptions = {
                 key: orderData.key_id,
                 name: "Shubhmed",
+                // === यहाँ है असली और आखिरी बदलाव ===
                 handler: async function (response) {
+                    // हम वेरिफिकेशन के लिए एक नया, पूरा ऑब्जेक्ट बनाएंगे
+                    const verificationData = {
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        // यही है वो जादुई लाइन जो order_id को जोड़ रही है
+                        razorpay_order_id: orderData.order_id, 
+                        token: idToken
+                    };
+
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify({ ...response, token: idToken })
+                         // अब हम पूरा और सही डेटा भेज रहे हैं
+                         body: JSON.stringify(verificationData) 
                     });
                     const result = await verificationResponse.json();
                     if(result.status === 'success') {
@@ -896,7 +871,9 @@
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         if(userDoc.exists()) { updateCoinDisplays(userDoc.data().coins); }
                         closeWallet();
-                    } else { alert('Payment verification failed.'); }
+                    } else { 
+                        alert(result.message || 'Payment verification failed.'); 
+                    }
                 },
                 prefill: {
                     name: document.getElementById('profile-name').value || "User",
@@ -922,7 +899,6 @@
         } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
     }
 
-
     function logOut() {
         signOut(auth).then(() => {
             alert('Logged out successfully!');
@@ -940,7 +916,6 @@
         document.getElementById('profile-email').value = document.getElementById('info-email').textContent;
         document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent;
         document.getElementById('profile-address').value = document.getElementById('info-address').textContent;
-
         profileMainButtons.style.display = 'none';
         profileInfoDisplay.style.display = 'none';
         profileForm.style.display = 'flex';
@@ -953,7 +928,6 @@
         profileEditButtons.style.display = 'none';
     }
 
-    // GLOBAL FUNCTIONS
     window.showFuturePlan = function() { alert('This feature is part of a future update.'); }
     window.performSearch = function() {
         const searchInput = document.querySelector('#home-page .search-bar');
@@ -970,7 +944,6 @@
         else { alert(`No results found for "${searchInput.value}".`); }
     }
 
-    // INITIALIZATION on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
         initializeWelcomeSequence();
         showMainProfileView();
@@ -982,20 +955,10 @@
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('terms-btn').addEventListener('click', () => termsModal.style.display = 'flex');
 
-        // यह अब काम नहीं करेगा क्योंकि बटन छिपा दिए गए हैं, पर इसे रहने देने में कोई नुकसान नहीं
-        document.querySelectorAll('.plan-btn[data-amount]').forEach(button => {
-            button.addEventListener('click', () => {
-                const amount = parseInt(button.dataset.amount, 10) * 100; // in paise
-                initiatePayment({ amount: amount, isSubscription: false });
-            });
-        });
-
-        // Subscription start button
         document.getElementById('subscription-start-btn').addEventListener('click', () => {
             prePaymentModal.style.display = 'flex';
         });
 
-        // Pre-payment consent modal logic
         const finalConsentCheckbox = document.getElementById('final-consent-checkbox');
         const proceedBtn = document.getElementById('pre-payment-proceed-btn');
         finalConsentCheckbox.addEventListener('change', () => {
@@ -1004,11 +967,9 @@
         document.getElementById('pre-payment-cancel-btn').addEventListener('click', closePrePayment);
         proceedBtn.addEventListener('click', () => {
             closePrePayment();
-            // यह अब हमेशा isSubscription: true ही भेजेगा
             initiatePayment({ isSubscription: true });
         });
         
-        // Tracker page buttons
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 if(button.classList.contains('water-tracker-link')) return; 
@@ -1018,21 +979,6 @@
                     if (pageTarget === 'disease-prediction') { switchPage(diseasePredictionPage); } 
                     else if (pageTarget === 'disease-info') { switchPage(diseaseInfoPage); }
                 }
-            });
-        });
-        
-        // Search bar enter key
-        const homeSearchInput = document.querySelector('#home-page .search-bar');
-        if (homeSearchInput) {
-            homeSearchInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') { event.preventDefault(); performSearch(); }
-            });
-        }
-    });
-</script>
-
-</body>
-</html>                }
             });
         });
         
