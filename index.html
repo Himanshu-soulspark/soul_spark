@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,23 +8,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Exo+2:wght@800&display=swap" rel="stylesheet">
 
-code
-Code
-download
-content_copy
-expand_less
+    <!-- Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<!-- Razorpay Script -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
         }
-    }
-</script>
+    </script>
+
 <style>
     /* Basic body styling */
     body {
@@ -289,7 +283,6 @@ expand_less
     .nav-item span { font-size: 12px; }
     .nav-item.active, .nav-item:hover { color: #008CBA; }
 </style>
-
 </head>
 <body>
 
@@ -313,7 +306,6 @@ expand_less
 </div>
 
 <!-- HOME PAGE -->
-
 <div id="home-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -360,7 +352,6 @@ expand_less
 </div>
 
 <!-- CARE PAGE -->
-
 <div id="care-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -412,7 +403,6 @@ expand_less
 </div>
 
 <!-- TRACKER PAGE -->
-
 <div id="tracker-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -444,7 +434,6 @@ expand_less
 </div>
 
 <!-- DISEASE PREDICTION PAGE -->
-
 <div id="disease-prediction-page" class="page">
     <header id="header">
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
@@ -462,7 +451,6 @@ expand_less
 </div>
 
 <!-- DISEASE INFO PAGE -->
-
 <div id="disease-info-page" class="page">
     <header id="header">
         <div class="back-icon" onclick="goBackToTracker()">&#8592; Back</div>
@@ -479,7 +467,6 @@ expand_less
 </div>
 
 <!-- CONSULTANT PAGE -->
-
 <div id="consultant-page" class="page">
     <header id="header">
         <div class="menu-icon" onclick="showSideMenu()">&#9776;</div>
@@ -493,66 +480,57 @@ expand_less
 </div>
 
 <!-- PROFILE PAGE -->
-
 <div id="profile-page" class="page">
     <header id="header">
         <div style="font-weight: bold; font-size: 1.2em; color: #333;">Profile</div>
     </header>
     <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
+        
+        <!-- === START: PROFILE INFO DISPLAY === -->
+        <div id="profile-info-display" class="profile-info-display">
+            <div class="info-group">
+                <label>Name</label>
+                <p id="info-name">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Email</label>
+                <p id="info-email">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Phone Number</label>
+                <p id="info-phone">Not set</p>
+            </div>
+            <div class="info-group">
+                <label>Address</label>
+                <p id="info-address">Not set</p>
+            </div>
+        </div>
+        <!-- === END: PROFILE INFO DISPLAY === -->
 
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-<!-- === START: PROFILE INFO DISPLAY === -->
-    <div id="profile-info-display" class="profile-info-display">
-        <div class="info-group">
-            <label>Name</label>
-            <p id="info-name">Not set</p>
+        <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
+        <form id="profile-form" style="display: none;">
+            <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
+            <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
+            <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
+            <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
+        </form>
+        <!-- === END: PROFILE EDIT FORM === -->
+
+        <div id="profile-main-buttons" class="profile-buttons">
+            <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
+            <button class="profile-btn" id="wallet-btn">Wallet</button>
+            <button class="profile-btn" id="terms-btn">Terms & Conditions</button>
+            <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
         </div>
-        <div class="info-group">
-            <label>Email</label>
-            <p id="info-email">Not set</p>
-        </div>
-        <div class="info-group">
-            <label>Phone Number</label>
-            <p id="info-phone">Not set</p>
-        </div>
-        <div class="info-group">
-            <label>Address</label>
-            <p id="info-address">Not set</p>
+
+        <div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
+            <button class="profile-btn" id="save-profile-btn">Save Profile</button>
+            <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
         </div>
     </div>
-    <!-- === END: PROFILE INFO DISPLAY === -->
-
-    <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
-    <form id="profile-form" style="display: none;">
-        <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
-        <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
-        <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
-        <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
-    </form>
-    <!-- === END: PROFILE EDIT FORM === -->
-
-    <div id="profile-main-buttons" class="profile-buttons">
-        <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
-        <button class="profile-btn" id="wallet-btn">Wallet</button>
-        <button class="profile-btn" id="terms-btn">Terms & Conditions</button>
-        <button class="profile-btn logout-btn" id="logout-btn">Log Out</button>
-    </div>
-
-    <div id="profile-edit-buttons" class="profile-buttons" style="display: none;">
-        <button class="profile-btn" id="save-profile-btn">Save Profile</button>
-        <button class="profile-btn logout-btn" id="cancel-edit-btn">Cancel</button>
-    </div>
-</div>
 </div>
 
 <!-- SIDE MENU -->
-
 <div id="side-menu">
     <div class="menu-header">Menu <span class="close-menu" onclick="hideSideMenu()">&times;</span></div>
     <div class="menu-options">
@@ -564,7 +542,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- WALLET MODAL -->
-
 <div id="wallet-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -592,7 +569,6 @@ IGNORE_WHEN_COPYING_END
 </div>
 
 <!-- TERMS & CONDITIONS MODAL -->
-
 <div id="terms-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -603,37 +579,29 @@ IGNORE_WHEN_COPYING_END
             <h4>1. General Terms</h4>
             <p>By accessing and using the Shubhmed application, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you may not use our service.</p>
 
-code
-Code
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-<h4>2. Coin and Payment Policy</h4>
-        <p>Our service operates on a "Coin" system. These coins are virtual goods and have no real-world monetary value. All purchases of Coin packs are final and strictly non-refundable under any circumstances.</p>
-        
-        <h4>3. Subscription Service & Auto-Payment</h4>
-        <p>By activating our ₹1 trial, you are enrolling in an auto-renewing subscription service. This grants you immediate access to premium features for an initial fee of ₹1, for which you receive 55 Coins.</p>
-        <p>You explicitly agree and authorize Shubhmed to automatically charge your selected payment method for the full subscription amount of **₹2000** at the end of your 3-month billing cycle.</p>
-        
-        <h4>4. Automated Downgrade on Payment Failure (Fallback Plan)</h4>
-        <p>This is a critical part of our subscription agreement. If the automated attempt to charge **₹2000** for your 3-month plan fails for any reason (e.g., insufficient funds), you explicitly authorize Shubhmed to perform the following actions automatically:</p>
-        <ul>
-            <li>Cancel your primary ₹2000 subscription plan.</li>
-            <li>Enroll you in our 15-day fallback subscription plan.</li>
-            <li>Attempt to charge your payment method **₹200** for this 15-day plan on the following day.</li>
-        </ul>
-        <p>This automated downgrade ensures that your access to our services continues with minimal interruption. If the ₹200 charge is successful, you will receive 1000 Coins.</p>
+            <h4>2. Coin and Payment Policy</h4>
+            <p>Our service operates on a "Coin" system. These coins are virtual goods and have no real-world monetary value. All purchases of Coin packs are final and strictly non-refundable under any circumstances.</p>
+            
+            <h4>3. Subscription Service & Auto-Payment</h4>
+            <p>By activating our ₹1 trial, you are enrolling in an auto-renewing subscription service. This grants you immediate access to premium features for an initial fee of ₹1, for which you receive 55 Coins.</p>
+            <p>You explicitly agree and authorize Shubhmed to automatically charge your selected payment method for the full subscription amount of **₹2000** at the end of your 3-month billing cycle.</p>
+            
+            <h4>4. Automated Downgrade on Payment Failure (Fallback Plan)</h4>
+            <p>This is a critical part of our subscription agreement. If the automated attempt to charge **₹2000** for your 3-month plan fails for any reason (e.g., insufficient funds), you explicitly authorize Shubhmed to perform the following actions automatically:</p>
+            <ul>
+                <li>Cancel your primary ₹2000 subscription plan.</li>
+                <li>Enroll you in our 15-day fallback subscription plan.</li>
+                <li>Attempt to charge your payment method **₹200** for this 15-day plan on the following day.</li>
+            </ul>
+            <p>This automated downgrade ensures that your access to our services continues with minimal interruption. If the ₹200 charge is successful, you will receive 1000 Coins.</p>
 
-        <h4>5. User Responsibilities</h4>
-        <p>You are responsible for maintaining sufficient funds in your account for auto-payment and for keeping your payment information up to date. Shubhmed is not responsible for any overdraft or other fees charged by your bank.</p>
+            <h4>5. User Responsibilities</h4>
+            <p>You are responsible for maintaining sufficient funds in your account for auto-payment and for keeping your payment information up to date. Shubhmed is not responsible for any overdraft or other fees charged by your bank.</p>
+        </div>
     </div>
-</div>
 </div>
 
 <!-- PRE-PAYMENT CONSENT MODAL -->
-
 <div id="pre-payment-modal" class="modal">
     <div class="modal-content pre-payment-content">
         <div class="pre-payment-body">
@@ -841,7 +809,7 @@ IGNORE_WHEN_COPYING_END
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
             if (!userDoc.exists()) {
-                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date(), isTrialTaken: false });
+                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date() });
                 updateCoinDisplays(0);
                 updateProfileDisplay({ name: "Not set", email: "Not set", phone: "Not set", address: "Not set" });
             } else {
@@ -892,9 +860,6 @@ IGNORE_WHEN_COPYING_END
     window.closeTerms = function() { termsModal.style.display = 'none'; }
     window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
-    // =========================================================================================
-    // === जरूरी बदलाव सिर्फ इस फंक्शन में किया गया है ताकि ऑटोपे काम करे ===
-    // =========================================================================================
     async function initiatePayment(options) {
         const user = auth.currentUser;
         if (!user) { alert("Please log in to proceed."); return; }
@@ -906,13 +871,17 @@ IGNORE_WHEN_COPYING_END
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...options, token: idToken })
             });
-            const orderData = await response.json(); // इसका नाम order से orderData कर दिया
-            if (!response.ok) { throw new Error(orderData.error || 'Failed to create payment.'); }
+            const order = await response.json();
+            if (!response.ok) { throw new Error(order.error || 'Failed to create payment.'); }
             
-            // यह Razorpay Options का बेस है
-            let rzpOptions = {
-                key: orderData.key_id,
+            const rzpOptions = {
+                key: order.key_id,
+                amount: order.amount, // For one-time payments
+                currency: "INR",
                 name: "Shubhmed",
+                description: "Service Purchase",
+                subscription_id: order.subscription_id, // For subscriptions
+                order_id: order.id, // For one-time payments
                 handler: async function (response) {
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
@@ -934,30 +903,10 @@ IGNORE_WHEN_COPYING_END
                 },
                 theme: { color: "#0077a2" }
             };
-
-            // ---- यहाँ असली लॉजिक है जो सब्सक्रिप्शन और सामान्य पेमेंट को अलग करता है ----
-            if (options.isSubscription) {
-                // अगर सब्सक्रिप्शन है, तो subscription_id का इस्तेमाल करें
-                rzpOptions.subscription_id = orderData.subscription_id;
-                rzpOptions.order_id = orderData.order_id; // मैंडेट (सहमति) के लिए order_id भी जरूरी है
-                rzpOptions.description = "Subscription Mandate Activation";
-            } else {
-                // अगर सामान्य पेमेंट है, तो amount और order.id का इस्तेमाल करें
-                rzpOptions.order_id = orderData.id;
-                rzpOptions.amount = orderData.amount;
-                rzpOptions.description = "Coin Purchase";
-            }
-            // --------------------------------------------------------------------------
-
             const rzp = new Razorpay(rzpOptions);
             rzp.open();
-
         } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
     }
-    // =========================================================================================
-    // === बदलाव यहाँ खत्म होता है ===
-    // =========================================================================================
-
 
     function logOut() {
         signOut(auth).then(() => {
