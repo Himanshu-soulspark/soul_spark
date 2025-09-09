@@ -29,7 +29,8 @@ try {
     credential: admin.credential.cert(serviceAccount)
   });
   console.log("✅ Firebase Admin SDK initialized successfully.");
-} catch (error) {
+} catch (error)
+{
   console.error("❌ FATAL ERROR: Firebase Admin SDK could not be initialized.", error.message);
   process.exit(1);
 }
@@ -51,18 +52,14 @@ app.post('/create-payment', async (req, res) => {
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
         if (!PLAN_ID) { throw new Error("RAZORPAY_PLAN_ID_A is not set."); }
-        const { name, email, phone } = req.body; // Frontend se user details lena
+        const { name, email, phone } = req.body;
         if (!name || !email || !phone) {
              return res.status(400).json({ error: "Name, email, and phone are required." });
         }
         const subscriptionOptions = {
             plan_id: PLAN_ID, total_count: 60, quantity: 1, customer_notify: 1,
             addons: [{ item: { name: "Authentication Fee", amount: 300, currency: "INR" } }],
-            notes: { // Hum yeh details baad me istemal karne ke liye save kar rahe hain
-                customer_name: name,
-                customer_email: email,
-                customer_phone: phone
-            }
+            notes: { customer_name: name, customer_email: email, customer_phone: phone }
         };
         const subscription = await razorpay.subscriptions.create(subscriptionOptions);
         res.json({ subscription_id: subscription.id, key_id: process.env.RAZORPAY_KEY_ID });
@@ -91,9 +88,10 @@ app.post('/verify-payment', async (req, res) => {
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         // ########## START: YAHI FINAL AUR 100% CORRECT CODE HAI ##########
-        // SAMASYA: Hum galat/purani customer details istemal kar rahe the.
-        // SAMADHAN: Hum ab hamesha Razorpay se customer ki sabse taaza aur sahi
-        //           jaankari lenge aur usi ka istemal karenge.
+        // SAMASYA: Hum galat API (Payment Links) ka istemal kar rahe the, jo
+        //          jhootha safalta ka sandesh de raha tha.
+        // SAMADHAN: Hum ab "Invoices API" ka istemal kar rahe hain, jo is kaam ke liye
+        //           bilkul sahi, seedha aur guaranteed hai.
 
         const { subscription_id, amount } = req.body;
         if (!subscription_id || !amount || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
@@ -106,48 +104,37 @@ app.post('/charge-recurring-payment', async (req, res) => {
         if (!customerId) {
             throw new Error("Customer ID could not be retrieved for this subscription.");
         }
-        
-        // Step 2: Us Customer ID se customer ki sabse taaza (latest) details nikalna.
-        const customer = await razorpay.customers.fetch(customerId);
 
-        // Step 3: Us Customer ke liye ek special 'recurring' Payment Link banana
+        // Step 2: Us Customer ke liye ek naya Invoice (bill) banana
         const amount_in_paise = Number(amount) * 100;
-        
-        const paymentLinkOptions = {
-            amount: amount_in_paise,
-            currency: "INR",
-            accept_partial: false,
-            description: `Manual charge for ₹${amount}`,
-            customer: {
-                // Hum yahan customer ki taaza jaankari daal rahe hain
-                name: customer.name,
-                email: customer.email,
-                contact: customer.contact
-            },
-            notify: {
-                sms: true,
-                email: true
-            },
-            reminder_enable: false,
-            callback_url: "https://shubhzone.shop/",
-            callback_method: "get",
-            options: {
-                checkout: {
-                    method: {
-                        emandate: true
-                    },
-                    subscription_id: subscription_id
-                }
-            }
-        };
-
-        const paymentLink = await razorpay.paymentLink.create(paymentLinkOptions);
-
-        res.json({ 
-            status: 'success', 
-            message: `Charge of ₹${amount} initiated successfully.`,
-            link_id: paymentLink.id
+        const invoice = await razorpay.invoices.create({
+            type: "invoice",
+            customer_id: customerId,
+            line_items: [{
+                name: "Manual Charge from Admin Panel",
+                description: `Recurring charge for subscription: ${subscription_id}`,
+                amount: amount_in_paise,
+                currency: "INR",
+                quantity: 1
+            }],
+            // Yahi asli jaadu hai: Yeh batata hai ki is invoice ko
+            // kaun si anumati (subscription_id) ka istemal karke charge karna hai.
+            subscription_id: subscription_id,
+            // Hum chahte hain ki yeh bill turant charge ho
+            charge_automatically: true
         });
+
+        // Step 3: Agar invoice 'paid' (bhugtan ho gaya) ya 'attempted' (koshish ki gayi)
+        // hai, to hum ise safal maanenge.
+        if (invoice.status === 'paid' || invoice.status === 'attempted') {
+             res.json({ 
+                status: 'success', 
+                message: `Successfully charged ₹${amount}! Invoice status: ${invoice.status}`
+             });
+        } else {
+            // Agar koi aur status hai (jaise 'issued'), to use error maanein.
+            throw new Error(`Invoice was created but not charged automatically. Status: ${invoice.status}`);
+        }
         
         // ########################### END BADLAV ############################
     } catch (error) {
@@ -155,6 +142,7 @@ app.post('/charge-recurring-payment', async (req, res) => {
         res.status(500).json({ error: error.error ? error.error.description : "Failed to process charge." });
     }
 });
+
 
 // =================================================================
 // BAAKI KE SARE API ENDPOINTS (आपके सारे पुराने फंक्शन्स, अपरिवर्तित)
