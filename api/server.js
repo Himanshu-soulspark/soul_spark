@@ -415,8 +415,7 @@ app.post('/create-payment', async (req, res) => {
                 customer_id: customerId,
                 method: "upi",
                 token: {
-                    recurring: true,
-                    // auth_type hata diya gaya hai
+                    // recurring hata diya gaya hai
                     max_amount: 200000 // ₹2000 in paise
                 }
             };
