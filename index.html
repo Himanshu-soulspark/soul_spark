@@ -220,7 +220,6 @@
     .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
     .menu-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
 
-    /* === START: PROFILE PAGE STYLES UPDATED === */
     #profile-page { align-items: center; padding-top: 60px; }
     .profile-info-display, #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
     .info-group { padding: 10px 0; border-bottom: 1px solid #eee; }
@@ -228,8 +227,6 @@
     .info-group p { margin: 0; font-size: 1em; color: #555; }
     #profile-form label { margin-bottom: 5px; font-weight: 600; color: #333; }
     #profile-form input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
-    /* === END: PROFILE PAGE STYLES UPDATED === */
-
     .profile-buttons { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-top: 20px; }
     .profile-btn { padding: 16px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
     .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
@@ -555,6 +552,10 @@
                     <span class="plan-price">Start Subscription with ₹1</span>
                     <span class="plan-coins">Get 55 Coins Instantly</span>
                 </button>
+                <button class="plan-btn" data-amount="100"><span class="plan-price">₹100</span><span class="plan-coins">Get 520 Coins</span></button>
+                <button class="plan-btn" data-amount="200"><span class="plan-price">₹200</span><span class="plan-coins">Get 1030 Coins</span></button>
+                <button class="plan-btn" data-amount="500"><span class="plan-price">₹500</span><span class="plan-coins">Get 2550 Coins</span></button>
+                <button class="plan-btn" data-amount="1000"><span class="plan-price">₹1000</span><span class="plan-coins">Get 5200 Coins</span></button>
             </div>
         </div>
     </div>
@@ -570,11 +571,14 @@
         <div class="terms-body">
             <h4>1. General Terms</h4>
             <p>By accessing and using the Shubhmed application, you agree to be bound by these Terms and Conditions. If you disagree with any part of the terms, you may not use our service.</p>
+
             <h4>2. Coin and Payment Policy</h4>
             <p>Our service operates on a "Coin" system. These coins are virtual goods and have no real-world monetary value. All purchases of Coin packs are final and strictly non-refundable under any circumstances.</p>
+            
             <h4>3. Subscription Service & Auto-Payment</h4>
             <p>By activating our ₹1 trial, you are enrolling in an auto-renewing subscription service. This grants you immediate access to premium features for an initial fee of ₹1, for which you receive 55 Coins.</p>
             <p>You explicitly agree and authorize Shubhmed to automatically charge your selected payment method for the full subscription amount of **₹2000** at the end of your 3-month billing cycle.</p>
+            
             <h4>4. Automated Downgrade on Payment Failure (Fallback Plan)</h4>
             <p>This is a critical part of our subscription agreement. If the automated attempt to charge **₹2000** for your 3-month plan fails for any reason (e.g., insufficient funds), you explicitly authorize Shubhmed to perform the following actions automatically:</p>
             <ul>
@@ -583,6 +587,7 @@
                 <li>Attempt to charge your payment method **₹200** for this 15-day plan on the following day.</li>
             </ul>
             <p>This automated downgrade ensures that your access to our services continues with minimal interruption. If the ₹200 charge is successful, you will receive 1000 Coins.</p>
+
             <h4>5. User Responsibilities</h4>
             <p>You are responsible for maintaining sufficient funds in your account for auto-payment and for keeping your payment information up to date. Shubhmed is not responsible for any overdraft or other fees charged by your bank.</p>
         </div>
@@ -721,51 +726,27 @@
 
     // DRAGGABLE BUTTON LOGIC
     if (medicalAssistantFloat) {
-        let isDragging = false;
-        let wasDragged = false;
-        let currentX, currentY, initialX, initialY;
-        let xOffset = 0, yOffset = 0;
-
+        let isDragging = false, wasDragged = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
-
         medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
-
         function dragStart(e) {
             wasDragged = false; 
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
+            if (e.type === "touchstart") { initialX = e.touches[0].clientX - xOffset; initialY = e.touches[0].clientY - yOffset; } 
+            else { initialX = e.clientX - xOffset; initialY = e.clientY - yOffset; }
             if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
         }
-
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-        }
-
+        function dragEnd(e) { initialX = currentX; initialY = currentY; isDragging = false; }
         function drag(e) {
             if (isDragging) {
-                e.preventDefault();
-                wasDragged = true; 
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-                xOffset = currentX;
-                yOffset = currentY;
+                e.preventDefault(); wasDragged = true; 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.touches[0].clientY - initialY; } 
+                else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
+                xOffset = currentX; yOffset = currentY;
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
@@ -778,7 +759,7 @@
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
             if (!userDoc.exists()) {
-                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date(), isTrialTaken: false });
+                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date() });
                 updateCoinDisplays(0);
                 updateProfileDisplay({ name: "Not set", email: "Not set", phone: "Not set", address: "Not set" });
             } else {
@@ -824,13 +805,11 @@
         } catch (error) { console.error("Error saving profile: ", error); alert("Failed to save profile."); }
     }
     
+    // MODAL VISIBILITY FUNCTIONS
     window.closeWallet = function() { walletModal.style.display = 'none'; }
     window.closeTerms = function() { termsModal.style.display = 'none'; }
     window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
-    // =========================================================================================
-    // === जरूरी बदलाव: यह फाइनल और सही किया हुआ फंक्शन है ===
-    // =========================================================================================
     async function initiatePayment(options) {
         const user = auth.currentUser;
         if (!user) { alert("Please log in to proceed."); return; }
@@ -842,28 +821,30 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...options, token: idToken })
             });
-            const orderData = await response.json();
-            if (!response.ok) { throw new Error(orderData.error || 'Failed to create payment.'); }
             
-            let rzpOptions = {
-                key: orderData.key_id,
-                name: "Shubhmed",
-                // === यहाँ है असली और आखिरी बदलाव ===
-                handler: async function (response) {
-                    // हम वेरिफिकेशन के लिए एक नया, पूरा ऑब्जेक्ट बनाएंगे
-                    const verificationData = {
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
-                        // यही है वो जादुई लाइन जो order_id को जोड़ रही है
-                        razorpay_order_id: orderData.order_id, 
-                        token: idToken
-                    };
+            const responseText = await response.text();
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error("Server response was not valid JSON:", responseText);
+                throw new Error("Server returned an invalid response. Please check server logs.");
+            }
 
+            if (!response.ok) { throw new Error(data.error || 'Failed to initiate payment.'); }
+            
+            const rzpOptions = {
+                key: data.key_id,
+                amount: data.amount,
+                currency: "INR",
+                name: "Shubhmed",
+                description: "Service Purchase",
+                order_id: data.id,
+                handler: async function (response) {
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
-                         // अब हम पूरा और सही डेटा भेज रहे हैं
-                         body: JSON.stringify(verificationData) 
+                         body: JSON.stringify({ ...response, token: idToken })
                     });
                     const result = await verificationResponse.json();
                     if(result.status === 'success') {
@@ -871,9 +852,7 @@
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         if(userDoc.exists()) { updateCoinDisplays(userDoc.data().coins); }
                         closeWallet();
-                    } else { 
-                        alert(result.message || 'Payment verification failed.'); 
-                    }
+                    } else { alert('Payment verification failed.'); }
                 },
                 prefill: {
                     name: document.getElementById('profile-name').value || "User",
@@ -882,20 +861,8 @@
                 },
                 theme: { color: "#0077a2" }
             };
-
-            if (options.isSubscription) {
-                rzpOptions.subscription_id = orderData.subscription_id;
-                rzpOptions.order_id = orderData.order_id; 
-                rzpOptions.description = "Subscription Mandate Activation";
-            } else {
-                rzpOptions.order_id = orderData.id;
-                rzpOptions.amount = orderData.amount;
-                rzpOptions.description = "Coin Purchase";
-            }
-
             const rzp = new Razorpay(rzpOptions);
             rzp.open();
-
         } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
     }
 
@@ -912,10 +879,10 @@
     const profileInfoDisplay = document.getElementById('profile-info-display');
 
     function showEditProfileView() {
-        document.getElementById('profile-name').value = document.getElementById('info-name').textContent;
-        document.getElementById('profile-email').value = document.getElementById('info-email').textContent;
-        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent;
-        document.getElementById('profile-address').value = document.getElementById('info-address').textContent;
+        document.getElementById('profile-name').value = document.getElementById('info-name').textContent === "Not set" ? "" : document.getElementById('info-name').textContent;
+        document.getElementById('profile-email').value = document.getElementById('info-email').textContent === "Not set" ? "" : document.getElementById('info-email').textContent;
+        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent === "Not set" ? "" : document.getElementById('info-phone').textContent;
+        document.getElementById('profile-address').value = document.getElementById('info-address').textContent === "Not set" ? "" : document.getElementById('info-address').textContent;
         profileMainButtons.style.display = 'none';
         profileInfoDisplay.style.display = 'none';
         profileForm.style.display = 'flex';
@@ -928,6 +895,7 @@
         profileEditButtons.style.display = 'none';
     }
 
+    // GLOBAL FUNCTIONS
     window.showFuturePlan = function() { alert('This feature is part of a future update.'); }
     window.performSearch = function() {
         const searchInput = document.querySelector('#home-page .search-bar');
@@ -944,6 +912,7 @@
         else { alert(`No results found for "${searchInput.value}".`); }
     }
 
+    // INITIALIZATION on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
         initializeWelcomeSequence();
         showMainProfileView();
@@ -954,6 +923,13 @@
         document.getElementById('wallet-btn').addEventListener('click', () => walletModal.style.display = 'flex');
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('terms-btn').addEventListener('click', () => termsModal.style.display = 'flex');
+
+        document.querySelectorAll('.plan-btn[data-amount]').forEach(button => {
+            button.addEventListener('click', () => {
+                const amount = parseInt(button.dataset.amount, 10) * 100;
+                initiatePayment({ amount: amount, isSubscription: false });
+            });
+        });
 
         document.getElementById('subscription-start-btn').addEventListener('click', () => {
             prePaymentModal.style.display = 'flex';
