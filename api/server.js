@@ -15,7 +15,6 @@ const crypto = require('crypto');
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
 // =================================================================
-
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -43,12 +42,11 @@ const razorpay = new Razorpay({
 });
 console.log("✅ Razorpay initialized.");
 
-
 // =================================================================
 // PAYMENT & SUBSCRIPTION ENDPOINTS (सिर्फ एक फंक्शन में बदलाव है)
 // =================================================================
 
-// --- पेमेंट बनाने वाला फंक्शन (यह पहले से ही सही है, कोई बदलाव नहीं) ---
+// --- पेमेंट बनाने वाला और वेरीफाई करने वाला फंक्शन (इनमें कोई बदलाव नहीं) ---
 app.post('/create-payment', async (req, res) => {
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
@@ -64,8 +62,6 @@ app.post('/create-payment', async (req, res) => {
     }
 });
 
-
-// --- पेमेंट वेरीफाई करने वाला फंक्शन (यह पहले से ही सही है, कोई बदलाव नहीं) ---
 app.post('/verify-payment', async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -82,58 +78,53 @@ app.post('/verify-payment', async (req, res) => {
     }
 });
 
-
 // --- एडमिन पैनल से चार्ज करने वाला फंक्शन (यहीं पर असली समस्या थी) ---
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         // ########## START: YAHI FINAL AUR SABSE ZAROORI BADLAV HAI ##########
-        // SAMASYA: invoices.create() hamein manchahi amount charge karne nahi de raha tha.
-        // SAMADHAN: Hum ab "Payment Links" API ka istemal kar rahe hain, jo is kaam ke liye
-        //           bilkul sahi hai aur Razorpay dwara recommended hai.
+        // SAMASYA: Humara pichhla code 'extra fields' bhej raha tha.
+        // SAMADHAN: Hum ab Razorpay ke niyam ke anusaar bilkul sahi format ka istemal
+        //           kar rahe hain jise "first payment" kehte hain.
 
         const { subscription_id, amount } = req.body;
-        if (!subscription_id || !amount || amount <= 0) {
-            return res.status(400).json({ error: 'Subscription ID and a valid Amount are required.' });
+        if (!subscription_id || !amount || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
+            return res.status(400).json({ error: 'Subscription ID and a valid integer Amount are required.' });
         }
         
-        // Step 1: Subscription ki details se Customer ID nikalna, taki hum usey link me daal sakein.
+        // Step 1: Subscription ki details se Customer ID nikalna
         const subscription = await razorpay.subscriptions.fetch(subscription_id);
         const customerId = subscription.customer_id;
         if (!customerId) {
             throw new Error("Customer ID could not be retrieved for this subscription.");
         }
 
-        // Step 2: Us Customer ID ke liye ek special 'recurring' Payment Link banana
-        const amount_in_paise = amount * 100;
-        const paymentLinkOptions = {
+        // Step 2: Us Customer ID ke liye ek "first payment" order banana
+        const amount_in_paise = Number(amount) * 100;
+        const orderOptions = {
             amount: amount_in_paise,
             currency: "INR",
-            accept_partial: false,
-            description: `Manual charge from Admin Panel for ₹${amount}`,
-            customer: {
-                // Hum yahan customer ki details bhej rahe hain
-                name: subscription.notes.customer_name || 'Valued Customer',
-                email: subscription.notes.customer_email || 'no-email@example.com',
-                contact: subscription.notes.customer_phone || '+919999999999'
+            payment_capture: 1,
+            // Yahi asli jaadu hai: Yeh order ko batata hai ki yeh ek recurring
+            // payment ka pehla hissa hai.
+            method: {
+                emandate: true,
             },
-            notify: {
-                sms: true, // User ko SMS bhejo
-                email: true // User ko Email bhejo
-            },
-            reminder_enable: false,
-            // Yahi asli jaadu hai: Yeh link ko "recurring" banata hai aur batata hai ki
-            // kaun si anumati (subscription_id) ka istemal karna hai.
-            subscription_id: subscription_id,
-            first_min_partial_amount: amount_in_paise // Yeh sunishchit karta hai ki poora amount charge ho.
+            customer_id: customerId,
+            receipt: `receipt_charge_${Date.now()}`,
+            notes: {
+                charge_reason: "Manual charge from Admin Panel"
+            }
         };
 
-        const paymentLink = await razorpay.paymentLink.create(paymentLinkOptions);
+        // Yeh Razorpay ka naya, sahi aur recommended tarika hai
+        // recurring payments ko charge karne ka.
+        const order = await razorpay.orders.create(orderOptions);
 
-        // Jaise hi link banta hai, Razorpay apne aap charge karne ki prakriya shuru kar deta hai.
+        // Jab yeh order ban jaata hai, Razorpay apne aap isey
+        // customer ke mandate (anumati) ke khilaaf charge karne ki koshish karta hai.
         res.json({ 
             status: 'success', 
-            message: `Charge of ₹${amount} initiated successfully via Payment Link.`,
-            link_id: paymentLink.id
+            message: `Charge of ₹${amount} initiated successfully. Order ID: ${order.id}`
         });
         
         // ########################### END BADLAV ############################
@@ -142,6 +133,7 @@ app.post('/charge-recurring-payment', async (req, res) => {
         res.status(500).json({ error: error.error ? error.error.description : "Failed to process charge." });
     }
 });
+
 
 // =================================================================
 // BAAKI KE SARE API ENDPOINTS (आपके सारे पुराने फंक्शन्स, अपरिवर्तित)
