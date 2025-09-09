@@ -82,18 +82,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B. Next charge in 15 minutes.`);
             }
         }
-        else if (event === 'subscription.activated') {
-            const subscription = payload.subscription.entity;
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if(!usersQuery.empty) {
-                const userRef = usersQuery.docs[0].ref;
-                await userRef.update({
-                    coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
-                });
-                console.log(`SUCCESS: Subscription activated for user ${userRef.id}. 55 coins added.`);
-            }
-        }
         
         res.json({ status: 'ok' });
     } catch (error) {
