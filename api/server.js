@@ -19,7 +19,7 @@ const crypto = require('crypto'); // Razorpay Signature को वेरिफ�
 const app = express();
 app.use(cors());
 
-// === START: ZAROORI BADLAV (Body Parser Fix) ===
+// === START: Webhook Body Parser Fix ===
 // Webhook ke liye raw body parser ko alag se handle karein
 app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     // Webhook ka poora logic ab is function ke andar aa gaya hai
@@ -57,8 +57,9 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
             else if (amount === 200) coinsToAdd = 1000;
             
             if (coinsToAdd > 0) {
+                // असली 'active' स्टेटस और बड़ा इनाम यहाँ दिया जाएगा
                 await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
-                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
+                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}. Subscription is now ACTIVE.`);
             }
 
         } else if (event === 'payment.failed') {
@@ -78,9 +79,8 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 
                 await razorpay.subscriptions.cancel(subscriptionId);
 
-                const startTime = new Date();
-                startTime.setHours(startTime.getHours() + 24);
-                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
+                // === जरूरी बदलाव: ऑटोपे का समय 24 घंटे से 15 मिनट किया गया ===
+                const startAtTimestamp = Math.floor((Date.now() / 1000) + 15 * 60); // 15 मिनट बाद
                 
                 const newSubscription = await razorpay.subscriptions.create({
                     plan_id: process.env.RAZORPAY_PLAN_ID_B,
@@ -109,7 +109,7 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
 
 // Baki sabhi routes ke liye JSON parser ka istemal karein
 app.use(express.json({ limit: '10mb' }));
-// === END: ZAROORI BADLAV ===
+// === END: Webhook Body Parser Fix ===
 
 
 // --- Firebase Admin SDK को शुरू करें ---
@@ -153,7 +153,7 @@ console.log("🔑 Face++ API Key Loaded:", process.env.FACEPP_API_KEY ? "Yes" : 
 
 
 // =================================================================
-// 3. API Endpoints (आपके सर्वर के रास्ते - NO CHANGES HERE)
+// 3. API Endpoints (आपके सर्वर के रास्ते - इनमें कोई बदलाव नहीं है)
 // =================================================================
 
 // --- (सुधारा हुआ) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
@@ -501,7 +501,7 @@ app.get('/get-info-by-barcode', async(req, res) => {
 
 
 // =================================================================
-// 4. PAYMENT & SUBSCRIPTION ENDPOINTS
+// 4. PAYMENT & SUBSCRIPTION ENDPOINTS (सबसे ज़रूरी बदलाव यहाँ हैं)
 // =================================================================
 
 app.post('/create-payment', async (req, res) => {
@@ -516,8 +516,9 @@ app.post('/create-payment', async (req, res) => {
         const userData = userDoc.data();
 
         if (isSubscription) {
-            if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
-                return res.status(400).json({ error: "User already has an active subscription." });
+            // यह शर्त यूजर को दोबारा सब्सक्रिप्शन लेने से रोकेगी जब तक पुराना प्रोसेस में है
+            if (userData.razorpaySubscriptionId && (userData.subscriptionStatus === 'active' || userData.subscriptionStatus === 'authenticated' || userData.subscriptionStatus === 'downgraded_pending')) {
+                return res.status(400).json({ error: "You already have a subscription in process." });
             }
 
             let customerId = userData.razorpayCustomerId;
@@ -531,21 +532,21 @@ app.post('/create-payment', async (req, res) => {
                 customerId = customer.id;
             }
             
-            const startTime = new Date();
-            startTime.setHours(startTime.getHours() + 12);
-            const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
+            // === जरूरी बदलाव: ऑटोपे का समय 12 घंटे से 10 मिनट किया गया ===
+            const startAtTimestamp = Math.floor((Date.now() / 1000) + 10 * 60); // अभी से 10 मिनट बाद
 
             const subscriptionOptions = {
-                plan_id: process.env.RAZORPAY_PLAN_ID_A,
+                plan_id: process.env.RAZORPAY_PLAN_ID_A, // यह आपका ₹2000 वाला प्लान है
                 customer_id: customerId,
                 total_count: 12, 
                 start_at: startAtTimestamp,
-                addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}],
+                addons: [{ item: { name: "Initial Sign-up Fee", amount: 100, currency: "INR" }}], // यह ₹1 का पेमेंट है
                 customer_notify: 1
             };
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
+            // यह ₹1 की सहमति (mandate) लेने के लिए एक ऑर्डर है
             const mandateOrderOptions = {
                 amount: 100,
                 currency: "INR",
@@ -561,11 +562,13 @@ app.post('/create-payment', async (req, res) => {
                 razorpayCustomerId: customerId,
                 razorpaySubscriptionId: subscription.id,
                 currentPlan: 'PlanA',
-                subscriptionStatus: 'pending_payment'
+                subscriptionStatus: 'pending_payment' // शुरुआती स्टेटस
             });
             
+            // === जरूरी बदलाव: सबसे ज़रूरी! ब्राउज़र को subscription_id भी भेजना ===
             return res.json({
-                order_id: mandateOrder.id,
+                order_id: mandateOrder.id,        // मैंडेट (सहमति) के लिए
+                subscription_id: subscription.id, // असली सब्सक्रिप्शन को जोड़ने के लिए
                 key_id: process.env.RAZORPAY_KEY_ID
             });
         }
@@ -603,19 +606,34 @@ app.post('/verify-payment', async (req, res) => {
             
             const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
             if (paymentDetails.status === 'authorized') {
-                console.log(`Payment ${razorpay_payment_id} is authorized. Capturing it now.`);
                 await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
-                console.log(`Payment ${razorpay_payment_id} captured successfully.`);
             }
 
             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
             
+            // यह सब्सक्रिप्शन के ₹1 वाले पेमेंट को हैंडल करता है
             if (orderDetails.notes && orderDetails.notes.subscription_id) {
-                 await userRef.update({ 
-                    coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
-                });
-                return res.json({ status: 'success', message: 'Subscription successful! 55 coins added.' });
+                 const userDoc = await userRef.get();
+                 if (!userDoc.exists()) return res.status(404).json({ error: "User not found." });
+                 const userData = userDoc.data();
+
+                // === जरूरी बदलाव: दोबारा ऑफर लेने से रोकने का लॉजिक ===
+                if (userData.isTrialTaken === true) {
+                    // अगर ऑफर पहले ही ले लिया है, तो सिर्फ 5 कॉइन दें
+                    await userRef.update({ 
+                        coins: admin.firestore.FieldValue.increment(5),
+                        subscriptionStatus: 'authenticated' // सही स्टेटस
+                    });
+                    return res.json({ status: 'success', message: 'Subscription mandate successful! 5 coins added.' });
+                } else {
+                    // पहली बार ऑफर लेने पर 55 कॉइन दें
+                    await userRef.update({ 
+                        coins: admin.firestore.FieldValue.increment(55),
+                        subscriptionStatus: 'authenticated', // सही स्टेटस! 'active' नहीं।
+                        isTrialTaken: true // फ्लैग सेट करें ताकि दोबारा 55 कॉइन न मिलें
+                    });
+                    return res.json({ status: 'success', message: 'Subscription mandate successful! 55 coins added.' });
+                }
             }
             else {
                 const amountPaid = orderDetails.amount / 100;
@@ -641,7 +659,7 @@ app.post('/verify-payment', async (req, res) => {
 
 
 // =================================================================
-// 5. WEBSITE SERVING & SERVER START
+// 5. WEBSITE SERVING & SERVER START (इनमें कोई बदलाव नहीं है)
 // =================================================================
 app.use(express.static(path.join(__dirname, '..')));
 app.get('/Features/water.html', (req, res) => res.sendFile(path.join(__dirname, '..', 'Features', 'water.html')));
@@ -653,7 +671,7 @@ app.get('*', (req, res) => {
 
 
 // =================================================================
-// 6. सर्वर को चालू करें
+// 6. सर्वर को चालू करें (इनमें कोई बदलाव नहीं है)
 // =================================================================
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
