@@ -53,7 +53,9 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
             }
         } else if (event === 'payment.failed') {
-            const subscriptionId = payload.payment.entity.notes.subscription_id;
+            // Note: Subscription payment failures might need specific handling based on payment instrument.
+            // This is a generic handler.
+            const subscriptionId = payload.payment.entity.notes.subscription_id; 
             if (!subscriptionId) {
                 return res.json({ status: 'ok, but no subscription ID found' });
             }
@@ -89,6 +91,7 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
         res.status(500).send('Webhook processing error.');
     }
 });
+
 // Baki sabhi routes ke liye JSON parser ka istemal karein
 app.use(express.json({ limit: '10mb' }));
 
@@ -407,15 +410,11 @@ app.post('/create-payment', async (req, res) => {
                 currency: "INR",
                 receipt: `m_rcpt_${Date.now()}`,
                 payment: {
-                    capture: "automatic",
-                    capture_options: {
-                        refund_speed: "normal"
-                    }
+                    capture: "automatic"
                 },
                 customer_id: customerId,
-                method: "upi",
                 token: {
-                    // recurring hata diya gaya hai
+                    recurring: true,
                     max_amount: 200000 // ₹2000 in paise
                 }
             };
@@ -459,6 +458,7 @@ app.post('/verify-payment', async (req, res) => {
 
             // Agar yeh ₹1 wala mandate payment tha
             if (amountPaid === 1 && orderDetails.receipt.startsWith('m_rcpt_')) {
+                // === START: ZAROORI BADLAV (Subscription Creation after Payment) ===
                 const startTime = new Date();
                 startTime.setMinutes(startTime.getMinutes() + 10);
                 const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
@@ -481,6 +481,7 @@ app.post('/verify-payment', async (req, res) => {
                 });
 
                 return res.json({ status: 'success', message: `Subscription successful! ${coinsToAdd} coins added.` });
+                // === END: ZAROORI BADLAV ===
             }
             // Agar yeh one-time payment tha
             else {
