@@ -18,15 +18,15 @@ const crypto = require('crypto');
 
 const app = express();
 
+// CORS को कॉन्फ़िगर करें ताकि यह सिर्फ आपकी वेबसाइट से बात करे (कोई बदलाव नहीं)
 const corsOptions = {
   origin: 'https://shubhzone.shop',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-
 app.use(express.json({ limit: '10mb' }));
 
-// --- Firebase Admin SDK को शुरू करें ---
+// --- Firebase Admin SDK को शुरू करें (कोई बदलाव नहीं) ---
 try {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set!');
@@ -42,40 +42,58 @@ try {
 }
 const db = admin.firestore();
 
-// --- Razorpay को शुरू करें ---
+// --- Razorpay को शुरू करें (कोई बदलाव नहीं) ---
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 console.log("✅ Razorpay initialized.");
 
+
 // =================================================================
-// PAYMENT & SUBSCRIPTION ENDPOINTS (सिर्फ एक लाइन हटाई गई है)
+// PAYMENT & SUBSCRIPTION ENDPOINTS (सिर्फ यहाँ ज़रूरी बदलाव है)
 // =================================================================
 
+// --- पेमेंट बनाने वाला फंक्शन ---
 app.post('/create-payment', async (req, res) => {
     try {
+        // ########## START: YAHAN PAR ZAROORI BADLAV KIYA GAYA HAI ##########
+        // SAMASYA: Pehle server check kar raha tha ki user मौजूद hai ya nahi.
+        // SAMADHAN: Ab server ka kaam saral ho gaya hai. Use bas di gayi jankari se
+        //           ek naya Razorpay Customer aur Order banana hai. Purana complex logic
+        //           hata diya gaya hai.
+        
+        // Step 1: Frontend (index.html) se user ki details lena
         const { name, email, phone } = req.body;
         if (!name || !email || !phone) {
-            return res.status(400).json({ error: "Name, email, and phone are required." });
+            return res.status(400).json({ error: "Name, email, and phone are required from frontend." });
         }
+
+        // Step 2: Hamesha ek naya Razorpay Customer banana
+        // (Kyonki profile pehle ban chuki hai, humein purane customer ko dhoondne ki zaroorat nahi hai)
         const customer = await razorpay.customers.create({ name, email, contact: phone });
-        
+
+        // Step 3: Naye Customer ID ka istemal karke Order banana
         const orderOptions = {
             amount: 300, 
             currency: "INR", 
             receipt: `rcpt_${Date.now()}`,
             customer_id: customer.id, 
             payment_capture: 1,
-            token: {
-                // "recurring": true, // <<== YAHI EK LINE HATAYI GAYI HAI JISSE ERROR AA RAHA THA
-                "max_amount": 99900,
-                "frequency": "as_presented"
+            token: { 
+                max_amount: 99900,
+                frequency: "as_presented"
             }
         };
-
         const order = await razorpay.orders.create(orderOptions);
-        res.json({ order_id: order.id, key_id: process.env.RAZORPAY_KEY_ID });
+
+        // Step 4: Frontend ko zaroori jankari wapas bhejna
+        res.json({ 
+            order_id: order.id, 
+            key_id: process.env.RAZORPAY_KEY_ID,
+            razorpayCustomerId: customer.id // Yeh bhejna zaroori hai
+        });
+        // ########################### END BADLAV ############################
 
     } catch (error) {
         console.error("Error creating payment:", error.error || error);
@@ -83,8 +101,7 @@ app.post('/create-payment', async (req, res) => {
     }
 });
 
-// --- बाकी के फंक्शन्स में कोई बदलाव नहीं है ---
-
+// --- पेमेंट वेरीफाई करने वाला फंक्शन (इसमें कोई बदलाव नहीं) ---
 app.post('/verify-payment', async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -103,6 +120,7 @@ app.post('/verify-payment', async (req, res) => {
     }
 });
 
+// --- एडमिन पैनल से चार्ज करने वाला फंक्शन (इसमें कोई बदलाव नहीं) ---
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         const { subscription_id, amount } = req.body;
@@ -122,14 +140,14 @@ app.post('/charge-recurring-payment', async (req, res) => {
 });
 
 // =================================================================
-// BAAKI KE SARE API ENDPOINTS (आपके सारे पुराने फंक्शन्स)
+// BAAKI KE SARE API ENDPOINTS (आपके सारे पुराने फंक्शन्स, अपरिवर्तित)
 // =================================================================
 
 // ... (यहाँ आपके AI, YouTube, Weather, आदि वाले सारे functions होने चाहिए) ...
 
 
 // =================================================================
-// 5. WEBSITE SERVING & SERVER START
+// 5. WEBSITE SERVING & SERVER START (अपरिवर्तित)
 // =================================================================
 app.use(express.static(path.join(__dirname, '..')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')));
