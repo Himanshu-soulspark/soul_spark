@@ -35,8 +35,8 @@ app.post('/create-payment', async (req, res) => { /* ... code unchanged ... */ }
 app.post('/verify-payment', async (req, res) => { /* ... code unchanged ... */ });
 
 // ########## START: YAHI FINAL AUR SABSE ZAROORI BADLAV HAI ##########
-// SAMASYA: Hum ek extra field (charge_automatically) bhej rahe the.
-// SAMADHAN: Humne us ek line ko hata diya hai.
+// SAMASYA: Hum invoice to bana rahe the, lekin use charge karne ke liye bhej nahi rahe the.
+// SAMADHAN: Hum ab invoice banane ke baad use 'notifyBy' se customer ko bhejenge.
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         const { subscription_id, amount } = req.body;
@@ -62,16 +62,19 @@ app.post('/charge-recurring-payment', async (req, res) => {
                 quantity: 1
             }],
             subscription_id: subscription_id
-            // 'charge_automatically: true' wali line yahan se hata di gayi hai
         });
 
-        if (invoice.status === 'paid' || invoice.status === 'attempted') {
+        if (invoice.id) {
+             // Hum ab invoice banane ke baad use customer ko bhej rahe hain
+             await razorpay.invoices.notifyBy(invoice.id, 'sms');
+             await razorpay.invoices.notifyBy(invoice.id, 'email');
+
              res.json({ 
                 status: 'success', 
-                message: `Successfully charged ₹${amount}! Invoice status: ${invoice.status}`
+                message: `Successfully created and sent invoice for ₹${amount}! Invoice ID: ${invoice.id}`
              });
         } else {
-            throw new Error(`Invoice was created but not charged automatically. Status: ${invoice.status}`);
+            throw new Error(`Invoice could not be created.`);
         }
         
     } catch (error) {
