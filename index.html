@@ -822,30 +822,26 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...options, token: idToken })
             });
-
-            // Yahan hum response ko text ki tarah padhenge, taaki HTML error bhi pakad sakein
-            const responseText = await response.text();
             
+            const responseText = await response.text();
             let data;
             try {
-                // Koshish karo ki response ko JSON ki tarah parse karein
                 data = JSON.parse(responseText);
             } catch (e) {
-                // Agar parse nahi hota, matlab server ne HTML ya koi aur text bheja hai
                 console.error("Server response was not valid JSON:", responseText);
                 throw new Error("Server returned an invalid response. Please check server logs.");
             }
 
             if (!response.ok) { throw new Error(data.error || 'Failed to initiate payment.'); }
             
-            // Agar server 'auth_link' bhejta hai, to user ko redirect karo
+            // This is the old logic for Auth Link, which is no longer used, but kept for safety.
             if (data.auth_link) {
                 closeWallet();
                 window.location.href = data.auth_link;
                 return; 
             }
             
-            // Agar server 'order_id' bhejta hai (one-time payment ke liye)
+            // This is the primary logic for both one-time and subscription mandate payments.
             const rzpOptions = {
                 key: data.key_id,
                 amount: data.amount,
@@ -854,6 +850,7 @@
                 description: "Service Purchase",
                 order_id: data.id,
                 handler: async function (response) {
+                    // Verification is now crucial for both payment types.
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
