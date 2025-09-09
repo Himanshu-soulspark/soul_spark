@@ -18,9 +18,13 @@ const crypto = require('crypto');
 
 const app = express();
 
+// ########## START: ZAROORI BADLAV #1 ##########
+// Hum server ko bata rahe hain ki sirf 'shubhzone.shop' se aane wali request ko hi allow karna hai.
 app.use(cors({
   origin: 'https://shubhzone.shop'
 }));
+// ####################### END BADLAV ########################
+
 
 // --- Firebase Admin SDK को शुरू करें ---
 try {
@@ -58,7 +62,7 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
 app.use(express.json({ limit: '10mb' }));
 
 
-// ########## START: ZAROORI BADLAV #1 - AUTOMATION KE LIYE HELPER FUNCTION ##########
+// ########## START: ZAROORI BADLAV #2 - AUTOMATION KE LIYE HELPER FUNCTION ##########
 // Yeh function paise kaatne ki asli koshish karega
 async function tryChargingUser(subscriptionId, amountInPaise) {
     try {
@@ -99,7 +103,7 @@ app.post('/create-payment', async (req, res) => {
     }
 });
 
-// ########## START: ZAROORI BADLAV #2 - FINAL VERIFICATION LOGIC (KAAM SAUNPNE WALA) ##########
+// ########## START: ZAROORI BADLAV #3 - FINAL VERIFICATION LOGIC (KAAM SAUNPNE WALA) ##########
 app.post('/verify-payment', async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
@@ -129,14 +133,15 @@ app.post('/verify-payment', async (req, res) => {
 // ####################################################################################
 
 
-// ########## START: ZAROORI BADLAV #3 - FINAL CRON JOB LOGIC (KAAM KARNE WALA) ##########
-app.post('/run-automation-tasks', async (req, res) => {
-    const cronSecret = req.headers['x-cron-secret'];
+// ########## START: ZAROORI BADLAV #4 - FINAL CRON JOB LOGIC (UPTIME ROBOT KE LIYE) ##########
+app.get('/run-automation-tasks', async (req, res) => { // app.post se app.get kar diya
+    // Ab hum header ki jagah query se secret lenge
+    const cronSecret = req.query.secret; 
     if (cronSecret !== process.env.CRON_JOB_SECRET) {
         return res.status(401).send('Unauthorized');
     }
 
-    console.log("Cron Job running to process tasks...");
+    console.log("Uptime Robot running to process tasks...");
     const now = admin.firestore.Timestamp.now();
 
     try {
@@ -175,7 +180,7 @@ app.post('/run-automation-tasks', async (req, res) => {
                 }
             }
         }
-        res.status(200).send('Tasks processed.');
+        res.status(200).send('Tasks processed successfully.');
     } catch (error) {
         console.error("Error in Cron Job:", error);
         res.status(500).send('Error processing tasks.');
