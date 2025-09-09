@@ -82,6 +82,18 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B. Next charge in 15 minutes.`);
             }
         }
+        else if (event === 'subscription.activated') {
+            const subscription = payload.subscription.entity;
+            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+            if(!usersQuery.empty) {
+                const userRef = usersQuery.docs[0].ref;
+                await userRef.update({
+                    coins: admin.firestore.FieldValue.increment(55),
+                    subscriptionStatus: 'active'
+                });
+                console.log(`SUCCESS: Subscription activated for user ${userRef.id}. 55 coins added.`);
+            }
+        }
         
         res.json({ status: 'ok' });
     } catch (error) {
@@ -372,16 +384,6 @@ app.post('/create-payment', async (req, res) => {
         const userDoc = await userRef.get();
         if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
         const userData = userDoc.data();
-        
-        const customerId = userData.razorpayCustomerId || (await razorpay.customers.create({
-            name: userData.name || 'Shubhmed User',
-            email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
-            contact: userData.phone || undefined
-        })).id;
-
-        if (!userData.razorpayCustomerId) {
-            await userRef.update({ razorpayCustomerId: customerId });
-        }
 
         // One-Time Payments ke liye
         if (!isSubscription) {
@@ -401,6 +403,16 @@ app.post('/create-payment', async (req, res) => {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
+            const customerId = userData.razorpayCustomerId || (await razorpay.customers.create({
+                name: userData.name || 'Shubhmed User',
+                email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
+                contact: userData.phone || undefined
+            })).id;
+
+            if (!userData.razorpayCustomerId) {
+                await userRef.update({ razorpayCustomerId: customerId });
+            }
+
             // === START: ZAROORI BADLAV (The Final Simplified Logic) ===
             // Hum ab ek saral ₹1 ka Order banayenge jisme mandate set hoga
             const mandateOrderOptions = {
@@ -416,9 +428,7 @@ app.post('/create-payment', async (req, res) => {
                 customer_id: customerId,
                 method: "upi",
                 token: {
-                    // Yahan se "recurring" aur "auth_type" hata diya gaya hai,
-                    // Kyunki Razorpay naye system me iski zaroorat nahi batata
-                    // Lekin max_amount zaroori hai
+                    auth_type: "debit",
                     max_amount: 200000 // ₹2000 in paise
                 }
             };
@@ -475,14 +485,17 @@ app.post('/verify-payment', async (req, res) => {
                     customer_notify: 1
                 });
 
+                // Check if user is eligible for 55 coins or 5 coins
+                const coinsToAdd = (userData.coins || 0) < 55 ? 55 : 5;
+
                 await userRef.update({
-                    coins: admin.firestore.FieldValue.increment(55),
+                    coins: admin.firestore.FieldValue.increment(coinsToAdd),
                     razorpaySubscriptionId: subscription.id,
                     currentPlan: 'PlanA',
                     subscriptionStatus: 'active'
                 });
 
-                return res.json({ status: 'success', message: 'Subscription successful! 55 coins added.' });
+                return res.json({ status: 'success', message: `Subscription successful! ${coinsToAdd} coins added.` });
                 // === END: ZAROORI BADLAV ===
             }
             // Agar yeh one-time payment tha
