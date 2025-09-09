@@ -9,8 +9,8 @@ const Razorpay = require('razorpay');
 const path = require('path');
 const axios = require('axios');
 const { google } = require('googleapis');
-const FormData = require('form-data'); // Face++ API के लिए ज़रूरी
-const crypto = require('crypto'); // Razorpay Signature को वेरिफाई करने के लिए ज़रूरी
+const FormData = require('form-data');
+const crypto = require('crypto');
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें
@@ -18,99 +18,6 @@ const crypto = require('crypto'); // Razorpay Signature को वेरिफ�
 
 const app = express();
 app.use(cors());
-
-// === START: ZAROORI BADLAV (Body Parser Fix) ===
-// Webhook ke liye raw body parser ko alag se handle karein
-app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    // Webhook ka poora logic ab is function ke andar aa gaya hai
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'];
-
-    try {
-        const shasum = crypto.createHmac('sha256', secret);
-        shasum.update(req.body); 
-        const digest = shasum.digest('hex');
-
-        if (digest !== signature) {
-            console.warn('Webhook signature mismatch!');
-            return res.status(400).json({ status: 'Signature mismatch' });
-        }
-
-        const body = JSON.parse(req.body.toString());
-        const event = body.event;
-        const payload = body.payload;
-
-        if (event === 'subscription.charged') {
-            const subscription = payload.subscription.entity;
-            const payment = payload.payment.entity;
-            const amount = payment.amount / 100;
-            
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if (usersQuery.empty) {
-                console.error(`Webhook Error: No user found for subscription ID ${subscription.id}`);
-                return res.json({ status: 'ok' });
-            }
-            const userRef = usersQuery.docs[0].ref;
-
-            let coinsToAdd = 0;
-            if (amount === 2000) coinsToAdd = 11000;
-            else if (amount === 200) coinsToAdd = 1000;
-            
-            if (coinsToAdd > 0) {
-                await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd), subscriptionStatus: 'active' });
-                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
-            }
-
-        } else if (event === 'payment.failed') {
-            const subscriptionId = payload.payment.entity.notes.subscription_id;
-            if (!subscriptionId) {
-                return res.json({ status: 'ok, but no subscription ID found in payment notes' });
-            }
-            
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscriptionId).limit(1).get();
-            if (usersQuery.empty) return res.json({ status: 'ok' });
-            
-            const user = usersQuery.docs[0].data();
-            const userRef = usersQuery.docs[0].ref;
-            
-            if (user.currentPlan === 'PlanA') {
-                console.log(`INFO: Plan A failed for user ${userRef.id}. Downgrading to Plan B.`);
-                
-                await razorpay.subscriptions.cancel(subscriptionId);
-
-                const startTime = new Date();
-                startTime.setHours(startTime.getHours() + 24);
-                const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
-                
-                const newSubscription = await razorpay.subscriptions.create({
-                    plan_id: process.env.RAZORPAY_PLAN_ID_B,
-                    customer_id: user.razorpayCustomerId,
-                    total_count: 24,
-                    start_at: startAtTimestamp,
-                    customer_notify: 1
-                });
-
-                await userRef.update({
-                    razorpaySubscriptionId: newSubscription.id,
-                    currentPlan: 'PlanB',
-                    subscriptionStatus: 'downgraded_pending'
-                });
-                console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B.`);
-            }
-        }
-        
-        res.json({ status: 'ok' });
-
-    } catch (error) {
-        console.error('Error processing webhook:', error);
-        res.status(500).send('Webhook processing error.');
-    }
-});
-
-// Baki sabhi routes ke liye JSON parser ka istemal karein
-app.use(express.json({ limit: '10mb' }));
-// === END: ZAROORI BADLAV ===
-
 
 // --- Firebase Admin SDK को शुरू करें ---
 try {
@@ -130,11 +37,6 @@ try {
 }
 const db = admin.firestore();
 
-// --- Google AI (Gemini) को शुरू करें ---
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-console.log("✅ Google Generative AI initialized.");
-
 // --- Razorpay को शुरू करें ---
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -142,20 +44,114 @@ const razorpay = new Razorpay({
 });
 console.log("✅ Razorpay initialized.");
 
-// --- YouTube API को शुरू करें ---
-const youtube = google.youtube({
-  version: 'v3',
-  auth: process.env.YOUTUBE_API_KEY
+
+// =================================================================
+// WEBHOOK ENDPOINT (सबसे महत्वपूर्ण बदलाव यहाँ है)
+// =================================================================
+
+// Webhook के लिए raw body parser का इस्तेमाल करें
+app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const signature = req.headers['x-razorpay-signature'];
+
+    try {
+        const shasum = crypto.createHmac('sha256', secret);
+        shasum.update(req.body);
+        const digest = shasum.digest('hex');
+
+        if (digest !== signature) {
+            console.warn('Webhook signature mismatch!');
+            return res.status(400).json({ status: 'Signature mismatch' });
+        }
+
+        const body = JSON.parse(req.body.toString());
+        const event = body.event;
+        const payload = body.payload;
+        
+        console.log(`Received Webhook Event: ${event}`);
+
+        // --- सब्सक्रिप्शन पहली बार एक्टिवेट होने पर ---
+        if (event === 'subscription.activated') {
+            const subscription = payload.subscription.entity;
+            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+            
+            if (!usersQuery.empty) {
+                const userRef = usersQuery.docs[0].ref;
+                await userRef.update({ subscriptionStatus: 'active' });
+                console.log(`SUCCESS: Subscription ${subscription.id} for user ${userRef.id} is now ACTIVE.`);
+            } else {
+                 console.error(`Webhook Error: No user found for activated subscription ID ${subscription.id}`);
+            }
+        }
+        // --- हर महीने की पेमेंट सफल होने पर ---
+        else if (event === 'subscription.charged') {
+            const subscription = payload.subscription.entity;
+            const payment = payload.payment.entity;
+            const amount = payment.amount / 100;
+
+            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+            if (usersQuery.empty) {
+                console.error(`Webhook Error: No user found for charged subscription ID ${subscription.id}`);
+                return res.json({ status: 'ok' });
+            }
+            const userRef = usersQuery.docs[0].ref;
+
+            let coinsToAdd = 0;
+            // यह आपके प्लान्स के अनुसार है
+            if (amount === 2000) coinsToAdd = 11000;
+            else if (amount === 200) coinsToAdd = 1000;
+
+            if (coinsToAdd > 0) {
+                await userRef.update({
+                    coins: admin.firestore.FieldValue.increment(coinsToAdd),
+                    subscriptionStatus: 'active' // सुनिश्चित करें कि स्टेटस एक्टिव है
+                });
+                console.log(`SUCCESS: Added ${coinsToAdd} coins to user ${userRef.id} for ₹${amount}.`);
+            }
+        }
+        // --- जब सब्सक्रिप्शन रुक जाए (पेमेंट फेल) ---
+        else if (event === 'subscription.halted') {
+             const subscription = payload.subscription.entity;
+             const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+
+             if(!usersQuery.empty) {
+                 const userRef = usersQuery.docs[0].ref;
+                 await userRef.update({ subscriptionStatus: 'halted' });
+                 console.log(`INFO: Subscription ${subscription.id} for user ${userRef.id} has been HALTED due to payment failure.`);
+                 // यहाँ आप यूज़र को ईमेल या नोटिफिकेशन भेज सकते हैं
+             } else {
+                 console.error(`Webhook Error: No user found for halted subscription ID ${subscription.id}`);
+             }
+        }
+        // --- जब सब्सक्रिप्शन खत्म हो जाए ---
+        else if (event === 'subscription.completed' || event === 'subscription.cancelled') {
+             const subscription = payload.subscription.entity;
+             const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
+
+             if(!usersQuery.empty) {
+                 const userRef = usersQuery.docs[0].ref;
+                 await userRef.update({ subscriptionStatus: 'cancelled' });
+                 console.log(`INFO: Subscription ${subscription.id} for user ${userRef.id} has been cancelled/completed.`);
+             }
+        }
+
+        res.json({ status: 'ok' });
+
+    } catch (error) {
+        console.error('Error processing webhook:', error);
+        res.status(500).send('Webhook processing error.');
+    }
 });
-console.log("✅ YouTube API initialized.");
 
-console.log("🔑 Face++ API Key Loaded:", process.env.FACEPP_API_KEY ? "Yes" : "No");
 
+// बाकी सभी routes के लिए JSON parser का इस्तेमाल करें
+app.use(express.json({ limit: '10mb' }));
 
 // =================================================================
-// 3. API Endpoints (आपके सर्वर के रास्ते - NO CHANGES HERE)
+// 3. API Endpoints (बाकी के कोड में कोई बदलाव नहीं)
 // =================================================================
-
+// ... (आपका /get-food-interaction, /ask-ai, और अन्य सभी endpoints यहाँ वैसे ही रहेंगे) ...
+// (मैंने संक्षिप्तता के लिए उन्हें यहाँ से हटा दिया है, लेकिन आपको उन्हें रखना होगा)
 // --- (सुधारा हुआ) AI से दवा-भोजन इंटरेक्शन पूछने वाला Endpoint ---
 app.post('/get-food-interaction', async(req, res) => {
   try {
@@ -498,15 +494,13 @@ app.get('/get-info-by-barcode', async(req, res) => {
         res.status(500).json({ error: 'Failed to get data for barcode.' });
     }
 });
-
-
 // =================================================================
 // 4. PAYMENT & SUBSCRIPTION ENDPOINTS
 // =================================================================
 
 app.post('/create-payment', async (req, res) => {
     try {
-        const { token, isSubscription } = req.body;
+        const { token, isSubscription, amount } = req.body; // amount को यहाँ भी ले लें
         if (!token) return res.status(400).json({ error: "User token is required." });
 
         const decodedToken = await admin.auth().verifyIdToken(token);
@@ -516,8 +510,9 @@ app.post('/create-payment', async (req, res) => {
         const userData = userDoc.data();
 
         if (isSubscription) {
-            if (userData.razorpaySubscriptionId && userData.subscriptionStatus === 'active') {
-                return res.status(400).json({ error: "User already has an active subscription." });
+            // ... (सब्सक्रिप्शन बनाने का लॉजिक वैसा ही रहेगा) ...
+            if (userData.razorpaySubscriptionId && (userData.subscriptionStatus === 'active' || userData.subscriptionStatus === 'authenticated')) {
+                return res.status(400).json({ error: "You already have an active or pending subscription." });
             }
 
             let customerId = userData.razorpayCustomerId;
@@ -531,12 +526,13 @@ app.post('/create-payment', async (req, res) => {
                 customerId = customer.id;
             }
             
+            // 12 घंटे बाद सब्सक्रिप्शन शुरू होगा
             const startTime = new Date();
             startTime.setHours(startTime.getHours() + 12);
             const startAtTimestamp = Math.floor(startTime.getTime() / 1000);
 
             const subscriptionOptions = {
-                plan_id: process.env.RAZORPAY_PLAN_ID_A,
+                plan_id: process.env.RAZORPAY_PLAN_ID_A, // यह आपका ₹2000 वाला प्लान है
                 customer_id: customerId,
                 total_count: 12, 
                 start_at: startAtTimestamp,
@@ -546,43 +542,34 @@ app.post('/create-payment', async (req, res) => {
 
             const subscription = await razorpay.subscriptions.create(subscriptionOptions);
 
-            const mandateOrderOptions = {
-                amount: 100,
-                currency: "INR",
-                receipt: `m_rcpt_${Date.now()}`,
-                notes: {
-                    subscription_id: subscription.id
-                }
-            };
-            
-            const mandateOrder = await razorpay.orders.create(mandateOrderOptions);
-
+            // यह सब्सक्रिप्शन ID को आपके यूज़र के डेटाबेस में सेव करेगा
             await userRef.update({ 
                 razorpayCustomerId: customerId,
                 razorpaySubscriptionId: subscription.id,
                 currentPlan: 'PlanA',
-                subscriptionStatus: 'pending_payment'
+                subscriptionStatus: 'created' // शुरू में स्टेटस 'created' होगा
             });
-            
+
+            // क्लाइंट को सिर्फ subscription_id और key_id भेजें
             return res.json({
-                order_id: mandateOrder.id,
+                subscription_id: subscription.id,
                 key_id: process.env.RAZORPAY_KEY_ID
             });
-        }
-        else {
-            const { amount } = req.body;
+
+        } else {
+            // One-time payment का लॉजिक
             if(!amount) return res.status(400).json({ error: "Amount is required for one-time payments." });
             const options = { 
                 amount, 
                 currency: "INR", 
-                receipt: `rcpt_${Date.now()}`
+                receipt: `rcpt_one_time_${Date.now()}`
             };
             const order = await razorpay.orders.create(options);
             return res.json({ id: order.id, amount: order.amount, key_id: process.env.RAZORPAY_KEY_ID });
         }
 
     } catch (error) {
-        console.error("Error in /create-payment:", error);
+        console.error("Error in /create-payment:", error.response ? error.response.data : error);
         res.status(500).json({ error: "Could not create payment/subscription." });
     }
 });
@@ -592,50 +579,64 @@ app.post('/verify-payment', async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, token } = req.body;
         if (!token) return res.status(400).json({ error: "Token is required." });
+        
         const decodedToken = await admin.auth().verifyIdToken(token);
         const userRef = db.collection('users').doc(decodedToken.uid);
 
-        let body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-                                      .update(body.toString()).digest('hex');
-
-        if (expectedSignature === razorpay_signature) {
+        // यह one-time payment के लिए है
+        if (razorpay_order_id) {
+             let body = razorpay_order_id + "|" + razorpay_payment_id;
+             const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+                                          .update(body.toString()).digest('hex');
             
-            const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
-            if (paymentDetails.status === 'authorized') {
-                console.log(`Payment ${razorpay_payment_id} is authorized. Capturing it now.`);
-                await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
-                console.log(`Payment ${razorpay_payment_id} captured successfully.`);
-            }
+             if (expectedSignature !== razorpay_signature) {
+                 return res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
+             }
+             
+             // पेमेंट को कैप्चर करें
+             const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+             if (paymentDetails.status === 'authorized') {
+                 await razorpay.payments.capture(razorpay_payment_id, { amount: paymentDetails.amount, currency: "INR" });
+             }
 
-            const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
-            
-            if (orderDetails.notes && orderDetails.notes.subscription_id) {
-                 await userRef.update({ 
-                    coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
-                });
-                return res.json({ status: 'success', message: 'Subscription successful! 55 coins added.' });
-            }
-            else {
-                const amountPaid = orderDetails.amount / 100;
-                let coinsToAdd = 0;
-                if (amountPaid === 100) coinsToAdd = 520;
-                else if (amountPaid === 200) coinsToAdd = 1030;
-                else if (amountPaid === 500) coinsToAdd = 2550;
-                else if (amountPaid === 1000) coinsToAdd = 5200;
+             const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
+             const amountPaid = orderDetails.amount / 100;
+             let coinsToAdd = 0;
+             if (amountPaid === 100) coinsToAdd = 520;
+             else if (amountPaid === 200) coinsToAdd = 1030;
+             else if (amountPaid === 500) coinsToAdd = 2550;
+             else if (amountPaid === 1000) coinsToAdd = 5200;
 
-                if (coinsToAdd > 0) {
-                    await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd) });
-                }
-                return res.json({ status: 'success', message: `${coinsToAdd} coins added.` });
-            }
+             if (coinsToAdd > 0) {
+                 await userRef.update({ coins: admin.firestore.FieldValue.increment(coinsToAdd) });
+             }
+             return res.json({ status: 'success', message: `${coinsToAdd} coins added.` });
+
         } else {
-            return res.status(400).json({ status: 'failure', message: 'Payment verification failed.' });
+             // यह सब्सक्रिप्शन के ₹1 ऑथेंटिकेशन के लिए है
+             const { razorpay_subscription_id } = req.body;
+             const attributes = {
+                 razorpay_payment_id,
+                 razorpay_subscription_id,
+                 razorpay_signature
+             };
+             // Razorpay की लाइब्रेरी से सिग्नेचर वेरिफाई करें
+             razorpay.utils.verifySubscriptionPaymentSignature(attributes);
+             
+             // सिग्नेचर सही है!
+             // डेटाबेस में स्टेटस अपडेट करें और सिक्के दें
+             await userRef.update({ 
+                coins: admin.firestore.FieldValue.increment(55),
+                subscriptionStatus: 'authenticated' // अब स्टेटस 'authenticated' है, 'active' नहीं
+             });
+             
+             console.log(`User ${decodedToken.uid} successfully authenticated subscription ${razorpay_subscription_id}.`);
+             return res.json({ status: 'success', message: 'Subscription authenticated successfully! 55 coins added. Your plan will start in 12 hours.' });
         }
+
     } catch (error) {
         console.error("Error in /verify-payment:", error);
-        res.status(500).json({ error: "Verification failed on server." });
+        res.status(500).json({ status: 'failure', message: error.message || "Verification failed on server." });
     }
 });
 
@@ -650,7 +651,6 @@ app.get('/Features/Health.html', (req, res) => res.sendFile(path.join(__dirname,
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
-
 
 // =================================================================
 // 6. सर्वर को चालू करें
