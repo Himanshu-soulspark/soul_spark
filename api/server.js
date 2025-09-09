@@ -82,18 +82,6 @@ app.post('/razorpay-webhook', express.raw({ type: 'application/json' }), async (
                 console.log(`SUCCESS: Downgraded user ${userRef.id} to Plan B. Next charge in 15 minutes.`);
             }
         }
-        else if (event === 'subscription.activated') {
-            const subscription = payload.subscription.entity;
-            const usersQuery = await db.collection('users').where('razorpaySubscriptionId', '==', subscription.id).limit(1).get();
-            if(!usersQuery.empty) {
-                const userRef = usersQuery.docs[0].ref;
-                await userRef.update({
-                    coins: admin.firestore.FieldValue.increment(55),
-                    subscriptionStatus: 'active'
-                });
-                console.log(`SUCCESS: Subscription activated for user ${userRef.id}. 55 coins added.`);
-            }
-        }
         
         res.json({ status: 'ok' });
     } catch (error) {
@@ -384,6 +372,16 @@ app.post('/create-payment', async (req, res) => {
         const userDoc = await userRef.get();
         if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
         const userData = userDoc.data();
+        
+        const customerId = userData.razorpayCustomerId || (await razorpay.customers.create({
+            name: userData.name || 'Shubhmed User',
+            email: userData.email || `${decodedToken.uid}@shubhmed-app.com`,
+            contact: userData.phone || undefined
+        })).id;
+
+        if (!userData.razorpayCustomerId) {
+            await userRef.update({ razorpayCustomerId: customerId });
+        }
 
         // One-Time Payments ke liye
         if (!isSubscription) {
@@ -403,29 +401,6 @@ app.post('/create-payment', async (req, res) => {
                 return res.status(400).json({ error: "User already has an active subscription." });
             }
 
-            let customerId = userData.razorpayCustomerId;
-            const userEmail = userData.email || `${decodedToken.uid}@shubhmed-app.com`;
-            
-            if (!customerId) {
-                try {
-                    const customers = await razorpay.customers.all({ email: userEmail });
-                    if (customers.items.length > 0) {
-                        customerId = customers.items[0].id;
-                    }
-                } catch (searchError) {
-                    console.error("Error searching for customer, will create a new one.", searchError);
-                }
-            }
-            
-            if (!customerId) {
-                const customer = await razorpay.customers.create({
-                    name: userData.name || 'Shubhmed User',
-                    email: userEmail,
-                    contact: userData.phone || undefined
-                });
-                customerId = customer.id;
-            }
-
             // === START: ZAROORI BADLAV (The Final Simplified Logic) ===
             // Hum ab ek saral ₹1 ka Order banayenge jisme mandate set hoga
             const mandateOrderOptions = {
@@ -441,19 +416,12 @@ app.post('/create-payment', async (req, res) => {
                 customer_id: customerId,
                 method: "upi",
                 token: {
-                    "recurring": true,
-                    "auth_type": "debit",
-                    "max_amount": 200000 // ₹2000 in paise
+                    auth_type: "debit"
                 }
             };
 
             const order = await razorpay.orders.create(mandateOrderOptions);
 
-            await userRef.update({ 
-                razorpayCustomerId: customerId,
-                // Hum subscription ID ko verification ke baad save karenge
-            });
-            
             return res.json({
                 id: order.id,
                 amount: order.amount,
@@ -490,7 +458,7 @@ app.post('/verify-payment', async (req, res) => {
             const amountPaid = orderDetails.amount / 100;
 
             // Agar yeh ₹1 wala mandate payment tha
-            if (amountPaid === 1) {
+            if (amountPaid === 1 && orderDetails.receipt.startsWith('m_rcpt_')) {
                 // === START: ZAROORI BADLAV (Subscription Creation after Payment) ===
                 const startTime = new Date();
                 startTime.setMinutes(startTime.getMinutes() + 10);
