@@ -55,6 +55,7 @@ console.log("✅ Razorpay initialized.");
 // =================================================================
 
 // --- पेमेंट बनाने वाला फंक्शन (इसमें कोई बदलाव नहीं) ---
+// यह फंक्शन पहले से ही सही है और Plan ID का इस्तेमाल करके सब्सक्रिप्शन बनाता है।
 app.post('/create-payment', async (req, res) => {
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
