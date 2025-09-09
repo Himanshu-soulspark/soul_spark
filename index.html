@@ -220,7 +220,6 @@
     .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.35); }
     .menu-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #004d66, 0 6px 12px rgba(0,0,0,0.3); }
 
-    /* === START: PROFILE PAGE STYLES UPDATED === */
     #profile-page { align-items: center; padding-top: 60px; }
     .profile-info-display, #profile-form { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-bottom: 20px; }
     .info-group { padding: 10px 0; border-bottom: 1px solid #eee; }
@@ -228,8 +227,6 @@
     .info-group p { margin: 0; font-size: 1em; color: #555; }
     #profile-form label { margin-bottom: 5px; font-weight: 600; color: #333; }
     #profile-form input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
-    /* === END: PROFILE PAGE STYLES UPDATED === */
-
     .profile-buttons { display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 400px; margin-top: 20px; }
     .profile-btn { padding: 16px 25px; font-size: 1.1em; font-weight: bold; color: #fff; background: linear-gradient(145deg, #0097c9, #007095); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #004d66, 0 12px 20px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.2s ease-in-out; text-align: center; }
     .profile-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #004d66, 0 15px 25px rgba(0,0,0,0.35); }
@@ -486,7 +483,6 @@
     </header>
     <div class="main-content" style="display: flex; flex-direction: column; align-items: center;">
         
-        <!-- === START: PROFILE INFO DISPLAY === -->
         <div id="profile-info-display" class="profile-info-display">
             <div class="info-group">
                 <label>Name</label>
@@ -505,16 +501,13 @@
                 <p id="info-address">Not set</p>
             </div>
         </div>
-        <!-- === END: PROFILE INFO DISPLAY === -->
 
-        <!-- === START: PROFILE EDIT FORM (Initially Hidden) === -->
         <form id="profile-form" style="display: none;">
             <div class="form-group"><label for="profile-name">Name</label><input type="text" id="profile-name" placeholder="Your Name"></div>
             <div class="form-group"><label for="profile-email">Email</label><input type="email" id="profile-email" placeholder="Your Email"></div>
             <div class="form-group"><label for="profile-phone">Phone Number</label><input type="tel" id="profile-phone" placeholder="Your Phone Number"></div>
             <div class="form-group"><label for="profile-address">Address</label><input type="text" id="profile-address" placeholder="Your Address"></div>
         </form>
-        <!-- === END: PROFILE EDIT FORM === -->
 
         <div id="profile-main-buttons" class="profile-buttons">
             <button class="profile-btn" id="edit-profile-btn">Edit Profile</button>
@@ -559,10 +552,10 @@
                     <span class="plan-price">Start Subscription with ₹1</span>
                     <span class="plan-coins">Get 55 Coins Instantly</span>
                 </button>
-                <button class="plan-btn" data-amount="100" data-coins="520"><span class="plan-price">₹100</span><span class="plan-coins">Get 520 Coins</span></button>
-                <button class="plan-btn" data-amount="200" data-coins="1030"><span class="plan-price">₹200</span><span class="plan-coins">Get 1030 Coins</span></button>
-                <button class="plan-btn" data-amount="500" data-coins="2550"><span class="plan-price">₹500</span><span class="plan-coins">Get 2550 Coins</span></button>
-                <button class="plan-btn" data-amount="1000" data-coins="5200"><span class="plan-price">₹1000</span><span class="plan-coins">Get 5200 Coins</span></button>
+                <button class="plan-btn" data-amount="100"><span class="plan-price">₹100</span><span class="plan-coins">Get 520 Coins</span></button>
+                <button class="plan-btn" data-amount="200"><span class="plan-price">₹200</span><span class="plan-coins">Get 1030 Coins</span></button>
+                <button class="plan-btn" data-amount="500"><span class="plan-price">₹500</span><span class="plan-coins">Get 2550 Coins</span></button>
+                <button class="plan-btn" data-amount="1000"><span class="plan-price">₹1000</span><span class="plan-coins">Get 5200 Coins</span></button>
             </div>
         </div>
     </div>
@@ -733,74 +726,31 @@
 
     // DRAGGABLE BUTTON LOGIC
     if (medicalAssistantFloat) {
-        let isDragging = false;
-        let wasDragged = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
-
+        let isDragging = false, wasDragged = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
         medicalAssistantFloat.addEventListener("touchstart", dragStart, false);
         medicalAssistantFloat.addEventListener("touchend", dragEnd, false);
         medicalAssistantFloat.addEventListener("touchmove", drag, false);
-
         medicalAssistantFloat.addEventListener("mousedown", dragStart, false);
         medicalAssistantFloat.addEventListener("mouseup", dragEnd, false);
         medicalAssistantFloat.addEventListener("mousemove", drag, false);
-
-        medicalAssistantFloat.addEventListener('click', (e) => {
-            if (wasDragged) {
-                e.preventDefault(); 
-                wasDragged = false; 
-            }
-        });
-
+        medicalAssistantFloat.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); wasDragged = false; } });
         function dragStart(e) {
             wasDragged = false; 
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
-
-            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) {
-                isDragging = true;
-            }
+            if (e.type === "touchstart") { initialX = e.touches[0].clientX - xOffset; initialY = e.touches[0].clientY - yOffset; } 
+            else { initialX = e.clientX - xOffset; initialY = e.clientY - yOffset; }
+            if (e.target === medicalAssistantFloat || medicalAssistantFloat.contains(e.target)) { isDragging = true; }
         }
-
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-        }
-
+        function dragEnd(e) { initialX = currentX; initialY = currentY; isDragging = false; }
         function drag(e) {
             if (isDragging) {
-                e.preventDefault();
-                wasDragged = true; 
-
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
-
+                e.preventDefault(); wasDragged = true; 
+                if (e.type === "touchmove") { currentX = e.touches[0].clientX - initialX; currentY = e.touches[0].clientY - initialY; } 
+                else { currentX = e.clientX - initialX; currentY = e.clientY - initialY; }
+                xOffset = currentX; yOffset = currentY;
                 setTranslate(currentX, currentY, medicalAssistantFloat);
             }
         }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
-        }
+        function setTranslate(xPos, yPos, el) { el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)"; }
     }
 
     // AUTH, PROFILE, AND PAYMENT LOGIC
@@ -809,7 +759,7 @@
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
             if (!userDoc.exists()) {
-                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date(), isTrialTaken: false });
+                await setDoc(userRef, { uid: user.uid, name: "", email: "", phone: "", address: "", coins: 0, createdAt: new Date() });
                 updateCoinDisplays(0);
                 updateProfileDisplay({ name: "Not set", email: "Not set", phone: "Not set", address: "Not set" });
             } else {
@@ -860,9 +810,7 @@
     window.closeTerms = function() { termsModal.style.display = 'none'; }
     window.closePrePayment = function() { prePaymentModal.style.display = 'none'; }
 
-    // =========================================================================================
-    // === जरूरी बदलाव सिर्फ इस फंक्शन में किया गया है ताकि ऑटोपे काम करे ===
-    // =========================================================================================
+    // === START: ZAROORI BADLAV (Final Payment Logic) ===
     async function initiatePayment(options) {
         const user = auth.currentUser;
         if (!user) { alert("Please log in to proceed."); return; }
@@ -874,14 +822,28 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...options, token: idToken })
             });
-            const orderData = await response.json(); // इसका नाम order से orderData कर दिया
-            if (!response.ok) { throw new Error(orderData.error || 'Failed to create payment.'); }
             
-            // यह Razorpay Options का बेस है
-            let rzpOptions = {
-                key: orderData.key_id,
+            const responseText = await response.text();
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error("Server response was not valid JSON:", responseText);
+                throw new Error("Server returned an invalid response. Please check server logs.");
+            }
+
+            if (!response.ok) { throw new Error(data.error || 'Failed to initiate payment.'); }
+            
+            // This is the primary logic for both one-time and subscription mandate payments.
+            const rzpOptions = {
+                key: data.key_id,
+                amount: data.amount,
+                currency: "INR",
                 name: "Shubhmed",
+                description: "Service Purchase",
+                order_id: data.id,
                 handler: async function (response) {
+                    // Verification is now crucial for both payment types.
                     const verificationResponse = await fetch('/verify-payment', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
@@ -902,30 +864,11 @@
                 },
                 theme: { color: "#0077a2" }
             };
-
-            // ---- यहाँ असली लॉजिक है जो सब्सक्रिप्शन और सामान्य पेमेंट को अलग करता है ----
-            if (options.isSubscription) {
-                // अगर सब्सक्रिप्शन है, तो subscription_id का इस्तेमाल करें
-                rzpOptions.subscription_id = orderData.subscription_id;
-                rzpOptions.order_id = orderData.order_id; // मैंडेट (सहमति) के लिए order_id भी जरूरी है
-                rzpOptions.description = "Subscription Mandate Activation";
-            } else {
-                // अगर सामान्य पेमेंट है, तो amount और order.id का इस्तेमाल करें
-                rzpOptions.order_id = orderData.id;
-                rzpOptions.amount = orderData.amount;
-                rzpOptions.description = "Coin Purchase";
-            }
-            // --------------------------------------------------------------------------
-
             const rzp = new Razorpay(rzpOptions);
             rzp.open();
-
         } catch (error) { console.error("Payment Error: ", error); alert("Error: " + error.message); }
     }
-    // =========================================================================================
-    // === बदलाव यहाँ खत्म होता है ===
-    // =========================================================================================
-
+    // === END: ZAROORI BADLAV ===
 
     function logOut() {
         signOut(auth).then(() => {
@@ -940,11 +883,10 @@
     const profileInfoDisplay = document.getElementById('profile-info-display');
 
     function showEditProfileView() {
-        document.getElementById('profile-name').value = document.getElementById('info-name').textContent;
-        document.getElementById('profile-email').value = document.getElementById('info-email').textContent;
-        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent;
-        document.getElementById('profile-address').value = document.getElementById('info-address').textContent;
-
+        document.getElementById('profile-name').value = document.getElementById('info-name').textContent === "Not set" ? "" : document.getElementById('info-name').textContent;
+        document.getElementById('profile-email').value = document.getElementById('info-email').textContent === "Not set" ? "" : document.getElementById('info-email').textContent;
+        document.getElementById('profile-phone').value = document.getElementById('info-phone').textContent === "Not set" ? "" : document.getElementById('info-phone').textContent;
+        document.getElementById('profile-address').value = document.getElementById('info-address').textContent === "Not set" ? "" : document.getElementById('info-address').textContent;
         profileMainButtons.style.display = 'none';
         profileInfoDisplay.style.display = 'none';
         profileForm.style.display = 'flex';
@@ -986,20 +928,17 @@
         document.getElementById('logout-btn').addEventListener('click', logOut);
         document.getElementById('terms-btn').addEventListener('click', () => termsModal.style.display = 'flex');
 
-        // One-time payment buttons
         document.querySelectorAll('.plan-btn[data-amount]').forEach(button => {
             button.addEventListener('click', () => {
-                const amount = parseInt(button.dataset.amount, 10) * 100; // in paise
+                const amount = parseInt(button.dataset.amount, 10) * 100;
                 initiatePayment({ amount: amount, isSubscription: false });
             });
         });
 
-        // Subscription start button
         document.getElementById('subscription-start-btn').addEventListener('click', () => {
             prePaymentModal.style.display = 'flex';
         });
 
-        // Pre-payment consent modal logic
         const finalConsentCheckbox = document.getElementById('final-consent-checkbox');
         const proceedBtn = document.getElementById('pre-payment-proceed-btn');
         finalConsentCheckbox.addEventListener('change', () => {
@@ -1011,7 +950,6 @@
             initiatePayment({ isSubscription: true });
         });
         
-        // Tracker page buttons
         document.querySelectorAll('.tracker-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 if(button.classList.contains('water-tracker-link')) return; 
@@ -1024,7 +962,6 @@
             });
         });
         
-        // Search bar enter key
         const homeSearchInput = document.querySelector('#home-page .search-bar');
         if (homeSearchInput) {
             homeSearchInput.addEventListener('keypress', function(event) {
