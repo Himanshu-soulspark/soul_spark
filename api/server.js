@@ -51,9 +51,18 @@ app.post('/create-payment', async (req, res) => {
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
         if (!PLAN_ID) { throw new Error("RAZORPAY_PLAN_ID_A is not set."); }
+        const { name, email, phone } = req.body; // Frontend se user details lena
+        if (!name || !email || !phone) {
+             return res.status(400).json({ error: "Name, email, and phone are required." });
+        }
         const subscriptionOptions = {
             plan_id: PLAN_ID, total_count: 60, quantity: 1, customer_notify: 1,
-            addons: [{ item: { name: "Authentication Fee", amount: 300, currency: "INR" } }]
+            addons: [{ item: { name: "Authentication Fee", amount: 300, currency: "INR" } }],
+            notes: { // Hum yeh details baad me istemal karne ke liye save kar rahe hain
+                customer_name: name,
+                customer_email: email,
+                customer_phone: phone
+            }
         };
         const subscription = await razorpay.subscriptions.create(subscriptionOptions);
         res.json({ subscription_id: subscription.id, key_id: process.env.RAZORPAY_KEY_ID });
@@ -82,9 +91,9 @@ app.post('/verify-payment', async (req, res) => {
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         // ########## START: YAHI FINAL AUR 100% CORRECT CODE HAI ##########
-        // SAMASYA: Hum galat API ka istemal kar rahe the.
-        // SAMADHAN: Hum ab "Payment Links" API ka istemal kar rahe hain, jo is kaam ke liye
-        //           bilkul sahi hai aur Razorpay dwara recommended hai.
+        // SAMASYA: Hum galat/purani customer details istemal kar rahe the.
+        // SAMADHAN: Hum ab hamesha Razorpay se customer ki sabse taaza aur sahi
+        //           jaankari lenge aur usi ka istemal karenge.
 
         const { subscription_id, amount } = req.body;
         if (!subscription_id || !amount || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
@@ -98,20 +107,19 @@ app.post('/charge-recurring-payment', async (req, res) => {
             throw new Error("Customer ID could not be retrieved for this subscription.");
         }
         
-        // Step 2: Customer ki details nikalna, jinki zaroorat link banane me padegi.
+        // Step 2: Us Customer ID se customer ki sabse taaza (latest) details nikalna.
         const customer = await razorpay.customers.fetch(customerId);
 
         // Step 3: Us Customer ke liye ek special 'recurring' Payment Link banana
         const amount_in_paise = Number(amount) * 100;
-        const short_url = `https://rzp.io/i/${crypto.randomBytes(4).toString('hex')}`; // Ek unique URL banana
         
         const paymentLinkOptions = {
             amount: amount_in_paise,
             currency: "INR",
             accept_partial: false,
-            short_url: short_url,
             description: `Manual charge for ₹${amount}`,
             customer: {
+                // Hum yahan customer ki taaza jaankari daal rahe hain
                 name: customer.name,
                 email: customer.email,
                 contact: customer.contact
@@ -121,10 +129,8 @@ app.post('/charge-recurring-payment', async (req, res) => {
                 email: true
             },
             reminder_enable: false,
-            callback_url: "https://shubhzone.shop/payment-success", // User ko yahan bhejo
+            callback_url: "https://shubhzone.shop/",
             callback_method: "get",
-            // Yahi asli jaadu hai: Yeh link ko batata hai ki yeh ek recurring payment hai
-            // aur kaun si anumati (subscription_id) ka istemal karna hai.
             options: {
                 checkout: {
                     method: {
@@ -137,7 +143,6 @@ app.post('/charge-recurring-payment', async (req, res) => {
 
         const paymentLink = await razorpay.paymentLink.create(paymentLinkOptions);
 
-        // Jaise hi link banta hai, Razorpay apne aap charge karne ki prakriya shuru kar deta hai.
         res.json({ 
             status: 'success', 
             message: `Charge of ₹${amount} initiated successfully.`,
@@ -163,6 +168,4 @@ app.use(express.static(path.join(__dirname, '..')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '..', 'admin.html')));
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));```
-
-`extra fields sent`) 
+app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
