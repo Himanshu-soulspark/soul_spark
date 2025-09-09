@@ -34,10 +34,9 @@ console.log("✅ Razorpay initialized.");
 app.post('/create-payment', async (req, res) => { /* ... code unchanged ... */ });
 app.post('/verify-payment', async (req, res) => { /* ... code unchanged ... */ });
 
-// ########## START: YAHI FINAL AUR 100% CORRECT CODE HAI ##########
-// SAMASYA: Hum galat API (Invoices) ka istemal kar rahe the.
-// SAMADHAN: Hum ab "Authorization Payments" ka istemal kar rahe hain, jo is kaam
-//           ke liye bilkul sahi, seedha aur guaranteed hai.
+// ########## START: YAHI FINAL AUR SABSE ZAROORI BADLAV HAI ##########
+// SAMASYA: Hum yeh maan rahe the ki har customer ke paas token hoga.
+// SAMADHAN: Hum ab pehle check karenge, aur agar token nahi hai to ek naya banayenge.
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         const { subscription_id, amount } = req.body;
@@ -45,32 +44,45 @@ app.post('/charge-recurring-payment', async (req, res) => {
             return res.status(400).json({ error: 'Subscription ID and a valid integer Amount are required.' });
         }
         
-        // Step 1: Subscription ki details se Customer ID nikalna.
         const subscription = await razorpay.subscriptions.fetch(subscription_id);
         const customerId = subscription.customer_id;
         if (!customerId) {
             throw new Error("Customer ID could not be retrieved for this subscription.");
         }
         
-        // Step 2: Customer ke payment methods (tokens) ko fetch karna.
+        let tokenId;
         const tokens = await razorpay.customers.fetchTokens(customerId);
-        if (!tokens.items || tokens.items.length === 0) {
-            throw new Error("No valid payment method (token) found for this customer.");
+        if (tokens.items && tokens.items.length > 0) {
+            tokenId = tokens.items[0].id;
+        } else {
+            // Agar token nahi hai, to ek naya banayen
+            const newOrder = await razorpay.orders.create({
+                amount: 100, // ₹1 ka amount
+                currency: "INR",
+                payment_capture: 1,
+                customer_id: customerId,
+                method: {
+                    emandate: true,
+                },
+                token: {
+                    "recurring": true,
+                    "max_amount": 99900,
+                    "frequency": "as_presented"
+                }
+            });
+            throw new Error(`No token found. A new authorization link (Order ID: ${newOrder.id}) has been created. Please ask the user to authorize again.`);
         }
-        const latestToken = tokens.items[0];
 
-        // Step 3: Us token ka istemal karke ek naya "Authorization Payment" banana
         const amount_in_paise = Number(amount) * 100;
         const payment = await razorpay.payments.create({
             amount: amount_in_paise,
             currency: "INR",
             customer_id: customerId,
-            token: latestToken.id,
+            token: tokenId,
             recurring: '1',
             description: `Manual charge for ₹${amount} from Admin Panel`
         });
 
-        // Step 4: Is payment ko turant "capture" karna
         const capturedPayment = await razorpay.payments.capture(payment.id, amount_in_paise, "INR");
         
         if (capturedPayment.status === 'captured') {
