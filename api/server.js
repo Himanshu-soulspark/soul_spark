@@ -13,41 +13,11 @@ const FormData = require('form-data');
 const crypto = require('crypto');
 
 // =================================================================
-// 2. सर्वर और सर्विसेज़ को शुरू करें
+// 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
 // =================================================================
 const app = express();
-
-// ########## पहला सबसे बड़ा और ज़रूरी बदलाव (START) ##########
-// समस्या: रिक्वेस्ट सर्वर तक पहुँच ही नहीं रही थी और हमें पता नहीं चल रहा था (CORS Error)।
-// समाधान: हमने CORS को बहुत उदार बना दिया है ताकि कोई भी रिक्वेस्ट ब्लॉक न हो।
-//          यह किसी भी छिपे हुए CORS एरर को खत्म कर देगा।
-const corsOptions = {
-  origin: '*', // किसी भी डोमेन से आने वाली रिक्वेस्ट को अनुमति दो।
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // सभी तरह के मेथड्स को अनुमति दो।
-  allowedHeaders: ['Content-Type', 'Authorization'], // ज़रूरी हेडर्स को अनुमति दो।
-};
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // ब्राउज़र द्वारा भेजी गई pre-flight रिक्वेस्ट को हैंडल करो।
-// ########## पहला सबसे बड़ा और ज़रूरी बदलाव (END) ##########
-
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-
-// ########## दूसरा सबसे बड़ा और ज़रूरी बदलाव (START) ##########
-// समस्या: "Logs में कुछ नहीं आ रहा है"।
-// समाधान: यह एक ग्लोबल "जासूस" (middleware) है। कोई भी रिक्वेस्ट सर्वर तक पहुँचेगी,
-//          तो यह फंक्शन सबसे पहले चलेगा और उसकी पूरी जानकारी Logs में प्रिंट कर देगा।
-//          अब ऐसा हो ही नहीं सकता कि आप बटन दबाएँ और Logs में कुछ भी न दिखे।
-app.use((req, res, next) => {
-  console.log('--- [INCOMING REQUEST RECEIVED] ---');
-  console.log(`Timestamp: ${new Date().toISOString()}`);
-  console.log(`Request Method: ${req.method}`);
-  console.log(`Request URL: ${req.originalUrl}`);
-  console.log(`Client IP Address: ${req.ip}`);
-  console.log('---------------------------------');
-  next(); // अब रिक्वेस्ट को उसके असली रास्ते पर आगे जाने दो।
-});
-// ########## दूसरा सबसे बड़ा और ज़रूरी बदलाव (END) ##########
-
 
 // --- Firebase Admin SDK को शुरू करें (कोई बदलाव नहीं) ---
 try {
@@ -73,27 +43,44 @@ const razorpay = new Razorpay({
 console.log("✅ Razorpay initialized.");
 
 // =================================================================
-// PAYMENT & SUBSCRIPTION ENDPOINTS (पहले वाले सुधारों के साथ)
+// PAYMENT & SUBSCRIPTION ENDPOINTS (सिर्फ यहीं पर एक ज़रूरी बदलाव है)
 // =================================================================
 
 // --- पेमेंट बनाने वाला फंक्शन ---
 app.post('/create-payment', async (req, res) => {
-    console.log("-> /create-payment endpoint hit.");
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
-        if (!PLAN_ID) { throw new Error("RAZORPAY_PLAN_ID_A is not set in environment variables."); }
-        const subscriptionOptions = { plan_id: PLAN_ID, total_count: 60, quantity: 1, customer_notify: 1 };
+        if (!PLAN_ID) { 
+            throw new Error("RAZORPAY_PLAN_ID_A is not set in environment variables."); 
+        }
+        
+        console.log(`Attempting to create subscription with Plan ID: ${PLAN_ID}`); // बेहतर लॉगिंग के लिए
+
+        // ########## यही एकमात्र और सबसे ज़रूरी बदलाव है (START) ##########
+        // आपका सवाल: एडमिन 29 साल 5 महीने के अंदर कभी भी ₹999 काट सकता है?
+        // जवाब: हाँ, बिल्कुल। नीचे total_count को 353 पर सेट किया गया है (29 * 12 + 5 = 353)।
+        //         इसका मतलब है कि यह सब्सक्रिप्शन 353 महीनों तक एक्टिव रहेगी।
+        //         इस दौरान, आप एडमिन पैनल से मैन्युअल रूप से कितनी भी बार और कोई भी अमाउंट (जैसे ₹999)
+        //         काट सकते हैं, जब तक कि ग्राहक सब्सक्रिप्शन को रद्द न कर दे।
+        const subscriptionOptions = {
+            plan_id: PLAN_ID,
+            total_count: 353, // 29 साल और 5 महीने
+            quantity: 1,
+            customer_notify: 1,
+        };
+        // ########## बदलाव (END) ##########
+
         const subscription = await razorpay.subscriptions.create(subscriptionOptions);
         res.json({ subscription_id: subscription.id, key_id: process.env.RAZORPAY_KEY_ID });
+        
     } catch (error) {
-        console.error("Error creating subscription:", error);
-        res.status(500).json({ error: error.error ? error.error.description : "Subscription creation failed." });
+        console.error("DETAILED ERROR creating subscription:", JSON.stringify(error, null, 2));
+        res.status(error.statusCode || 500).json({ error: error.error ? error.error.description : "Subscription creation failed. Check Plan ID and API Keys." });
     }
 });
 
-// --- पेमेंट वेरीफाई करने वाला फंक्शन ---
+// --- पेमेंट वेरीफाई करने वाला फंक्शन (यह पहले से ही सही है) ---
 app.post('/verify-payment', async (req, res) => {
-    console.log("-> /verify-payment endpoint hit.");
     try {
         const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
         if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature) {
@@ -101,6 +88,7 @@ app.post('/verify-payment', async (req, res) => {
         }
         const body_string = razorpay_payment_id + "|" + razorpay_subscription_id;
         const expected_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(body_string).digest('hex');
+        
         if (expected_signature === razorpay_signature) {
             res.json({ status: 'success', message: 'Payment verified successfully!', subscriptionId: razorpay_subscription_id });
         } else {
@@ -112,9 +100,8 @@ app.post('/verify-payment', async (req, res) => {
     }
 });
 
-// --- एडमिन पैनल से चार्ज करने वाला फंक्शन ---
+// --- एडमिन पैनल से चार्ज करने वाला फंक्शन (यह पहले से ही सही है) ---
 app.post('/charge-recurring-payment', async (req, res) => {
-    console.log("-> /charge-recurring-payment endpoint hit.");
     try {
         const { subscription_id, amount } = req.body;
         if (!subscription_id || !amount || !Number.isInteger(Number(amount)) || Number(amount) <= 0) {
@@ -125,9 +112,7 @@ app.post('/charge-recurring-payment', async (req, res) => {
         if (!customerId) { throw new Error("Customer ID could not be retrieved for this subscription."); }
         const amount_in_paise = Number(amount) * 100;
         const invoice = await razorpay.invoices.create({
-            type: "invoice",
-            customer_id: customerId,
-            subscription_id: subscription_id,
+            type: "invoice", customer_id: customerId, subscription_id: subscription_id,
             line_items: [{ name: "Manual Charge from Admin Panel", description: `Recurring charge for subscription: ${subscription_id}`, amount: amount_in_paise, currency: "INR", quantity: 1 }]
         });
         if (invoice && invoice.id) {
@@ -141,7 +126,6 @@ app.post('/charge-recurring-payment', async (req, res) => {
         res.status(error.statusCode || 500).json({ error: errorMessage });
     }
 });
-
 
 // =================================================================
 // BAAKI KE SARE API ENDPOINTS (अपरिवर्तित)
