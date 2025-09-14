@@ -1,4 +1,3 @@
-// ='strict'
 // =================================================================
 // 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (सिर्फ ZEGOCLOUD बदला गया है)
 // =================================================================
@@ -12,7 +11,7 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data');
 const crypto = require('crypto');
-const { generateToken04 } = require('zego-token'); // <--- ZEGOCLOUD के लिए सही पैकेज
+const { RtcTokenBuilder, RtcRole } = require('zego-express-engine'); // <--- ZEGOCLOUD के लिए अंतिम और सही पैकेज
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
@@ -130,34 +129,39 @@ app.post('/charge-recurring-payment', async (req, res) => {
 });
 
 // =================================================================
-// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! सिर्फ़ यहाँ बदलाव किया गया है !!!)
+// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! अंतिम और सही कोड !!!)
 // =================================================================
 app.post('/generate-zego-token', (req, res) => {
     try {
         const { userID } = req.body;
-
-        const appID = Number(process.env.ZEGOCLOUD_APP_ID); // .env से AppID पढ़ें
-        const serverSecret = process.env.ZEGOCLOUD_SERVER_SECRET; // .env से Server Secret पढ़ें
+        const appID = Number(process.env.ZEGOCLOUD_APP_ID);
+        const serverSecret = process.env.ZEGOCLOUD_SERVER_SECRET;
 
         if (!appID || !serverSecret) {
-            return res.status(500).json({ error: "ZEGOCLOUD_APP_ID or ZEGOCLOUD_SERVER_SECRET environment variables are not set." });
+            return res.status(500).json({ error: "ZegoCloud AppID or ServerSecret is not set in environment variables." });
         }
         if (!userID) {
-            return res.status(400).json({ error: "UserID is required to generate a token." });
+            return res.status(400).json({ error: "UserID is required." });
         }
 
-        const effectiveTimeInSeconds = 3600; // टोकन 1 घंटे के लिए मान्य रहेगा
-        const payload = ""; // अतिरिक्त डेटा, अगर ज़रूरत हो तो
+        const effectiveTimeInSeconds = 3600; // टोकन 1 घंटे (3600 सेकंड) के लिए मान्य रहेगा
+        const payload = ''; // इसे खाली छोड़ सकते हैं
 
-        // सुरक्षित टोकन बनाएं (!!! यहाँ ZegoServerAssistant हटा दिया गया ہے !!!)
-        const token = generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
+        // ऑफिशियल zego-express-engine SDK का उपयोग करके टोकन बनाना
+        const token = RtcTokenBuilder.buildTokenWithUid(
+            appID,
+            serverSecret,
+            userID,
+            RtcRole.PUBLISHER, // यूज़र वीडियो भेज और देख दोनों सकता है
+            effectiveTimeInSeconds
+        );
 
-        console.log(`✅ ZegoCloud token generated for UserID: ${userID}`);
-        res.json({ token: token });
+        console.log(`✅ ZegoCloud token generated successfully for UserID: ${userID}`);
+        return res.json({ token: token });
 
     } catch (error) {
         console.error("❌ ERROR generating ZegoCloud token:", error);
-        res.status(500).json({ error: "Failed to generate ZegoCloud token." });
+        return res.status(500).json({ error: "Failed to generate ZegoCloud token." });
     }
 });
 
