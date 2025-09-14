@@ -11,7 +11,7 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data');
 const crypto = require('crypto');
-const { RtcTokenBuilder, RtcRole } = require('zego-express-engine'); // <--- ZEGOCLOUD के लिए अंतिम और सही पैकेज
+const { ZegoServerAssistant } = require('zego-sdk-server-nodejs'); // <--- अंतिम और सही पैकेज
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
@@ -55,21 +55,14 @@ app.post('/create-payment', async (req, res) => {
             throw new Error("RAZORPAY_PLAN_ID_A is not set in environment variables."); 
         }
         
-        console.log(`Attempting to create subscription with Plan ID: ${PLAN_ID}`); // बेहतर लॉगिंग के लिए
+        console.log(`Attempting to create subscription with Plan ID: ${PLAN_ID}`);
 
-        // ########## यही एकमात्र और सबसे ज़रूरी बदलाव है (START) ##########
-        // आपका सवाल: एडमिन 29 साल 5 महीने के अंदर कभी भी ₹999 काट सकता है?
-        // जवाब: हाँ, बिल्कुल। नीचे total_count को 353 पर सेट किया गया है (29 * 12 + 5 = 353)।
-        //         इसका मतलब है कि यह सब्सक्रिप्शन 353 महीनों तक एक्टिव रहेगी।
-        //         इस दौरान, आप एडमिन पैनल से मैन्युअल रूप से कितनी भी बार और कोई भी अमाउंट (जैसे ₹999)
-        //         काट सकते हैं, जब तक कि ग्राहक सब्सक्रिप्शन को रद्द न कर दे।
         const subscriptionOptions = {
             plan_id: PLAN_ID,
-            total_count: 353, // 29 साल और 5 महीने
+            total_count: 353,
             quantity: 1,
             customer_notify: 1,
         };
-        // ########## बदलाव (END) ##########
 
         const subscription = await razorpay.subscriptions.create(subscriptionOptions);
         res.json({ subscription_id: subscription.id, key_id: process.env.RAZORPAY_KEY_ID });
@@ -134,34 +127,29 @@ app.post('/charge-recurring-payment', async (req, res) => {
 app.post('/generate-zego-token', (req, res) => {
     try {
         const { userID } = req.body;
+
         const appID = Number(process.env.ZEGOCLOUD_APP_ID);
         const serverSecret = process.env.ZEGOCLOUD_SERVER_SECRET;
 
         if (!appID || !serverSecret) {
-            return res.status(500).json({ error: "ZegoCloud AppID or ServerSecret is not set in environment variables." });
+            return res.status(500).json({ error: "ZEGOCLOUD_APP_ID or ZEGOCLOUD_SERVER_SECRET environment variables are not set." });
         }
         if (!userID) {
-            return res.status(400).json({ error: "UserID is required." });
+            return res.status(400).json({ error: "UserID is required to generate a token." });
         }
 
-        const effectiveTimeInSeconds = 3600; // टोकन 1 घंटे (3600 सेकंड) के लिए मान्य रहेगा
-        const payload = ''; // इसे खाली छोड़ सकते हैं
+        const effectiveTimeInSeconds = 3600; 
+        const payload = ""; 
 
-        // ऑफिशियल zego-express-engine SDK का उपयोग करके टोकन बनाना
-        const token = RtcTokenBuilder.buildTokenWithUid(
-            appID,
-            serverSecret,
-            userID,
-            RtcRole.PUBLISHER, // यूज़र वीडियो भेज और देख दोनों सकता है
-            effectiveTimeInSeconds
-        );
+        // सही पैकेज का उपयोग करके टोकन बनाना
+        const token = ZegoServerAssistant.generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
 
-        console.log(`✅ ZegoCloud token generated successfully for UserID: ${userID}`);
-        return res.json({ token: token });
+        console.log(`✅ ZegoCloud token generated for UserID: ${userID}`);
+        res.json({ token: token });
 
     } catch (error) {
         console.error("❌ ERROR generating ZegoCloud token:", error);
-        return res.status(500).json({ error: "Failed to generate ZegoCloud token." });
+        res.status(500).json({ error: "Failed to generate ZegoCloud token." });
     }
 });
 
