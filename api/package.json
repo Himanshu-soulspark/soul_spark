@@ -20,6 +20,6 @@
     "firebase-admin": "^12.1.0",
     "googleapis": "^137.1.0",
     "razorpay": "^2.9.4",
-    "zego-token": "^1.0.1"
+    "zego-express-engine": "^1.1.2"
   }
 }
