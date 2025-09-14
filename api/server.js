@@ -1,5 +1,5 @@
 // =================================================================
-// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (सिर्फ ZEGOCLOUD बदला गया है)
+// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (ZEGOCLOUD बदला गया है)
 // =================================================================
 const express = require('express');
 const cors = require('cors');
@@ -11,7 +11,7 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data');
 const crypto = require('crypto');
-const { ZegoServerAssistant } = require('zego-sdk-server-nodejs'); // <--- अंतिम और सही पैकेज
+const { ZegoServerAssistant } = require('./zego_server_assistant_token.js'); // <--- लोकल फ़ाइल को इम्पोर्ट करें
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
@@ -46,34 +46,27 @@ console.log("✅ Razorpay initialized.");
 // =================================================================
 // PAYMENT & SUBSCRIPTION ENDPOINTS (कोई बदलाव नहीं)
 // =================================================================
-
-// --- पेमेंट बनाने वाला फंक्शन ---
 app.post('/create-payment', async (req, res) => {
     try {
         const PLAN_ID = process.env.RAZORPAY_PLAN_ID_A;
         if (!PLAN_ID) { 
             throw new Error("RAZORPAY_PLAN_ID_A is not set in environment variables."); 
         }
-        
         console.log(`Attempting to create subscription with Plan ID: ${PLAN_ID}`);
-
         const subscriptionOptions = {
             plan_id: PLAN_ID,
             total_count: 353,
             quantity: 1,
             customer_notify: 1,
         };
-
         const subscription = await razorpay.subscriptions.create(subscriptionOptions);
         res.json({ subscription_id: subscription.id, key_id: process.env.RAZORPAY_KEY_ID });
-        
     } catch (error) {
         console.error("DETAILED ERROR creating subscription:", JSON.stringify(error, null, 2));
         res.status(error.statusCode || 500).json({ error: error.error ? error.error.description : "Subscription creation failed. Check Plan ID and API Keys." });
     }
 });
 
-// --- पेमेंट वेरीफाई करने वाला फंक्शन (यह पहले से ही सही है) ---
 app.post('/verify-payment', async (req, res) => {
     try {
         const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
@@ -82,7 +75,6 @@ app.post('/verify-payment', async (req, res) => {
         }
         const body_string = razorpay_payment_id + "|" + razorpay_subscription_id;
         const expected_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET).update(body_string).digest('hex');
-        
         if (expected_signature === razorpay_signature) {
             res.json({ status: 'success', message: 'Payment verified successfully!', subscriptionId: razorpay_subscription_id });
         } else {
@@ -94,7 +86,6 @@ app.post('/verify-payment', async (req, res) => {
     }
 });
 
-// --- एडमिन पैनल से चार्ज करने वाला फंक्शन (यह पहले से ही सही है) ---
 app.post('/charge-recurring-payment', async (req, res) => {
     try {
         const { subscription_id, amount } = req.body;
@@ -122,12 +113,11 @@ app.post('/charge-recurring-payment', async (req, res) => {
 });
 
 // =================================================================
-// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! अंतिम और सही कोड !!!)
+// ZEGOCLOUD VIDEO CALL ENDPOINT (लोकल फ़ाइल का उपयोग करके)
 // =================================================================
 app.post('/generate-zego-token', (req, res) => {
     try {
         const { userID } = req.body;
-
         const appID = Number(process.env.ZEGOCLOUD_APP_ID);
         const serverSecret = process.env.ZEGOCLOUD_SERVER_SECRET;
 
@@ -137,11 +127,9 @@ app.post('/generate-zego-token', (req, res) => {
         if (!userID) {
             return res.status(400).json({ error: "UserID is required to generate a token." });
         }
-
         const effectiveTimeInSeconds = 3600; 
         const payload = ""; 
 
-        // सही पैकेज का उपयोग करके टोकन बनाना
         const token = ZegoServerAssistant.generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
 
         console.log(`✅ ZegoCloud token generated for UserID: ${userID}`);
@@ -152,7 +140,6 @@ app.post('/generate-zego-token', (req, res) => {
         res.status(500).json({ error: "Failed to generate ZegoCloud token." });
     }
 });
-
 
 // =================================================================
 // BAAKI KE SARE API ENDPOINTS (अपरिवर्तित)
