@@ -19,7 +19,6 @@
     "express": "^4.19.2",
     "firebase-admin": "^12.1.0",
     "googleapis": "^137.1.0",
-    "razorpay": "^2.9.4",
-    "zego-sdk-server-nodejs": "^1.1.0"
+    "razorpay": "^2.9.4"
   }
 }
