@@ -1,5 +1,5 @@
 // =================================================================
-// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (कोई बदलाव नहीं)
+// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (सिर्फ ZEGOCLOUD जोड़ा गया है)
 // =================================================================
 const express = require('express');
 const cors = require('cors');
@@ -11,6 +11,7 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data');
 const crypto = require('crypto');
+const { ZegoServerAssistant } = require('zego-server-sdk-nodejs'); // <--- ZEGOCLOUD के लिए ज़रूरी
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
@@ -43,7 +44,7 @@ const razorpay = new Razorpay({
 console.log("✅ Razorpay initialized.");
 
 // =================================================================
-// PAYMENT & SUBSCRIPTION ENDPOINTS (सिर्फ यहीं पर एक ज़रूरी बदलाव है)
+// PAYMENT & SUBSCRIPTION ENDPOINTS (कोई बदलाव नहीं)
 // =================================================================
 
 // --- पेमेंट बनाने वाला फंक्शन ---
@@ -126,6 +127,39 @@ app.post('/charge-recurring-payment', async (req, res) => {
         res.status(error.statusCode || 500).json({ error: errorMessage });
     }
 });
+
+// =================================================================
+// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! नया सेक्शन जोड़ा गया !!!)
+// =================================================================
+app.post('/generate-zego-token', (req, res) => {
+    try {
+        const { userID } = req.body;
+
+        const appID = Number(process.env.ZEGOCLOUD_APP_ID); // .env से AppID पढ़ें
+        const serverSecret = process.env.ZEGOCLOUD_SERVER_SECRET; // .env से Server Secret पढ़ें
+
+        if (!appID || !serverSecret) {
+            return res.status(500).json({ error: "ZEGOCLOUD_APP_ID or ZEGOCLOUD_SERVER_SECRET environment variables are not set." });
+        }
+        if (!userID) {
+            return res.status(400).json({ error: "UserID is required to generate a token." });
+        }
+
+        const effectiveTimeInSeconds = 3600; // टोकन 1 घंटे के लिए मान्य रहेगा
+        const payload = ""; // अतिरिक्त डेटा, अगर ज़रूरत हो तो
+
+        // सुरक्षित टोकन बनाएं
+        const token = ZegoServerAssistant.generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
+
+        console.log(`✅ ZegoCloud token generated for UserID: ${userID}`);
+        res.json({ token: token });
+
+    } catch (error) {
+        console.error("❌ ERROR generating ZegoCloud token:", error);
+        res.status(500).json({ error: "Failed to generate ZegoCloud token." });
+    }
+});
+
 
 // =================================================================
 // BAAKI KE SARE API ENDPOINTS (अपरिवर्तित)
