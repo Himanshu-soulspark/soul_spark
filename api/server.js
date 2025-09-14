@@ -1,5 +1,6 @@
+// ='strict'
 // =================================================================
-// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (सिर्फ ZEGOCLOUD जोड़ा गया है)
+// 1. ज़रूरी पैकेजेज़ को इम्पोर्ट करें (सिर्फ ZEGOCLOUD बदला गया है)
 // =================================================================
 const express = require('express');
 const cors = require('cors');
@@ -11,7 +12,7 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const FormData = require('form-data');
 const crypto = require('crypto');
-const { ZegoServerAssistant } = require('zego-server-sdk-nodejs'); // <--- ZEGOCLOUD के लिए ज़रूरी
+const { generateToken04 } = require('zego-token'); // <--- ZEGOCLOUD के लिए सही पैकेज
 
 // =================================================================
 // 2. सर्वर और सर्विसेज़ को शुरू करें (कोई बदलाव नहीं)
@@ -129,7 +130,7 @@ app.post('/charge-recurring-payment', async (req, res) => {
 });
 
 // =================================================================
-// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! नया सेक्शन जोड़ा गया !!!)
+// ZEGOCLOUD VIDEO CALL ENDPOINT (!!! सिर्फ़ यहाँ बदलाव किया गया है !!!)
 // =================================================================
 app.post('/generate-zego-token', (req, res) => {
     try {
@@ -148,8 +149,8 @@ app.post('/generate-zego-token', (req, res) => {
         const effectiveTimeInSeconds = 3600; // टोकन 1 घंटे के लिए मान्य रहेगा
         const payload = ""; // अतिरिक्त डेटा, अगर ज़रूरत हो तो
 
-        // सुरक्षित टोकन बनाएं
-        const token = ZegoServerAssistant.generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
+        // सुरक्षित टोकन बनाएं (!!! यहाँ ZegoServerAssistant हटा दिया गया ہے !!!)
+        const token = generateToken04(appID, userID, serverSecret, effectiveTimeInSeconds, payload);
 
         console.log(`✅ ZegoCloud token generated for UserID: ${userID}`);
         res.json({ token: token });
